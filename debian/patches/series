@@ -9,3 +9,4 @@ Deprecate-unused-options-instead-of-removing-it.patch
 libclammspack-config.patch
 CVE-2020-3341.patch
 CVE-2020-3327.patch
+ff14-allow-multiple-tcp-sockets-in-socket-activation.patch
