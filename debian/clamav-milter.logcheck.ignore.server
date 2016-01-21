@@ -1,0 +1,2 @@
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ clamav-milter\[[0-9]+\]: [_[:alnum:]-]+: [/.[:alnum:]-]+: [._[:alnum:]-]+ Intercepted virus from
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ clamav-milter\[[[:digit:]]{,5}\]: Can't resolve LocalNet hostname unknown$

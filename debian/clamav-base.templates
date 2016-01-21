@@ -1,0 +1,15 @@
+# These templates have been reviewed by the debian-l10n-english
+# team
+#
+# If modifications/additions/rewording are needed, please ask
+# debian-l10n-english@lists.debian.org for advice.
+#
+# Even minor modifications require translation updates and such
+# changes should be coordinated with translators and reviewers.
+
+# This template is needed in common_function, so it has to be part of clamav-base.
+Template: clamav-base/numinfo
+Type: error
+_Description: Mandatory numeric value
+ This question requires a numeric answer.
+

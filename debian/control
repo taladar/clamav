@@ -1,0 +1,286 @@
+Source: clamav
+Section: utils
+Priority: optional
+Maintainer: ClamAV Team <pkg-clamav-devel@lists.alioth.debian.org>
+Uploaders: Stephen Gran <sgran@debian.org>,
+           Michael Meskes <meskes@debian.org>,
+           Michael Tautschnig <mt@debian.org>,
+           Scott Kitterman <scott@kitterman.com>,
+           Sebastian Andrzej Siewior <sebastian@breakpoint.cc>,
+           Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
+Build-Depends: automake,
+               bc,
+               check,
+               debhelper (>= 8.9.7),
+               dh-autoreconf,
+               dh-systemd,
+               electric-fence,
+               libbz2-dev,
+               libcurl4-openssl-dev,
+               libjson-c-dev | libjson0-dev,
+               libltdl-dev,
+               libmilter-dev,
+               libmspack-dev,
+               libncurses5-dev,
+               libssl-dev,
+               libsystemd-dev [linux-any],
+               libtommath-dev,
+               libxml2-dev,
+               llvm-dev [i386 amd64 powerpc kfreebsd-amd64 kfreebsd-i386],
+               perl,
+               pkg-config,
+               po-debconf,
+               python,
+               zlib1g-dev
+Standards-Version: 3.9.6
+Vcs-Git: git://anonscm.debian.org/pkg-clamav/clamav.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-clamav/clamav.git
+Homepage: http://www.clamav.net/
+
+Package: clamav-base
+Architecture: all
+Depends: adduser, logrotate, ucf, ${misc:Depends}
+Recommends: clamav
+Description: anti-virus utility for Unix - base package
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package mainly manages the clamav system account. It is not really
+ useful without the clamav or clamav-daemon package.
+
+Package: clamav-docs
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Description: anti-virus utility for Unix - documentation
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the documentation for the ClamAV suite.
+
+Package: clamav-dbg
+Architecture: any
+Depends: clamav (= ${binary:Version}),
+         libclamav6,
+         ${misc:Depends}
+Priority: extra
+Section: debug
+Description: debug symbols for ClamAV
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the stripped debugging symbols for the ClamAV suite.
+
+Package: clamav
+Architecture: any
+Multi-Arch: foreign
+Depends: clamav-freshclam (>= ${source:Upstream-Version}) | clamav-data,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: clamav-base
+Suggests: clamav-docs
+Description: anti-virus utility for Unix - command-line interface
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the command line interface. Features:
+  - built-in support for various archive formats, including Zip, Tar,
+    Gzip, Bzip2, OLE2, Cabinet, CHM, BinHex, SIS and others;
+  - built-in support for almost all mail file formats;
+  - built-in support for ELF executables and Portable Executable files
+    compressed with UPX, FSG, Petite, NsPack, wwpack32, MEW, Upack and
+    obfuscated with SUE, Y0da Cryptor and others;
+  - built-in support for popular document formats including Microsoft
+    Office and Mac Office files, HTML, RTF and PDF.
+ .
+ For scanning to work, a virus database is needed. There are two options
+ for getting it:
+  - clamav-freshclam: updates the database from Internet. This is
+    recommended with Internet access.
+  - clamav-data: for users without Internet access. The package is
+    not updated once installed. The clamav-getfiles package allows
+    creating custom packages from an Internet-connected computer.
+
+Package: libclamav-dev
+Section: libdevel
+Architecture: any
+Depends: libbz2-dev,
+         libc6-dev | libc-dev,
+         libclamav6 (= ${binary:Version}),
+         libidn11-dev,
+         libssl-dev,
+         libtommath-dev,
+         zlib1g-dev,
+         ${misc:Depends}
+Description: anti-virus utility for Unix - development files
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ The package contains the needed headers and libraries for
+ developing software using the libclamav interface.
+ .
+ This library can be used to develop virus scanner applications.
+
+Package: libclamav6
+Section: libs
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Suggests: libclamunrar6
+Description: anti-virus utility for Unix - library
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ For programs written using the libclamav library. Libclamav may be used to add
+ virus protection into software. The library is thread-safe, and automatically
+ recognizes and scans archives. Scanning is very fast and most of the time
+ not noticeable.
+
+Package: clamav-daemon
+Architecture: any
+Depends: adduser,
+         clamav-base (= ${source:Version}),
+         clamav-freshclam (>= ${source:Upstream-Version}) | clamav-data,
+         dpkg (>= 1.16.1),
+         lsb-base (>= 3.2-13),
+         procps (>= 1:3.3.2),
+         ucf,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: clamdscan
+Suggests: apparmor, clamav-docs, daemon [!hurd-any]
+Breaks: clamav-base (<< 0.98.1+dfsg-6)
+Replaces: clamav-base (<< 0.98.1+dfsg-6)
+Description: anti-virus utility for Unix - scanner daemon
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the daemon featuring:
+  - fast, multi-threaded daemon;
+  - easy integration with MTA's;
+  - support for on-access scanning;
+  - remote scanning;
+  - able to be run supervised by daemon.
+
+Package: clamdscan
+Architecture: any
+Depends: clamav-base (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Breaks: clamd (<< 0.98.5~beta1+dfsg-3)
+Replaces: clamd (<< 0.98.5~beta1+dfsg-3)
+Suggests: clamav-daemon, clamav-docs
+Description: anti-virus utility for Unix - scanner client
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains clamdscan, the command line interface of the clamav
+ daemon.
+
+Package: clamav-testfiles
+Architecture: all
+Depends: ${misc:Depends}
+Description: anti-virus utility for Unix - test files
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains files 'infected' with a test signature. The test
+ signature (ClamAV-Test-Signature) should be detectable by all
+ anti-virus programs.
+
+Package: clamav-freshclam
+Architecture: any
+Conflicts: clamav-data, libclamav2, libclamav3
+Provides: clamav-data
+Suggests: apparmor, clamav-docs
+Depends: clamav-base (>= ${source:Version}),
+         dpkg (>= 1.16.1),
+         logrotate,
+         lsb-base (>= 3.2-13),
+         procps (>= 1:3.3.2),
+         ucf,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Description: anti-virus utility for Unix - virus database update utility
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the freshclam program and scripts to automate virus
+ database updating. It relies on an Internet connection, but can be
+ run in a variety of ways to compensate for intermittent connections.
+
+Package: clamav-milter
+Architecture: any
+Suggests: clamav-docs, daemon [!hurd-any]
+Priority: extra
+Recommends: clamav-daemon
+Depends: adduser,
+         clamav-base (>= ${source:Version}),
+         clamav-freshclam (>= ${source:Upstream-Version}) | clamav-data,
+         dpkg (>= 1.16.1),
+         logrotate,
+         lsb-base (>= 3.2-13),
+         procps (>= 1:3.3.2),
+         ucf,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Description: anti-virus utility for Unix - sendmail integration
+ Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
+ this software is the integration with mail servers (attachment
+ scanning). The package provides a flexible and scalable
+ multi-threaded daemon in the clamav-daemon package, a command-line
+ scanner in the clamav package, and a tool for automatic updating via
+ the Internet in the clamav-freshclam package. The programs are based
+ on libclamav6, which can be used by other software.
+ .
+ This package contains the ClamAV milter for use with sendmail. It can
+ be configured to be run either standalone, or using clamav-daemon.

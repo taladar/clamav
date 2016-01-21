@@ -1,0 +1,409 @@
+#! /bin/sh
+# postinst script for #PACKAGE#
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+#
+# quoting from the policy:
+#     Any necessary prompting should almost always be confined to the
+#     post-installation script, and should be protected with a conditional
+#     so that unnecessary prompting doesn't happen if a package's
+#     installation fails and the `postinst' is called with `abort-upgrade',
+#     `abort-remove' or `abort-deconfigure'.
+
+#loading debconf module
+. /usr/share/debconf/confmodule
+
+#COMMON-FUNCTIONS#
+
+FRESHCLAMCONFFILE=/etc/clamav/freshclam.conf
+FRESHCLAMLOGFILE=/var/log/clamav/freshclam.log
+DEBCONFFILE=/var/lib/clamav/freshclam.conf
+LOGROTFILE=/etc/logrotate.d/clamav-freshclam
+DEBROTFILE=/var/lib/clamav/clamav-freshclam
+
+case "$1" in
+  configure)
+
+  # Configure the hardcoded stuff
+  dbowner=clamav
+  udlogfile="$FRESHCLAMLOGFILE"
+  maxatt=5
+
+  # Read the configuration file
+  slurp_config "$FRESHCLAMCONFFILE"
+
+  # Get the debconf answers
+  db_get clamav-freshclam/local_mirror || true
+  [ "$RET" = "" ] || rawmirrors="$RET"
+  if echo "$rawmirrors" | egrep -q '(\(|\))'; then
+    mirrors=`echo "$rawmirrors" | awk '{print $1}'`
+  else
+    mirrors="$rawmirrors"
+  fi
+  db_get clamav-freshclam/autoupdate_freshclam || true
+  runas="$RET"
+  if [ "$runas" = "ifup.d" ]; then
+    db_get clamav-freshclam/internet_interface || true
+    if [ "$RET" != "" ]; then
+      iface="$RET"
+    else
+      # Like the template promised
+      runas="daemon"
+    fi
+  fi
+  if [ "$runas" = "ifup.d" ] || [ "$runas" = "daemon" ] || [ "$runas" = "cron" ]; then
+    db_get clamav-freshclam/update_interval || true
+    if [ "$RET" != "" ]; then
+      if [ "$runas" != "cron" ]; then
+        checks="$RET"
+      else
+        if [ "$RET" -ge 24 ]; then
+          echo "To check for updates more often than hourly, please run freshclam as a daemon."
+          cronhour=1
+        else
+          cronhour="`expr 24 / $RET`"
+        fi
+      fi
+    fi
+  fi
+  db_get clamav-freshclam/http_proxy || true
+  if [ "$RET" != "" ]; then
+    url="`echo "$RET" | sed -e 's,^http://,,g' | sed -e 's,/$,,g'`"
+    phost="`echo "$url" | cut -d':' -f 1`"
+    pport="`echo "$url" | cut -d':' -f 2`"
+    if [ "$pport" = "$phost" ]; then
+        pport=""
+    fi
+    fullurl="$RET"
+    db_metaget clamav-freshclam/proxy_user value || true
+    if [ "$RET" != "" ]; then
+      fulluser="$RET"
+      puser="`echo "$RET" | cut -d':' -f 1`"
+      ppass="`echo "$RET" | cut -d':' -f 2`"
+    fi
+  fi
+  db_get clamav-freshclam/NotifyClamd || true
+  [ "$RET" = "true" ] && notify="/etc/clamav/clamd.conf"
+  db_get clamav-freshclam/SafeBrowsing || true
+  SafeBrowsing="$RET"
+  db_get clamav-freshclam/Bytecode || true
+  Bytecode="$RET"
+  db_get clamav-freshclam/LogRotate || true
+  LogRotate="$RET"
+  db_get clamav-freshclam/PrivateMirror || true
+  PrivateMirror="$RET"
+
+  # Test for the broken versions, see #741675.
+  if [ "$2" = "0.98.1+dfsg-3" ] || [ "$2" = "0.98.1+dfsg-1+deb7u2" ] || [ "$2" = "0.98.1+dfsg-1+deb6u2" ]; then
+    # Use the defaults instead of the bogus values created by that versions.
+    db_metaget clamav-freshclam/LogRotate default || true
+    LogRotate="$RET"
+    db_metaget clamav-freshclam/PrivateMirror default || true
+    PrivateMirror="$RET"
+  fi
+
+  # Make sure user changes to unasked questions remain intact
+  [ -n "$DatabaseOwner" ] && [ "$DatabaseOwner" != "$dbowner" ] && dbowner="$DatabaseOwner"
+  [ -n "$UpdateLogFile" ] && [ "$UpdateLogFile" != "$udlogfile" ] && udlogfile="$UpdateLogFile"
+  [ -n "$MaxAttempts" ] && [ "$MaxAttempts" != "$maxatt" ] && maxatt="$MaxAttempts"
+
+  if [ -n "$udlogfile" ]; then
+    if echo "$udlogfile" | grep -q '^/dev/'; then
+      make_logrotate=false
+    else
+      if [ "$LogRotate" = "true" ]; then
+        make_logrotate=true
+      else
+        make_logrotate=false
+      fi
+    fi
+    [ -z "$User" ] && User=clamav
+    if [ "$make_logrotate" = 'true' ]; then
+      # update the logrotate file
+      echo "$udlogfile {" > $DEBROTFILE
+      echo "     rotate 12" >> $DEBROTFILE
+      echo "     weekly" >> $DEBROTFILE
+      echo "     compress" >> $DEBROTFILE
+      echo "     delaycompress" >> $DEBROTFILE
+      echo "     missingok" >> $DEBROTFILE
+      echo "     create 640  $User adm" >> $DEBROTFILE
+      echo "     postrotate" >> $DEBROTFILE
+      echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTFILE
+      echo "         systemctl -q is-active clamav-freshclam && systemctl kill --signal=SIGHUP clamav-freshclam" >> $DEBROTFILE
+      echo "     else" >> $DEBROTFILE
+      echo "         /etc/init.d/clamav-freshclam reload-log > /dev/null" >> $DEBROTFILE
+      echo "     fi" >> $DEBROTFILE
+      echo "     endscript" >> $DEBROTFILE
+      echo "     }" >> $DEBROTFILE
+      touch "$udlogfile"
+      if [ -f "$udlogfile" ] && [ ! -L "$udlogfile" ]; then
+        chown "$User":adm "$udlogfile"
+        chmod 0640 "$udlogfile"
+      fi
+      ucf_cleanup "$LOGROTFILE"
+      ucf_upgrade_check "$LOGROTFILE" "$DEBROTFILE" /var/lib/ucf/cache/:etc:logrotate.d:clamav-freshclam
+      rm -f $DEBROTFILE
+    else
+      if [ -e "$LOGROTFILE" ]; then
+        echo "Disabling old logrotate script for clamav-freshclam"
+        mv "$LOGROTFILE" "$CLAMAVROTATEFILE".dpkg-old
+        ucf -p "$LOGROTFILE"
+      fi
+    fi
+  else
+    if [ -e "$LOGROTFILE" ]; then
+      echo "Disabling old logrotate script for clamav-freshclam"
+      mv "$LOGROTFILE" "$CLAMAVROTATEFILE".dpkg-old
+      ucf -p "$LOGROTFILE"
+    fi
+  fi
+
+  # Set up cron method
+  if [ "$runas" = cron ]; then
+    min=$(( `od -A n -N 2 -l  < /dev/urandom`  %  3600 / 60 ))
+    # min=`perl -e 'print int(rand(60))'`
+    FRESHCLAMCRON=/etc/cron.d/clamav-freshclam
+    FRESHCLAMTEMP=/var/lib/clamav/freshclam.cron
+    echo "$min */$cronhour * * *    $dbowner [ -x /usr/bin/freshclam ] && /usr/bin/freshclam --quiet >/dev/null" > "$FRESHCLAMTEMP"
+    ucf_cleanup "$FRESHCLAMCRON"
+    ucf_upgrade_check "$FRESHCLAMCRON" "$FRESHCLAMTEMP" /var/lib/ucf/cache/:etc:cron.d:clamav-freshclam
+    rm -f "${FRESHCLAMCRON}.ucf-dist"
+    rm -f "$FRESHCLAMTEMP"
+  else
+    if [ -e /etc/cron.d/clamav-freshclam ]; then
+      echo -n "Disabling old cron script . . . "
+      mv /etc/cron.d/clamav-freshclam /etc/cron.d/clamav-freshclam.dpkg-old
+      ucf -p /etc/cron.d/clamav-freshclam > /dev/null 2>&1 || true
+      echo "done"
+    fi
+  fi
+  
+  # Set up ifup.d method
+  if [ "$runas" = 'ifup.d' ]; then
+    [ -n "$iface" ] && echo "$iface" > /var/lib/clamav/interface
+  else
+    [ -f /var/lib/clamav/interface ] && rm -f /var/lib/clamav/interface
+
+  fi
+  # Set default values for options not configured via debconf
+  [ -z "$DatabaseDirectory" ] && DatabaseDirectory='/var/lib/clamav'
+  [ -z "$LogFileMaxSize" ] && LogFileMaxSize=0
+  [ -z "$LogTime" ] && LogTime=true
+  [ -z "$LogVerbose" ] && LogVerbose=false
+  [ -z "$LogSyslog" ] && LogSyslog=false
+  [ -z "$LogFacility" ] && LogFacility=LOG_LOCAL6
+  [ -z "$AllowSupplementaryGroups" ] && AllowSupplementaryGroups=false
+  [ -z "$DNSDatabaseInfo" ] && DNSDatabaseInfo='current.cvd.clamav.net'
+  [ -z "$ScriptedUpdates" ] && ScriptedUpdates=yes
+  [ -z "$CompressLocalDatabase" ] && CompressLocalDatabase=no
+  [ -z "$Foreground" ] && Foreground=false
+  [ -z "$Debug" ] && Debug=false
+  [ -z "$ConnectTimeout" ] && ConnectTimeout=30
+  [ -z "$ReceiveTimeout" ] && ReceiveTimeout=30
+  [ -z "$TestDatabases" ] && TestDatabases=yes
+
+  # Generate config file
+  cat >> $DEBCONFFILE << EOF
+# Automatically created by the clamav-freshclam postinst
+# Comments will get lost when you reconfigure the clamav-freshclam package
+
+DatabaseOwner $dbowner
+UpdateLogFile $udlogfile
+LogVerbose $LogVerbose
+LogSyslog $LogSyslog
+LogFacility $LogFacility
+LogFileMaxSize $LogFileMaxSize
+LogRotate $LogRotate
+LogTime $LogTime
+Foreground $Foreground
+Debug $Debug
+MaxAttempts $maxatt
+DatabaseDirectory $DatabaseDirectory
+DNSDatabaseInfo $DNSDatabaseInfo
+AllowSupplementaryGroups $AllowSupplementaryGroups
+ConnectTimeout $ConnectTimeout
+ReceiveTimeout $ReceiveTimeout
+TestDatabases $TestDatabases
+ScriptedUpdates $ScriptedUpdates
+CompressLocalDatabase $CompressLocalDatabase
+SafeBrowsing $SafeBrowsing
+Bytecode $Bytecode
+EOF
+
+  if [ -n "$notify" ] ;then
+    echo "NotifyClamd $notify" >> $DEBCONFFILE
+  fi
+
+  if [ "$runas" != "cron" ] || [ "$runas" != "manual" ]; then
+    if [ -n "$checks" ] && [ "$checks" != "true" ]; then
+      echo "# Check for new database $checks times a day" >> $DEBCONFFILE
+      echo "Checks $checks" >> $DEBCONFFILE
+    fi
+  fi
+  if [ -n "$mirrors" ]; then
+    for i in $mirrors; do
+      echo "DatabaseMirror $i" >> $DEBCONFFILE
+    done
+  fi
+  # the first mirror is managed via debconf (and might have been changed)
+  DatabaseMirror="`echo $DatabaseMirror | sed 's/^[[:space:]]*[^[:space:]]\+[[:space:]]\*//'`"
+  DatabaseMirror="$DatabaseMirror database.clamav.net"
+  for m in $DatabaseMirror; do
+    grep -q "$m" "$DEBCONFFILE" || echo "DatabaseMirror $m" >> $DEBCONFFILE
+  done
+
+  if [ -n "$phost" ]; then
+    echo "# Proxy: $fullurl" >> $DEBCONFFILE
+    echo "HTTPProxyServer $phost" >> $DEBCONFFILE
+    if [ -n "$pport" ]; then
+      echo "HTTPProxyPort $pport" >> $DEBCONFFILE
+    fi
+  fi
+  if [ -n "$puser" ] && [ -n "$ppass" ]; then
+    echo "# Proxy authentication: $fulluser" >> $DEBCONFFILE
+    echo "HTTPProxyUsername $puser" >> $DEBCONFFILE
+    echo "HTTPProxyPassword $ppass" >> $DEBCONFFILE
+  fi
+
+  if `dpkg --compare-versions "$2" lt 0.98.5+dfsg-4~`; then
+    # Remove the PidFile variable from the configuration, if it is the previous default value.
+    if [ "$PidFile" = "/var/run/clamav/freshclam.pid" ]; then
+      PidFile=''
+    fi
+  fi
+  [ -n "$PidFile" ] && echo "PidFile $PidFile" >> $DEBCONFFILE
+  [ -n "$HTTPUserAgent" ] && echo "HTTPUserAgent $HTTPUserAgent" >> $DEBCONFFILE
+  [ -n "$OnOutdatedExecute" ] && echo "OnOutdatedExecute $OnOutdatedExecute" >> $DEBCONFFILE
+  [ -n "$OnUpdateExecute" ] && echo "OnUpdateExecute $OnUpdateExecute" >> $DEBCONFFILE
+  [ -n "$OnErrorExecute" ] && echo "OnErrorExecute $OnErrorExecute" >> $DEBCONFFILE
+  [ -n "$LocalIPAddress" ] && echo "LocalIPAddress $LocalIPAddress" >> $DEBCONFFILE
+  [ -n "$SubmitDetectionStats" ] && echo "SubmitDetectionStats $SubmitDetectionStats" >> $DEBCONFFILE
+  [ -n "$DetectionStatsCountry" ] && echo "DetectionStatsCountry $DetectionStatsCountry" >> $DEBCONFFILE
+  [ -n "$DetectionStatsHostID" ] && echo "DetectionStatsHostID $DetectionStatsHostID" >> $DEBCONFFILE
+  [ -n "$PrivateMirror" ] && echo "PrivateMirror $PrivateMirror" >> $DEBCONFFILE
+  if [ -n "$DatabaseCustomURL" ]; then
+    for i in $DatabaseCustomURL; do
+      echo "DatabaseCustomURL $i" >> $DEBCONFFILE
+    done
+  fi
+  if [ -n "$ExtraDatabase" ]; then
+    for i in $ExtraDatabase; do
+      echo "ExtraDatabase $i" >> $DEBCONFFILE
+    done
+  fi
+  
+  ucf_cleanup "$FRESHCLAMCONFFILE"
+  ucf_upgrade_check "$FRESHCLAMCONFFILE" "$DEBCONFFILE" /var/lib/ucf/cache/:etc:clamav:freshclam.conf
+  rm -f "$DEBCONFFILE"
+
+  db_stop || true
+  
+  # Permissions are still fsck'd - repair manually
+  for script in /etc/network/if-up.d/clamav-freshclam-ifupdown \
+    /etc/network/if-down.d/clamav-freshclam-ifupdown \
+    /etc/ppp/ip-down.d/clamav-freshclam-ifupdown \
+    /etc/ppp/ip-up.d/clamav-freshclam-ifupdown; do
+    if [ -e "$script" ]; then
+      [ -x "$script" ] || chmod +x "$script"
+    fi
+  done
+  touch $FRESHCLAMLOGFILE
+  if [ -f "$FRESHCLAMLOGFILE" ] && [ ! -L "$FRESHCLAMLOGFILE" ]; then
+    chmod 640 $FRESHCLAMLOGFILE
+    chown "$dbowner":adm $FRESHCLAMLOGFILE
+  fi
+  
+  if [ -f "$FRESHCLAMCONFFILE" ] && [ ! -L "$FRESHCLAMCONFFILE" ]; then
+    # Tighten the permissions up if it contains a password
+    if [ -n "$ppass" ]; then
+      chmod 400 $FRESHCLAMCONFFILE
+    else
+      chmod 444 $FRESHCLAMCONFFILE
+    fi
+
+    chown "$dbowner":adm $FRESHCLAMCONFFILE
+  fi
+  
+  if [ "$runas" = 'daemon' ]; then
+    if [ -x "/etc/init.d/clamav-freshclam" ]; then
+      update-rc.d clamav-freshclam defaults >/dev/null
+    fi
+    if pathfind invoke-rc.d; then
+      invoke-rc.d clamav-freshclam start
+    else
+      /etc/init.d/clamav-freshclam start
+    fi
+  elif [ "$runas" = 'ifup.d' ]; then
+    for intrface in $iface; do
+      if route | grep -q "$intrface"; then
+        if pathfind invoke-rc.d; then
+          IFACE="$intrface" invoke-rc.d clamav-freshclam start || true
+        else
+          IFACE="$intrface" /etc/init.d/clamav-freshclam start || true
+        fi
+	break
+      fi
+    done
+    update-rc.d -f clamav-freshclam remove > /dev/null 2>&1
+  else
+    echo "Starting database update: "
+    if pathfind invoke-rc.d; then
+      invoke-rc.d clamav-freshclam no-daemon || true
+    else
+      /etc/init.d/clamav-freshclam no-daemon || true
+    fi
+    update-rc.d -f clamav-freshclam remove > /dev/null 2>&1
+  fi
+  ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+  *)
+  echo "postinst called with unknown argument \`$1'" >&2
+  exit 1
+  ;;
+esac
+
+# AppArmor integration
+if [ "$1" = "configure" ]; then
+    APP_PROFILE=/etc/apparmor.d/usr.bin.freshclam
+    if [ -f "$APP_PROFILE" ]; then
+        # Add the local/ include
+        LOCAL_APP_PROFILE=/etc/apparmor.d/local/usr.bin.freshclam
+
+        test -e "$LOCAL_APP_PROFILE" || {
+            tmp=`mktemp`
+        cat <<EOM > "$tmp"
+# Site-specific additions and overrides for usr.bin.freshclam.
+# For more details, please see /etc/apparmor.d/local/README.
+EOM
+            mkdir `dirname $LOCAL_APP_PROFILE` 2>/dev/null || true
+            mv -f "$tmp" "$LOCAL_APP_PROFILE"
+            chmod 644 "$LOCAL_APP_PROFILE"
+        }
+
+        # Reload the profile, including any abstraction updates
+        if aa-status --enabled 2>/dev/null; then
+            apparmor_parser -r -T -W "$APP_PROFILE" || true
+        fi
+    fi
+fi
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+#DEBHELPER#
+
+exit 0

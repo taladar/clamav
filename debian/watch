@@ -1,0 +1,7 @@
+version=3
+opts="uversionmangle=s/(\d+)-*(beta|rc)/$1~$2/,dversionmangle=s/\+dfsg//,pgpsigurlmangle=s/$/.sig/" \
+https://qa.debian.org/watch/sf.php/clamav/clamav-(.*).tar.gz
+# repository snapshots: fallback location with larger tarballs and without signatures
+#opts="uversionmangle=s/(\d+)-*(beta|rc)/$1~$2/,dversionmangle=s/\+dfsg//" \
+#https://github.com/vrtadmin/clamav-devel/tags /vrtadmin/clamav-devel/archive/clamav-(.*)\.tar\.gz
+

@@ -1,0 +1,198 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          clamav-milter
+# Required-Start:    $remote_fs $syslog
+# Should-Start:      clamav-daemon
+# Required-Stop:     $remote_fs $syslog
+# Should-Stop:       
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ClamAV virus milter
+# Description:       Clam AntiVirus milter interface
+### END INIT INFO
+
+# The exit status codes should comply with LSB.
+# https://refspecs.linuxfoundation.org/LSB_4.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/clamav-milter
+DESC="Sendmail milter plugin for ClamAV"
+NAME=clamav-milter
+CLAMAVCONF=/etc/clamav/clamav-milter.conf
+SUPERVISOR=/usr/bin/daemon
+SUPERVISORNAME=daemon
+SUPERVISORPIDFILE="/var/run/clamav/daemon-clamav-milter.pid"
+SUPERVISORARGS="--name=$NAME --respawn $DAEMON -F $SUPERVISORPIDFILE"
+
+# required by Debian policy 9.3.2
+[ -x "$DAEMON" ] || exit 0
+
+#COMMON-FUNCTIONS#
+
+. /lib/lsb/init-functions
+
+if [ ! -f "$CLAMAVCONF" ]; then
+  log_failure_msg "There is no configuration file for clamav-milter."
+  log_failure_msg "Please either dpkg-reconfigure $DESC, or copy the example from"
+  log_failure_msg "/usr/share/doc/clamav-milter/examples/ to $CLAMAVCONF and run"
+  log_failure_msg "'/etc/init.d/clamav-milter start'"
+  if [ "$1" = "status" ]; then
+    # program or service status is unknown
+    exit 4;
+  else
+    # program is not configured
+    exit 6;
+  fi
+fi
+
+slurp_config "$CLAMAVCONF"
+[ -n "$User" ] || User=clamav
+
+if [ -n "$Example" ]; then
+  log_failure_msg "$DESC is not configured."
+  log_failure_msg "Please edit $CLAMAVCONF and run '/etc/init.d/clamav-milter start'"
+  if [ "$1" = "status" ]; then
+    # program or service status is unknown
+    exit 4;
+  else
+    # program is not configured
+    exit 6;
+  fi
+fi
+
+if is_true "$Foreground"; then
+  if [ ! -x "$SUPERVISOR" ] ; then
+    log_failure_msg "Foreground specified, but $SUPERVISOR not found"
+    if [ "$1" = "status" ]; then
+      # program or service status is unknown
+      exit 4;
+    else
+      # program is not configured correctly
+      exit 6;
+    fi
+  else
+     RUN_SUPERVISED=1
+  fi
+fi
+
+
+if [ -z "$RUN_SUPERVISED" ]; then
+	THEPIDFILE="$PidFile"
+	THEDAEMON="$NAME"
+	RELOAD="1"
+else
+	THEPIDFILE="$SUPERVISORPIDFILE"
+	THEDAEMON="$SUPERVISORNAME"
+	RELOAD="0"
+fi
+
+if [ -z "$THEPIDFILE" ]
+then
+  log_failure_msg "$NAME: Can not continue with PidFile not set"
+  if [ "$1" = "status" ]; then
+    # program or service status is unknown
+    exit 4;
+  else
+    # program is not configured correctly
+    exit 6;
+  fi
+fi
+
+if [ -z "$MilterSocket" ]
+then
+  log_failure_msg "$NAME: Can not continue with MilterSocket not set"
+  if [ "$1" = "status" ]; then
+    # program or service status is unknown
+    exit 4;
+  else
+    # program is not configured correctly
+    exit 6;
+  fi
+fi
+
+if [ ! -f "$THEPIDFILE" ]
+then
+	touch "$THEPIDFILE"
+	chown $User "$THEPIDFILE"
+fi
+
+case "$MilterSocket" in
+  /*)
+  SOCKET_PATH="$MilterSocket"
+  SOCKET_TYPE="local"
+  ;;
+  *)
+  SOCKET_PATH="${MilterSocket#*:}"
+  SOCKET_TYPE="${MilterSocket%%:*}"
+  ;;
+esac
+SOCKET_TYPE="${SOCKET_TYPE:-local}"
+SOCKET="${SOCKET_TYPE}:${SOCKET_PATH}"
+
+[ -n "$DataBaseDirectory" ] || DataBaseDirectory=/var/run/clamav
+
+make_dir "$DataBaseDirectory"
+if [ "${SOCKET_TYPE}" = "local" ]; then
+  make_dir $(dirname "$SOCKET_PATH")
+  chown $User $(dirname "$SOCKET_PATH")
+fi
+
+make_dir $(dirname "$THEPIDFILE")
+if [ ! -f "$THEPIDFILE" ]
+then
+	# If clam is run under a different UID than milter then we need
+	# to make sure the THEPIDFILE can be written or else we won't be
+	# able to kill it.
+	touch $THEPIDFILE
+	chown $User $THEPIDFILE
+fi
+
+case "$1" in
+  start)
+  if [ -z "$RUN_SUPERVISED" ] ; then
+    log_daemon_msg "Starting $DESC" "$NAME"
+    start-stop-daemon --start --oknodo --exec $DAEMON --pidfile $THEPIDFILE -- --config-file=$CLAMAVCONF
+    ret=$?
+  else
+    log_daemon_msg "Starting $DESC" "$NAME (supervised)"
+    $SUPERVISOR $SUPERVISORARGS
+    ret=$?
+  fi
+
+  log_end_msg $ret
+  ;;
+  stop)
+  log_daemon_msg "Stopping $DESC" "$NAME"
+  start-stop-daemon --stop --oknodo --name $THEDAEMON --pidfile $THEPIDFILE --retry TERM/30/KILL/5
+  log_end_msg $?
+  [ -e "$SOCKET_PATH" ] && rm -f $SOCKET_PATH
+  ;;
+  force-reload | restart)
+  $0 stop
+  sleep 2
+  $0 start
+  ;;
+  status)
+  start-stop-daemon --status --name $THEDAEMON --pidfile $THEPIDFILE
+  # start-stop-daemon returns LSB compliant exit status codes
+  ret="$?"
+  if [ "$ret" = 0 ]; then
+	if [ "$SOCKET_TYPE" = "local" ] && [ ! -S $SOCKET_PATH ] ; then
+		log_failure_msg "$NAME is running but socket is missing"
+		# service status is unknown
+		exit 4
+	fi
+	log_success_msg "$NAME is running"
+  else
+	log_failure_msg "$NAME is not running"
+	exit "$ret"
+  fi
+  ;;
+  *)
+  log_action_msg "Usage: $0 {start|stop|restart|force-reload|status}" >&2
+  # invalid arguments
+  exit 2
+  ;;
+esac
+
+exit 0

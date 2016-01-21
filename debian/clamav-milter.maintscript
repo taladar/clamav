@@ -1,0 +1,1 @@
+rm_conffile /etc/default/clamav-milter 0.98.5~beta1+dfsg-3~ clamav-milter

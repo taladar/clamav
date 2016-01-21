@@ -1,0 +1,542 @@
+#! /bin/sh
+# postinst script for #PACKAGE#
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+#
+# quoting from the policy:
+#     Any necessary prompting should almost always be confined to the
+#     post-installation script, and should be protected with a conditional
+#     so that unnecessary prompting doesn't happen if a package's
+#     installation fails and the `postinst' is called with `abort-upgrade',
+#     `abort-remove' or `abort-deconfigure'.
+
+#loading debconf module
+. /usr/share/debconf/confmodule
+
+#COMMON-FUNCTIONS#
+
+case "$1" in
+  configure)
+
+  # The DEB*FILE files are used temporarily during the update of the CLAMAV* files.
+  DEBCONFFILE=/var/lib/clamav/clamav.conf
+  CLAMAVCONF=/etc/clamav/clamd.conf
+  DEBROTATEFILE=/var/lib/clamav/clamdrotate.debconf
+  CLAMAVROTATEFILE=/etc/logrotate.d/clamav-daemon
+  DEBSYSTEMDLISTENCONF=/var/lib/clamav/extend.conf
+  CLAMAVSYSTEMDLISTENCONF=/etc/systemd/system/clamav-daemon.socket.d/extend.conf
+
+  # Update the configuration file
+  db_get clamav-daemon/debconf || true
+  if [ "$RET" = "true" ]; then
+    # Handle the configuration via debconf
+
+    # Read the configuration file
+    slurp_config "$CLAMAVCONF"
+
+    # Get the debconf configuration
+    db_get clamav-daemon/User || true
+    User="$RET"
+    db_get clamav-daemon/AddGroups || true
+    AddGroups="$RET"
+    db_get clamav-daemon/TcpOrLocal || true
+    if [ "$RET" = "TCP" ]; then
+      sock="tcp"
+      db_get clamav-daemon/TCPSocket || true
+      TCPSocket="$RET"
+      db_get clamav-daemon/TCPAddr
+      TCPAddr="$RET"
+    else
+      sock="unix"
+      db_get clamav-daemon/LocalSocket || true
+      LocalSocket="$RET"
+      db_get clamav-daemon/FixStaleSocket || true
+      FixStaleSocket="$RET"
+      db_get clamav-daemon/LocalSocketGroup || true
+      LocalSocketGroup="$RET"
+      db_get clamav-daemon/LocalSocketMode || true
+      LocalSocketMode="$RET"
+    fi
+    db_get clamav-daemon/ScanMail || true
+    ScanMail="$RET"
+    db_get clamav-daemon/ScanArchive || true
+    ScanArchive="$RET"
+    db_get clamav-daemon/MaxDirectoryRecursion || true
+    if [ "$RET" != "0" ]; then
+      MaxDirectoryRecursion="$RET"
+      db_get clamav-daemon/FollowDirectorySymlinks || true
+      FollowDirectorySymlinks="$RET"
+    else
+      MaxDirectoryRecursion=15
+      FollowDirectorySymlinks=false
+    fi
+    db_get clamav-daemon/FollowFileSymlinks || true
+    FollowFileSymlinks="$RET"
+    db_get clamav-daemon/ThreadTimeout || true
+    ThreadTimeout="$RET"
+    db_get clamav-daemon/ReadTimeout || true
+    ReadTimeout="$RET"
+    [ -z "$ReadTimeout" ] && ReadTimeout="$ThreadTimeout"
+    db_get clamav-daemon/MaxThreads || true
+    MaxThreads="$RET"
+    db_get clamav-daemon/MaxConnectionQueueLength || true
+    MaxConnectionQueueLength="$RET"
+    db_get clamav-daemon/StreamMaxLength || true
+    StreamMaxLength="$RET"
+    db_get clamav-daemon/LogSyslog || true
+    LogSyslog="$RET"
+    db_get clamav-daemon/LogFile || true
+    if [ "$RET" != "" ]; then
+      LogFile="$RET"
+      db_get clamav-daemon/LogTime || true
+      LogTime="$RET"
+    fi
+    db_get clamav-daemon/LogRotate || true
+    LogRotate="$RET"
+    db_get clamav-daemon/SelfCheck || true
+    SelfCheck="$RET"
+    db_get clamav-daemon/StatsEnabled || true
+    StatsEnabled="$RET"
+    db_get clamav-daemon/StatsPEDisabled || true
+    StatsPEDisabled="$RET"
+    db_get clamav-daemon/StatsHostID || true
+    StatsHostID="$RET"
+    db_get clamav-daemon/StatsTimeout || true
+    StatsTimeout="$RET"
+    db_get clamav-daemon/Bytecode || true
+    Bytecode="$RET"
+    if [ "$Bytecode" = "true" ]; then
+      db_get clamav-daemon/BytecodeSecurity || true
+      BytecodeSecurity="$RET"
+      db_get clamav-daemon/BytecodeTimeout || true
+      BytecodeTimeout="$RET"
+    fi
+    db_get clamav-daemon/ScanOnAccess || true
+    ScanOnAccess="$RET"
+    if [ "$ScanOnAccess" = "true" ]; then
+      db_get clamav-daemon/OnAccessMaxFileSize || true
+      OnAccessMaxFileSize="$RET"
+    fi
+    db_get clamav-daemon/AllowAllMatchScan || true
+    AllowAllMatchScan="$RET"
+    db_get clamav-daemon/ForceToDisk || true
+    ForceToDisk="$RET"
+    db_get clamav-daemon/DisableCertCheck || true
+    DisableCertCheck="$RET"
+    db_get clamav-daemon/ScanSWF || true
+    ScanSWF="$RET"
+    db_get clamav-daemon/MaxEmbeddedPE || true
+    MaxEmbeddedPE="$RET"
+    db_get clamav-daemon/MaxHTMLNormalize || true
+    MaxHTMLNormalize="$RET"
+    db_get clamav-daemon/MaxHTMLNoTags || true
+    MaxHTMLNoTags="$RET"
+    db_get clamav-daemon/MaxScriptNormalize || true
+    MaxScriptNormalize="$RET"
+    db_get clamav-daemon/MaxZipTypeRcg || true
+    MaxZipTypeRcg="$RET"
+
+    # Test for the broken versions, see #741675.
+    if [ "$2" = "0.98.1+dfsg-3" ] || [ "$2" = "0.98.1+dfsg-1+deb7u2" ] || [ "$2" = "0.98.1+dfsg-1+deb6u2" ]; then
+      # Use the defaults instead of the bogus values created by that versions.
+      db_metaget clamav-daemon/LogRotate default || true
+      LogRotate="$RET"
+      db_metaget clamav-daemon/ScanOnAccess default || true
+      ScanOnAccess="$RET"
+      OnAccessMaxFileSize=""
+      OnAccessIncludePath=""
+      OnAccessExcludePath=""
+      OnAccessExcludeUID=""
+      db_metaget clamav-daemon/AllowAllMatchScan default || true
+      AllowAllMatchScan="$RET"
+      db_metaget clamav-daemon/ForceToDisk default || true
+      ForceToDisk="$RET"
+      db_metaget clamav-daemon/DisableCertCheck default || true
+      DisableCertCheck="$RET"
+      db_metaget clamav-daemon/ScanSWF default || true
+      ScanSWF="$RET"
+      db_metaget clamav-daemon/MaxEmbeddedPE default || true
+      MaxEmbeddedPE="$RET"
+      db_metaget clamav-daemon/MaxHTMLNormalize default || true
+      MaxHTMLNormalize="$RET"
+      db_metaget clamav-daemon/MaxHTMLNoTags default || true
+      MaxHTMLNoTags="$RET"
+      db_metaget clamav-daemon/MaxScriptNormalize default || true
+      MaxScriptNormalize="$RET"
+      db_metaget clamav-daemon/MaxZipTypeRcg default || true
+      MaxZipTypeRcg="$RET"
+    fi
+
+    # Set default values for options not configured via debconf
+    [ -z "$LogFileUnlock" ] && LogFileUnlock=false
+    [ -z "$LogFileMaxSize" ] && LogFileMaxSize=0
+    [ -z "$LogClean" ] && LogClean=false
+    [ -z "$LogFacility" ] && LogFacility=LOG_LOCAL6
+    [ -z "$LogVerbose" ] && LogVerbose=false
+    [ -z "$ExtendedDetectionInfo" ] && ExtendedDetectionInfo=true
+    [ -z "$DatabaseDirectory" ] && DatabaseDirectory='/var/lib/clamav'
+    [ -z "$OfficialDatabaseOnly" ] && OfficialDatabaseOnly=false
+    [ -z "$CommandReadTimeout" ] && CommandReadTimeout=5
+    [ -z "$SendBufTimeout" ] && SendBufTimeout=200
+    [ -z "$MaxQueue" ] && MaxQueue=100
+    [ -z "$IdleTimeout" ] && IdleTimeout=30
+    [ -z "$CrossFilesystems" ] && CrossFilesystems=true
+    if [ -n "$AddGroups" ]; then 
+      AllowSupplementaryGroups=true
+    else
+      AllowSupplementaryGroups=false
+    fi
+    [ -z "$ExitOnOOM" ] && ExitOnOOM=false
+    [ -z "$Foreground" ] && Foreground=false
+    [ -z "$Debug" ] && Debug=false
+    [ -z "$LeaveTemporaryFiles" ] && LeaveTemporaryFiles=false
+    [ -z "$DetectPUA" ] && DetectPUA=false
+    [ -z "$AlgorithmicDetection" ] && AlgorithmicDetection=true
+    [ -z "$DisableCache" ] && DisableCache=false
+    [ -z "$ScanPE" ] && ScanPE=true
+    [ -z "$ScanELF" ] && ScanELF=true
+    [ -z "$DetectBrokenExecutables" ] && DetectBrokenExecutables=false
+    [ -z "$ScanOLE2" ] && ScanOLE2=true
+    [ -z "$OLE2BlockMacros" ] && OLE2BlockMacros=false
+    [ -z "$ScanPDF" ] && ScanPDF=true
+    [ -z "$ScanPartialMessages" ] && ScanPartialMessages=false
+    [ -z "$PhishingSignatures" ] && PhishingSignatures=true
+    [ -z "$PhishingScanURLs" ] && PhishingScanURLs=true
+    [ -z "$PhishingAlwaysBlockSSLMismatch" ] && PhishingAlwaysBlockSSLMismatch=false
+    [ -z "$PhishingAlwaysBlockCloak" ] && PhishingAlwaysBlockCloak=false
+    [ -z "$PartitionIntersection" ] && PartitionIntersection=false
+    [ -z "$HeuristicScanPrecedence" ] && HeuristicScanPrecedence=false
+    [ -z "$StructuredDataDetection" ] && StructuredDataDetection=false
+    [ -z "$ScanHTML" ] && ScanHTML=true
+    [ -z "$ArchiveBlockEncrypted" ] && ArchiveBlockEncrypted=false
+    [ -z "$MaxScanSize" ] && MaxScanSize=100M
+    [ -z "$MaxFileSize" ] && MaxFileSize=25M
+    [ -z "$MaxRecursion" ] && MaxRecursion=10
+    [ -z "$MaxFiles" ] && MaxFiles=10000
+    [ -z "$MaxPartitions" ] && MaxPartitions=50
+    [ -z "$MaxIconsPE" ] && MaxIconsPE=100
+
+    # Create the new configuration file
+    echo "#Automatically Generated by clamav-daemon postinst" > $DEBCONFFILE
+    echo "#To reconfigure clamd run #dpkg-reconfigure clamav-daemon" >> $DEBCONFFILE
+    echo "#Please read /usr/share/doc/clamav-daemon/README.Debian.gz for details" >> $DEBCONFFILE
+    echo "[Socket]" > "$DEBSYSTEMDLISTENCONF"
+    echo "ListenStream=" >> "$DEBSYSTEMDLISTENCONF"
+    echo "SocketUser=$User" >> "$DEBSYSTEMDLISTENCONF"
+    if [ "$sock" = "tcp" ]; then
+      echo "TCPSocket $TCPSocket" >> $DEBCONFFILE
+      if [ "$TCPAddr" = "any" ]; then
+        echo "ListenStream=$TCPSocket" >> "$DEBSYSTEMDLISTENCONF"
+      else
+        echo "TCPAddr $TCPAddr" >> $DEBCONFFILE
+        echo "ListenStream=$TCPAddr:$TCPSocket" >> "$DEBSYSTEMDLISTENCONF"
+      fi
+    else
+      echo "LocalSocket $LocalSocket" >> $DEBCONFFILE
+      echo "ListenStream=$LocalSocket" >> "$DEBSYSTEMDLISTENCONF"
+      echo "FixStaleSocket $FixStaleSocket" >> $DEBCONFFILE
+      echo "LocalSocketGroup $LocalSocketGroup" >> $DEBCONFFILE
+      echo "SocketGroup=$LocalSocketGroup" >> "$DEBSYSTEMDLISTENCONF"
+      echo "LocalSocketMode $LocalSocketMode" >> $DEBCONFFILE
+      echo "SocketMode=$LocalSocketMode" >> "$DEBSYSTEMDLISTENCONF"
+    fi
+    # Finish the configuration file update, by applying changes to the real configuration file.
+    mkdir -p `dirname $CLAMAVSYSTEMDLISTENCONF` 2>/dev/null || true
+    ucf_cleanup "$CLAMAVSYSTEMDLISTENCONF"
+    ucf_upgrade_check "$CLAMAVSYSTEMDLISTENCONF" "$DEBSYSTEMDLISTENCONF" /var/lib/ucf/cache/:etc:systemd:system:clamav-daemon.socket.d:extend.conf
+    rm -f "$DEBSYSTEMDLISTENCONF"
+    if [ -e "$CLAMAVSYSTEMDLISTENCONF".dpkg-old ]; then
+      echo "Removing old systemd socket override options for clamav-daemon"
+      rm -f "$CLAMAVSYSTEMDLISTENCONF".dpkg-old
+    fi
+
+    if [ -n "$TemporaryDirectory" ]; then
+	cat >> $DEBCONFFILE << EOF
+TemporaryDirectory $TemporaryDirectory
+EOF
+    else
+	cat >> $DEBCONFFILE << EOF
+# TemporaryDirectory is not set to its default /tmp here to make overriding
+# the default with environment variables TMPDIR/TMP/TEMP possible
+EOF
+    fi
+
+    cat >> $DEBCONFFILE << EOF
+User $User
+AllowSupplementaryGroups $AllowSupplementaryGroups
+ScanMail $ScanMail
+ScanArchive $ScanArchive
+ArchiveBlockEncrypted $ArchiveBlockEncrypted
+MaxDirectoryRecursion $MaxDirectoryRecursion
+FollowDirectorySymlinks $FollowDirectorySymlinks
+FollowFileSymlinks $FollowFileSymlinks
+ReadTimeout $ReadTimeout
+MaxThreads $MaxThreads
+MaxConnectionQueueLength $MaxConnectionQueueLength
+LogSyslog $LogSyslog
+LogRotate $LogRotate
+LogFacility $LogFacility
+LogClean $LogClean
+LogVerbose $LogVerbose
+DatabaseDirectory $DatabaseDirectory
+OfficialDatabaseOnly $OfficialDatabaseOnly
+SelfCheck $SelfCheck
+Foreground $Foreground
+Debug $Debug
+ScanPE $ScanPE
+MaxEmbeddedPE $MaxEmbeddedPE
+ScanOLE2 $ScanOLE2
+ScanPDF $ScanPDF
+ScanHTML $ScanHTML
+MaxHTMLNormalize $MaxHTMLNormalize
+MaxHTMLNoTags $MaxHTMLNoTags
+MaxScriptNormalize $MaxScriptNormalize
+MaxZipTypeRcg $MaxZipTypeRcg
+ScanSWF $ScanSWF
+DetectBrokenExecutables $DetectBrokenExecutables
+ExitOnOOM $ExitOnOOM
+LeaveTemporaryFiles $LeaveTemporaryFiles
+AlgorithmicDetection $AlgorithmicDetection
+ScanELF $ScanELF
+IdleTimeout $IdleTimeout
+CrossFilesystems $CrossFilesystems
+PhishingSignatures $PhishingSignatures
+PhishingScanURLs $PhishingScanURLs
+PhishingAlwaysBlockSSLMismatch $PhishingAlwaysBlockSSLMismatch
+PhishingAlwaysBlockCloak $PhishingAlwaysBlockCloak
+PartitionIntersection $PartitionIntersection
+DetectPUA $DetectPUA
+ScanPartialMessages $ScanPartialMessages
+HeuristicScanPrecedence $HeuristicScanPrecedence
+StructuredDataDetection $StructuredDataDetection
+CommandReadTimeout $CommandReadTimeout
+SendBufTimeout $SendBufTimeout
+MaxQueue $MaxQueue
+ExtendedDetectionInfo $ExtendedDetectionInfo
+OLE2BlockMacros $OLE2BlockMacros
+ScanOnAccess $ScanOnAccess
+AllowAllMatchScan $AllowAllMatchScan
+ForceToDisk $ForceToDisk
+DisableCertCheck $DisableCertCheck
+DisableCache $DisableCache
+MaxScanSize $MaxScanSize
+MaxFileSize $MaxFileSize
+MaxRecursion $MaxRecursion
+MaxFiles $MaxFiles
+MaxPartitions $MaxPartitions
+MaxIconsPE $MaxIconsPE
+StatsEnabled $StatsEnabled
+StatsPEDisabled $StatsPEDisabled
+StatsHostID $StatsHostID
+StatsTimeout $StatsTimeout
+EOF
+
+    if is_true "$StructuredDataDetection"; then
+      [ -z "$StructuredMinCreditCardCount" ] || StructuredMinCreditCardCount=3
+      [ -z "$StructuredMinSSNCount" ] || StructuredMinSSNCount=3
+      [ -z "$StructuredSSNFormatNormal" ] || StructuredSSNFormatNormal=true
+      [ -z "$StructuredSSNFormatStripped" ] || StructuredSSNFormatStripped=false
+      cat >> $DEBCONFFILE << EOF
+StructuredMinCreditCardCount $StructuredMinCreditCardCount
+StructuredMinSSNCount $StructuredMinSSNCount
+StructuredSSNFormatNormal $StructuredSSNFormatNormal
+StructuredSSNFormatStripped $StructuredSSNFormatStripped
+EOF
+    fi
+
+    if [ -n "$StreamMaxLength" ]; then
+      if [ "$StreamMaxLength" -gt 0 ] ;then
+        StreamMaxLength="${StreamMaxLength}M"
+      fi
+      echo "StreamMaxLength $StreamMaxLength" >> $DEBCONFFILE
+    fi
+    if [ -n "$IncludePUA" ]; then
+      for i in $IncludePUA; do
+        echo "IncludePUA $i" >> $DEBCONFFILE
+      done
+    fi
+    if [ -n "$ExcludePUA" ]; then
+      for e in $ExcludePUA; do
+        echo "ExcludePUA $i" >> $DEBCONFFILE
+      done
+    fi
+    if [ -n "$LogFile" ]; then
+      echo "LogFile $LogFile" >> $DEBCONFFILE
+      echo "LogTime $LogTime" >> $DEBCONFFILE
+      echo "LogFileUnlock $LogFileUnlock" >> $DEBCONFFILE
+      echo "LogFileMaxSize $LogFileMaxSize" >> $DEBCONFFILE
+    fi
+
+    echo "Bytecode $Bytecode" >> $DEBCONFFILE
+    if is_true "$Bytecode"; then
+      echo "BytecodeSecurity $BytecodeSecurity" >> $DEBCONFFILE
+      echo "BytecodeTimeout $BytecodeTimeout" >> $DEBCONFFILE
+    fi
+    if `dpkg --compare-versions "$2" lt 0.98.5+dfsg-4~`; then
+      # Remove the PidFile variable from the configuration, if it is the previous default value.
+      if [ "$PidFile" = "/var/run/clamav/clamd.pid" ]; then
+        PidFile=''
+      fi
+    fi
+    # Preserve manually created, usually not needed options.
+    [ -n "$PidFile" ] && echo "PidFile $PidFile" >> $DEBCONFFILE
+    [ -n "$ExcludePath" ] && echo "ExcludePath $ExcludePath" >> $DEBCONFFILE
+    [ -n "$VirusEvent" ] && echo "VirusEvent $VirusEvent" >> $DEBCONFFILE
+    [ -n "$StreamMinPort" ] && echo "StreamMinPort $StreamMinPort" >> $DEBCONFFILE
+    [ -n "$StreamMaxPort" ] && echo "StreamMaxPort $StreamMaxPort" >> $DEBCONFFILE
+    [ -n "$OnAccessMaxFileSize" ] && echo "OnAccessMaxFileSize $OnAccessMaxFileSize" >> $DEBCONFFILE
+    [ -n "$OnAccessIncludePath" ] && echo "OnAccessIncludePath $OnAccessIncludePath" >> $DEBCONFFILE
+    [ -n "$OnAccessExcludePath" ] && echo "OnAccessExcludePath $OnAccessExcludePath" >> $DEBCONFFILE
+    [ -n "$OnAccessExcludeUID" ] && echo "OnAccessExcludeUID $OnAccessExcludeUID" >> $DEBCONFFILE
+
+    # Preserve old, deprecated options.
+    [ -n "$ClamukoScanOnAccess" ] && echo "ClamukoScanOnAccess $ClamukoScanOnAccess" >> $DEBCONFFILE
+    [ -n "$ClamukoScanOnOpen" ] && echo "ClamukoScanOnOpen $ClamukoScanOnOpen" >> $DEBCONFFILE
+    [ -n "$ClamukoScanOnClose" ] && echo "ClamukoScanOnClose $ClamukoScanOnClose" >> $DEBCONFFILE
+    [ -n "$ClamukoScanOnExec" ] && echo "ClamukoScanOnExec $ClamukoScanOnExec" >> $DEBCONFFILE
+    [ -n "$ClamukoIncludePath" ] && echo "ClamukoIncludePath $ClamukoIncludePath" >> $DEBCONFFILE
+    [ -n "$ClamukoIncludePath" ] && echo "ClamukoIncludePath $ClamukoIncludePath" >> $DEBCONFFILE
+    [ -n "$ClamukoExcludePath" ] && echo "ClamukoExcludePath $ClamukoExcludePath" >> $DEBCONFFILE
+    [ -n "$ClamukoMaxFileSize" ] && echo "ClamukoMaxFileSize $ClamukoMaxFileSize" >> $DEBCONFFILE
+    [ -n "$ClamukoScannerCount" ] && echo "ClamukoScannerCount $ClamukoScannerCount" >> $DEBCONFFILE
+    [ -n "$ClamukoExcludeUID" ] && echo "ClamukoExcludeUID $ClamukoExcludeUID" >> $DEBCONFFILE
+
+    # Finish the configuration file update, by applying changes to the real configuration file.
+    ucf_cleanup "$CLAMAVCONF"
+    ucf_upgrade_check "$CLAMAVCONF" "$DEBCONFFILE" /var/lib/ucf/cache/:etc:clamav:clamd.conf
+    rm -f "$DEBCONFFILE"
+
+    # Add additional groups (if any)
+    if [ -n "$AddGroups" ]; then
+      for group in $AddGroups; do
+        id "$User" | grep -q "$group" || adduser "$User" "$group"
+      done
+    fi
+
+  else
+    # Let the configuration be handled manually.
+    ucf_cleanup "$CLAMAVCONF"
+    ucf_upgrade_check "$CLAMAVCONF" /usr/share/doc/clamav-daemon/examples/clamd.conf.sample /var/lib/ucf/cache/:etc:clamav:clamd.conf
+    if [ -e "$CLAMAVSYSTEMDLISTENCONF" ]; then
+      echo "Disabling old systemd socket override options for clamav-daemon"
+      mv "$CLAMAVSYSTEMDLISTENCONF" "$CLAMAVSYSTEMDLISTENCONF".dpkg-old
+      ucf -p "$CLAMAVSYSTEMDLISTENCONF"
+    fi
+  fi
+
+  # Set permission for the configuration file.
+  chmod 644 $CLAMAVCONF || true
+  chown root:root $CLAMAVCONF || true
+
+  # Read the configuration file
+  slurp_config "$CLAMAVCONF"
+
+  if [ -n "$LogFile" ]; then
+    if echo "$LogFile" | grep -q '^/dev/'; then
+      make_logrotate=false
+    else
+      if [ "$LogRotate" = "true" ]; then
+        make_logrotate=true
+      else
+        make_logrotate=false
+      fi
+    fi
+    [ -z "$User" ] && User=clamav
+    if [ "$make_logrotate" = 'true' ]; then
+      # update the logrotate file
+      echo "$LogFile {" > $DEBROTATEFILE
+      echo "     rotate 12" >> $DEBROTATEFILE
+      echo "     weekly" >> $DEBROTATEFILE
+      echo "     compress" >> $DEBROTATEFILE
+      echo "     delaycompress" >> $DEBROTATEFILE
+      echo "     create 640  $User adm" >> $DEBROTATEFILE
+      echo "     postrotate" >> $DEBROTATEFILE
+      echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTATEFILE
+      echo "         systemctl -q is-active clamav-daemon && systemctl kill --signal=SIGHUP clamav-daemon" >> $DEBROTATEFILE
+      echo "     else" >> $DEBROTATEFILE
+      echo "         /etc/init.d/clamav-daemon reload-log > /dev/null" >> $DEBROTATEFILE
+      echo "     fi" >> $DEBROTATEFILE
+      echo "     endscript" >> $DEBROTATEFILE
+      echo "     }" >> $DEBROTATEFILE
+      touch "$LogFile"
+      if [ -f "$LogFile" ] && [ ! -L "$LogFile" ]; then
+        chown "$User":adm "$LogFile"
+        chmod 0640 "$LogFile"
+      fi
+      ucf_cleanup "$CLAMAVROTATEFILE"
+      ucf_upgrade_check "$CLAMAVROTATEFILE" "$DEBROTATEFILE" /var/lib/ucf/cache/:etc:logrotate.d:clamav-daemon
+      rm -f $DEBROTATEFILE
+      if [ -e "$CLAMAVROTATEFILE".dpkg-old ]; then
+        echo "Removing old logrotate script for clamav-daemon"
+        rm -f "$CLAMAVROTATEFILE".dpkg-old
+      fi
+    else
+      if [ -e "$CLAMAVROTATEFILE" ]; then
+        echo "Disabling old logrotate script for clamav-daemon"
+        mv "$CLAMAVROTATEFILE" "$CLAMAVROTATEFILE".dpkg-old
+        ucf -p "$CLAMAVROTATEFILE"
+      fi
+    fi
+  else
+    if [ -e "$CLAMAVROTATEFILE" ]; then
+      echo "Disabling old logrotate script for clamav-daemon"
+      mv "$CLAMAVROTATEFILE" "$CLAMAVROTATEFILE".dpkg-old
+      ucf -p "$CLAMAVROTATEFILE"
+    fi
+  fi
+
+  db_stop || true
+
+  ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+  *)
+  echo "postinst called with unknown argument \`$1'" >&2
+  exit 1
+  ;;
+esac
+
+# AppArmor integration
+if [ "$1" = "configure" ]; then
+    APP_PROFILE=/etc/apparmor.d/usr.sbin.clamd
+    if [ -f "$APP_PROFILE" ]; then
+        # Add the local/ include
+        LOCAL_APP_PROFILE=/etc/apparmor.d/local/usr.sbin.clamd
+
+        test -e "$LOCAL_APP_PROFILE" || {
+            tmp=`mktemp`
+        cat <<EOM > "$tmp"
+# Site-specific additions and overrides for usr.sbin.clamd.
+# For more details, please see /etc/apparmor.d/local/README.
+EOM
+            mkdir `dirname $LOCAL_APP_PROFILE` 2>/dev/null || true
+            mv -f "$tmp" "$LOCAL_APP_PROFILE"
+            chmod 644 "$LOCAL_APP_PROFILE"
+        }
+
+        # Reload the profile, including any abstraction updates
+        if aa-status --enabled 2>/dev/null; then
+            apparmor_parser -r -T -W "$APP_PROFILE" || true
+        fi
+    fi
+fi
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,13 @@
+0001-Change-paths-in-sample-conf-file-to-match-Debian.patch
+0002-unit_tests-increment-test-timeout-from-40secs-to-5mi.patch
+0003-Fix-compiling-on-Hurd.patch
+0004-remove-unnecessary-harmful-flags-from-libclamav.pc.patch
+0005-libclamav-use-libmspack.patch
+0006-Add-upstream-systemd-support-for-clamav-daemon-and-c.patch
+0007-fix-ssize_t-size_t-off_t-printf-modifier.patch
+0008-hardcode-LLVM-linker-flag-because-llvm-config-return.patch
+0009-bb-10731-Allow-to-specificy-a-group-for-the-socket-o.patch
+0010-clamav-milter-add-additinal-SMFIF_-flags-before-invo.patch
+0011-Avoid-emitting-incremental-progress-messages-when-no.patch
+0012-add-support-for-system-tomsfastmath.patch
+0013-tfm-drop-__DATE__.patch

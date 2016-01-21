@@ -1,0 +1,6 @@
+# This is intentionally shipped compressed and uncompressed to be able to test, if clamav detects also the compressed file.
+clamav-testfiles: duplicated-compressed-file usr/share/clamav-testfiles/clam.exe.bz2
+# This file is not gzipped during package build, but rather concatenated (with cat) from
+# test/.split/split.clam.tar.gzaa and test/.split/split.clam.tar.gzab.
+# Thus the timestamp is no problem for build reproducibility.
+clamav-testfiles: package-contains-timestamped-gzip usr/share/clamav-testfiles/clam.tar.gz

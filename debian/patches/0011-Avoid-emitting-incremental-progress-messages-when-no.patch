@@ -1,0 +1,26 @@
+From 4973a2cfd3c677b270cdaa059751356203bc6d8c Mon Sep 17 00:00:00 2001
+From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
+Date: Sat, 22 Nov 2014 15:26:02 +0100
+Subject: Avoid emitting incremental progress messages when not outputting to a
+ terminal.
+
+---
+ freshclam/manager.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/freshclam/manager.c b/freshclam/manager.c
+index f1b1c18..623dce6 100644
+--- a/freshclam/manager.c
++++ b/freshclam/manager.c
+@@ -1068,7 +1068,11 @@ getfile_mirman (const char *srcfile, const char *destfile,
+         if (totalsize > 0)
+             percentage = (int) (100 * (float) totaldownloaded / totalsize);
+ 
++#ifdef HAVE_UNISTD_H
++        if (!mprintf_quiet && isatty(fileno(stdout)))
++#else
+         if (!mprintf_quiet)
++#endif
+         {
+             if (totalsize > 0)
+             {

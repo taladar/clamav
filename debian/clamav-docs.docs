@@ -1,0 +1,10 @@
+AUTHORS
+BUGS
+FAQ
+README
+docs/*.pdf
+docs/*.tex
+docs/clam.eps
+docs/html
+debian/README.Debian
+debian/NEWS.Debian

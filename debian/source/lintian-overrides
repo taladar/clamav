@@ -1,0 +1,8 @@
+# These files are present in the upstream tarball, but removed in a debian patch, see #761199.
+clamav source: wildcard-matches-nothing-in-dep5-copyright libclamav/mspack.c (paragraph at line *)
+clamav source: wildcard-matches-nothing-in-dep5-copyright libclamav/mspack.h (paragraph at line *)
+
+# These are false positives, because configure and aclocal.m4 exist.
+clamav source: unused-file-paragraph-in-dep5-copyright paragraph at line 605
+clamav source: unused-file-paragraph-in-dep5-copyright paragraph at line 614
+

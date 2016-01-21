@@ -1,0 +1,2 @@
+# This is not used by the maintainer script, only echoed to the cron job.
+clamav-freshclam: command-with-path-in-maintainer-script postinst:* /usr/bin/freshclam

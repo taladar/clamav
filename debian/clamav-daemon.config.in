@@ -1,0 +1,402 @@
+#!/bin/sh
+
+set -e
+
+# Source debconf library
+. /usr/share/debconf/confmodule
+
+# This conf script is capable of backing up
+db_version 2.0
+db_capb backup
+
+#COMMON-FUNCTIONS#
+
+CLAMAVCONF='/etc/clamav/clamd.conf'
+
+# Read the configuration file
+slurp_config "$CLAMAVCONF"
+
+# Store conf file values as debconf answers - make sure user changes made 
+# outside of debconf are preserved
+
+# This hack is needed due to the switch from clamav-base.templates to clamav-daemon.templates,
+# because the clamav-daemon/debconf value is not saved directly in the clamd.conf file.
+if [ -e "$CLAMAVCONF" ]; then
+	if dpkg --compare-versions "$2" lt 0.98.3; then
+		# Test for '##' at the beginning of the configuration file.
+		# These are present in the example configuration file presented for manual editing,
+		# but not in the automatically created one, when using debconf to manage clamd.conf.
+		if [ -z `cat /etc/clamav/clamd.conf | sed -n 1p | grep '##'` ]; then
+			db_set clamav-daemon/debconf true
+		else
+			db_set clamav-daemon/debconf false
+		fi
+	fi
+fi
+
+# Store the settings loaded from the configuration file in debconf.
+if [ -n "$TCPSocket" ]; then
+  db_set clamav-daemon/TcpOrLocal TCP || true
+elif [ -n "$LocalSocket" ]; then
+  db_set clamav-daemon/TcpOrLocal UNIX || true
+fi
+set_debconf_value daemon LocalSocket
+set_debconf_value daemon FixStaleSocket
+set_debconf_value daemon LocalSocketGroup
+set_debconf_value daemon LocalSocketMode
+set_debconf_value daemon TCPSocket
+set_debconf_value daemon TCPAddr
+set_debconf_value daemon ScanMail
+set_debconf_value daemon ScanArchive
+if [ -n "$StreamMaxLength" ]; then
+  StreamMaxLength="`echo $StreamMaxLength | sed -e s/M//`"
+  if [ "$StreamMaxLength" = "0" ]; then
+    StreamMaxLength="25"
+  fi
+  db_set clamav-daemon/StreamMaxLength "$StreamMaxLength" || true
+fi
+set_debconf_value daemon MaxDirectoryRecursion
+set_debconf_value daemon FollowDirectorySymlinks
+set_debconf_value daemon FollowFileSymlinks
+if [ -n "$ReadTimeout" ] && [ -z "$ThreadTimeout" ]; then
+  db_set clamav-daemon/ReadTimeout "$ReadTimeout" || true
+elif [ -z "$ReadTimeout" ] && [ -n "$ThreadTimeout" ]; then
+  ReadTimeout="$ThreadTimeout"
+  db_set clamav-daemon/ReadTimeout "$ReadTimeout" || true
+elif [ -n "$ReadTimeout" ]; then
+  db_set clamav-daemon/ReadTimeout "$ReadTimeout" || true
+fi
+set_debconf_value daemon MaxThreads
+set_debconf_value daemon MaxConnectionQueueLength
+set_debconf_value daemon LogSyslog
+set_debconf_value daemon LogFile
+set_debconf_value daemon LogTime
+set_debconf_value daemon LogRotate
+set_debconf_value daemon ScanOnAccess
+set_debconf_value daemon OnAccessMaxFileSize
+set_debconf_value daemon AllowAllMatchScan
+set_debconf_value daemon ForceToDisk
+set_debconf_value daemon DisableCertCheck
+set_debconf_value daemon ScanSWF
+set_debconf_value daemon MaxEmbeddedPE
+set_debconf_value daemon MaxHTMLNormalize
+set_debconf_value daemon MaxHTMLNoTags
+set_debconf_value daemon MaxScriptNormalize
+set_debconf_value daemon MaxZipTypeRcg
+set_debconf_value daemon SelfCheck
+set_debconf_value daemon StatsEnabled
+set_debconf_value daemon StatsPEDisabled
+set_debconf_value daemon StatsHostID
+set_debconf_value daemon StatsTimeout
+if [ -n "$User" ]; then
+  db_set clamav-daemon/User "$User" || true
+  if ! [ "$User" = 'root' ]; then
+    AddGroups=`groups "$User" | awk -F ':' '{print $2}' | sed -e s/"$User"//`
+  fi
+  if [ -n "$AddGroups" ]; then
+    db_set clamav-daemon/AddGroups "$AddGroups" || true
+  fi
+fi
+set_debconf_value daemon Bytecode
+set_debconf_value daemon BytecodeSecurity
+set_debconf_value daemon BytecodeTimeout
+
+
+# States
+
+StateDebconf()
+{
+  db_input medium clamav-daemon/debconf || true
+  if ! db_go; then
+    STATE="End"
+  else
+    db_get clamav-daemon/debconf || true
+    if [ "$RET" = "false" ]; then
+      STATE="End"
+    else
+      STATE="Socket"
+    fi
+  fi
+}
+
+StateSocket()
+{
+  db_input medium clamav-daemon/TcpOrLocal || true
+  if ! db_go; then
+    STATE="Init"
+  else
+    db_metaget clamav-daemon/TcpOrLocal value
+    STATE=$RET
+  fi
+}
+
+StateLocalSocketGroup()
+{
+  db_input low clamav-daemon/LocalSocketGroup || true
+  if db_go; then
+    db_metaget clamav-daemon/LocalSocketGroup value
+    if [ "$RET" = "" ]; then
+      db_set clamav-daemon/LocalSocketGroup "clamav" || true
+    fi
+    STATE="LocalSocketMode"
+  else
+    STATE="UNIX"
+  fi
+}
+
+StateScanMail()
+{
+  db_input medium clamav-daemon/ScanMail || true
+  if db_go; then
+    STATE="ScanArchive"
+  else
+    db_metaget clamav-daemon/TcpOrLocal value
+    if [ "$RET" = "TCP" ]; then
+      STATE="TCPAddr"
+    else
+      STATE="FixStale"
+    fi
+  fi
+}
+
+StateScanArchive()
+{
+  db_input low clamav-daemon/ScanArchive || true
+  if db_go; then
+    db_metaget clamav-daemon/ScanArchive value
+    if [ "$RET" = "true" ]; then
+      STATE="StreamMaxLength"
+    else
+      STATE="MaxDirectoryRecursion"
+    fi
+  else
+    STATE="ScanMail"
+  fi
+}
+
+StateMaxDirectoryRecursion()
+{
+  if inputdigit low clamav-daemon/MaxDirectoryRecursion; then
+    db_metaget clamav-daemon/MaxDirectoryRecursion value
+    if [ "$RET" = "0" ]; then
+      STATE="FollowDirectorySymlinks"
+    else
+      STATE="FollowFileSymlinks"
+    fi
+  else
+      STATE="ScanArchive"
+  fi
+}
+
+StateFollowFileSymlinks()
+{
+  db_input low clamav-daemon/FollowFileSymlinks || true
+  if db_go; then
+    STATE="ReadTimeout"
+  else
+    db_metaget clamav-daemon/MaxDirectoryRecursion value;
+    if [ "$RET" = "0" ]; then
+      STATE="FollowDirectorySymlinks"
+    else
+      STATE="MaxDirectoryRecursion"
+    fi
+  fi
+}
+
+StateLogFile()
+{
+  db_input low clamav-daemon/LogFile || true
+  if db_go; then
+    db_metaget clamav-daemon/LogFile value
+    if [ "$RET" = "" ]; then
+      db_set clamav-daemon/LogFile "/var/log/clamav/clamav.log" || true
+      STATE="LogTime"
+    elif [ "$RET" = 'none' ]; then
+      db_set clamav-daemon/LogFile "" || true
+      STATE="SelfCheck"
+    else
+      STATE="LogTime"
+    fi
+  else
+    STATE="LogSyslog"
+  fi
+}
+
+StateUser()
+{
+  db_input medium clamav-daemon/User || true
+  if db_go; then
+    db_metaget clamav-daemon/User value
+    if [ "$RET" = "" ]; then
+      db_set clamav-daemon/User "clamav" || true
+    fi
+    STATE="AddGroups"
+  else
+    STATE="SelfCheck"
+  fi
+}
+
+StateBytecode()
+{
+  db_input low clamav-daemon/Bytecode || true
+  if db_go; then
+    db_metaget clamav-daemon/Bytecode value
+    if [ "$RET" = "true" ]; then
+      STATE="BytecodeSecurity"
+    else
+      STATE="End"
+    fi
+  else
+    STATE="AddGroups"
+  fi
+}
+
+# Too many options to configure at configure.
+if [ "$1" = "reconfigure" ]; then
+  STATE="Init"
+elif [ -n "$2" ]; then
+  # On fresh installation, ask for the User clamav should use.
+  if [ -z "$User" ]; then
+    STATE="User"
+  fi
+else
+  STATE="End"
+fi
+
+[ -z "$STATE" ] && STATE='End'
+
+# This is the statemachine that controls execution. All the 'real' work is 
+# performed by subfunctions above. 
+
+while [ "$STATE" != "End" ]; do
+  case "$STATE" in
+    "Init")
+    StateDebconf
+    ;;
+    "Socket")
+    StateSocket
+    ;;
+    "TCP")
+    StateGenericDigit low clamav-daemon/TCPSocket TCPAddr Socket
+    ;;
+    "TCPAddr")
+    StateGeneric low clamav-daemon/TCPAddr ScanMail TCP
+    ;;
+    "UNIX")
+    StateGeneric low clamav-daemon/LocalSocket LocalSocketGroup Socket
+    ;;
+    "LocalSocketGroup")
+    StateLocalSocketGroup
+    ;;
+    "LocalSocketMode")
+    StateGenericDigit low clamav-daemon/LocalSocketMode FixStale LocalSocketGroup
+    ;;
+    "FixStale")
+    StateGeneric low clamav-daemon/FixStaleSocket ScanMail LocalSocketMode
+    ;;
+    "ScanMail")
+    StateScanMail
+    ;;
+    "ScanArchive")
+    StateScanArchive
+    ;;
+    "StreamMaxLength")
+    StateGenericDigit low clamav-daemon/StreamMaxLength MaxDirectoryRecursion ScanArchive
+    ;;
+    "MaxDirectoryRecursion")
+    StateMaxDirectoryRecursion
+    ;;
+    "FollowDirectorySymlinks")
+    StateGeneric low clamav-daemon/FollowDirectorySymlinks FollowFileSymlinks MaxDirectoryRecursion
+    ;;
+    "FollowFileSymlinks")
+    StateFollowFileSymlinks
+    ;;
+    "ReadTimeout")
+    StateGenericDigit low clamav-daemon/ReadTimeout MaxThreads FollowFileSymlinks
+    ;;
+    "MaxThreads")
+    StateGenericDigit low clamav-daemon/MaxThreads MaxConnectionQueueLength ReadTimeout
+    ;;
+    "MaxConnectionQueueLength")
+    StateGenericDigit low clamav-daemon/MaxConnectionQueueLength LogSyslog MaxThreads
+    ;;
+    "LogSyslog")
+    StateGeneric medium clamav-daemon/LogSyslog LogFile MaxConnectionQueueLength
+    ;;
+    "LogFile")
+    StateLogFile
+    ;;
+    "LogTime")
+    StateGeneric low clamav-daemon/LogTime LogRotate LogFile
+    ;;
+    "LogRotate")
+    StateGeneric low clamav-daemon/LogRotate ScanOnAccess LogFile
+    ;;
+    "ScanOnAccess")
+    StateGeneric low clamav-daemon/ScanOnAccess OnAccessMaxFileSize LogFile
+    ;;
+    "OnAccessMaxFileSize")
+    StateGeneric low clamav-daemon/OnAccessMaxFileSize AllowAllMatchScan ScanOnAccess
+    ;;
+    "AllowAllMatchScan")
+    StateGeneric low clamav-daemon/AllowAllMatchScan ForceToDisk OnAccessMaxFileSize
+    ;;
+    "ForceToDisk")
+    StateGeneric low clamav-daemon/ForceToDisk DisableCertCheck AllowAllMatchScan
+    ;;
+    "DisableCertCheck")
+    StateGeneric low clamav-daemon/DisableCertCheck ScanSWF ForceToDisk
+    ;;
+    "ScanSWF")
+    StateGeneric low clamav-daemon/ScanSWF MaxEmbeddedPE DisableCertCheck
+    ;;
+    "MaxEmbeddedPE")
+    StateGeneric low clamav-daemon/MaxEmbeddedPE MaxHTMLNormalize ScanSWF
+    ;;
+    "MaxHTMLNormalize")
+    StateGeneric low clamav-daemon/MaxHTMLNormalize MaxHTMLNoTags MaxEmbeddedPE
+    ;;
+    "MaxHTMLNoTags")
+    StateGeneric low clamav-daemon/MaxHTMLNoTags MaxScriptNormalize MaxHTMLNormalize
+    ;;
+    "MaxScriptNormalize")
+    StateGeneric low clamav-daemon/MaxScriptNormalize MaxZipTypeRcg MaxHTMLNoTags
+    ;;
+    "MaxZipTypeRcg")
+    StateGeneric low clamav-daemon/MaxZipTypeRcg SelfCheck MaxScriptNormalize
+    ;;
+    "SelfCheck")
+    StateGeneric low clamav-daemon/SelfCheck StatsEnabled MaxZipTypeRcg
+    ;;
+    "StatsEnabled")
+    StateGeneric low clamav-daemon/StatsEnabled StatsPEDisabled SelfCheck
+    ;;
+    "StatsPEDisabled")
+    StateGeneric low clamav-daemon/StatsPEDisabled StatsHostID StatsEnabled
+    ;;
+    "StatsHostID")
+    StateGeneric low clamav-daemon/StatsHostID StatsTimeout StatsPEDisabled
+    ;;
+    "StatsTimeout")
+    StateGenericDigit low clamav-daemon/StatsTimeout User StatsHostID
+    ;;
+    "User")
+    StateUser
+    ;;
+    "AddGroups")
+    StateGeneric medium clamav-daemon/AddGroups Bytecode User
+    ;;
+    "Bytecode")
+    StateBytecode
+    ;;
+    "BytecodeSecurity")
+    StateGeneric low clamav-daemon/BytecodeSecurity BytecodeTimeout Bytecode
+    ;;
+    "BytecodeTimeout")
+    StateGenericDigit low clamav-daemon/BytecodeTimeout End BytecodeSecurity
+    ;;
+  esac
+done
+db_stop || true
+exit 0

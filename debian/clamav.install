@@ -1,0 +1,5 @@
+debian/script usr/share/bug/clamav/
+debian/tmp/usr/bin/clambc
+debian/tmp/usr/bin/clamscan
+debian/tmp/usr/bin/clamsubmit
+debian/tmp/usr/bin/sigtool

@@ -1,0 +1,4 @@
+# clamav-base only has one template, which is of type error and not meant to be changed.
+clamav-base: no-debconf-config
+# This template is actually used, see debian/common_functions.
+clamav-base: unused-debconf-template clamav-base/numinfo

@@ -1,0 +1,191 @@
+#! /usr/bin/make -f
+
+# Comment this out to turn off verbose mode.
+export DH_VERBOSE=1
+
+# Automake 1.14 warns about not using subdir-objects,
+# but using this option breaks the build, see:
+#    http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16375
+#    http://debbugs.gnu.org/cgi/bugreport.cgi?bug=13928
+# The following variables can be used to override the automake/aclocal versions.
+#export AUTOMAKE = automake
+#export ACLOCAL = aclocal
+
+# This is needed to work around arch-specific quirks in the test suite.
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+
+# Get the hardening build flags and enable all compiler warnings:
+CFLAGS   := $(shell dpkg-buildflags --get CFLAGS) -Wall -D_FILE_OFFSET_BITS=64
+CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS) -Wall -D_FILE_OFFSET_BITS=64
+CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
+LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
+
+# LLVM is only used on these archs, so no point in enabling it elsewhere
+# To add new llvm/jit archs add it here and to the arch list for llvm-dev in
+# debian/control.
+ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 powerpc kfreebsd-amd64 kfreebsd-i386))
+  export enable_llvm=no
+else
+  # The llvm in squeeze (Debian 6) is older than the internal copy, so don't use it.
+  ifeq ($(shell cut -c1 /etc/debian_version),6)
+    SYSTEM_LLVM =
+  else
+    SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
+  endif
+endif
+
+# Set the configure options:
+#	* add the build flags
+#	* set various paths
+#	* disable test for clamav user/group (--disable-clamav)
+#	* disable building of the non-free libclamunrar (--disable-unrar)
+#	* build clamav-milter (--enable-milter)
+#	* enable workaround for broken DNS servers (--enable-dns-fix)
+#	* assume the C compiler uses GNU ld (--with-gnu-ld)
+#	* use system libraries instead of the embedded copies (--with-system-tommath, --without-included-ltdl, -with-system-llvm=/usr/bin/llvm-config)
+CONFIG := CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	--with-dbdir=/var/lib/clamav --sysconfdir=/etc/clamav \
+	--disable-clamav --disable-unrar --enable-milter --enable-dns-fix \
+	--with-libjson \
+	--with-gnu-ld $(SYSTEM_LLVM) \
+	--with-systemdsystemunitdir=/lib/systemd/system
+
+DEBUG_OPTS=
+
+# Enable debug code, if nostrip was given.
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+else
+	DEBUG_OPTS += --enable-debug
+endif
+
+# The autotools in squeeze (Debian 6) are too old, so don't use autoreconf.
+# And don't use systemd.
+ifeq ($(shell cut -c1 /etc/debian_version),6)
+  AUTORECONF =
+  SYSTEMD =
+else
+ifeq ($(shell cut -c1 /etc/debian_version),7)
+  AUTORECONF = --with autoreconf
+  SYSTEMD =
+else
+  AUTORECONF = --with autoreconf
+  SYSTEMD = --with systemd
+endif
+endif
+
+# Use the default debhelper scripts, where possible.
+# Enable parallel building and conditionally autoreconf and systemd.
+%:
+	dh $@ --parallel $(AUTORECONF) $(SYSTEMD)
+
+override_dh_auto_configure:
+	$(info DEB_BUILD_OPTIONS = $(DEB_BUILD_OPTIONS))
+	$(info CFLAGS = $(CFLAGS))
+	$(info CXXFLAGS = $(CXXFLAGS))
+	$(info CPPFLAGS = $(CPPFLAGS))
+	$(info LDFLAGS = $(LDFLAGS))
+	# Check for unknown options in the configuration files.
+	egrep '^#[[:alpha:]]' etc/clamd.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
+	  if ! grep -q "$${opt}" debian/clamav-daemon.postinst.in ; then \
+	    echo "Unhandled option(clamd.conf): $${opt}"; \
+	    exit 1; \
+	  fi;\
+	done;
+	egrep '^#[[:alpha:]]' etc/freshclam.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
+	  if ! grep -q "$${opt}" debian/clamav-freshclam.postinst.in ; then \
+	    echo "Unhandled option (freshclam.conf): $${opt}"; \
+	    exit 1; \
+	  fi;\
+	done;
+	egrep '^#[[:alpha:]]' etc/clamav-milter.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
+	  if ! grep -q "$${opt}" debian/clamav-milter.postinst.in ; then \
+	    echo "Unhandled option (clamav-milter.conf): $${opt}"; \
+	    exit 1; \
+	  fi;\
+	done;
+	# Configure using the specified flags.
+	dh_auto_configure -- $(CONFIG) $(DEBUG_OPTS)
+
+override_dh_auto_clean:
+	# Update .po files for debconf.
+	debconf-updatepo
+	dh_auto_clean
+
+clamav_build-indep:
+	# Add common functions in config and postinst files.
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-base.postinst.in > debian/clamav-base.postinst
+
+clamav_build-arch:
+	# Add common functions in config and postinst files.
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-milter.init.in > debian/clamav-milter.init
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-milter.config.in > debian/clamav-milter.config
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-milter.postinst.in > debian/clamav-milter.postinst
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-daemon.config.in > debian/clamav-daemon.config
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-daemon.postinst.in > debian/clamav-daemon.postinst
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-daemon.init.in > debian/clamav-daemon.init
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-freshclam.init.in > debian/clamav-freshclam.init
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-freshclam.config.in > debian/clamav-freshclam.config
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-freshclam.postinst.in > debian/clamav-freshclam.postinst
+	perl -pe 's~#COMMON-FUNCTIONS#~qx{cat debian/common_functions}~eg' < debian/clamav-freshclam.prerm.in > debian/clamav-freshclam.prerm
+
+# override_dh_auto_build-{indep,arch} doesn't work in squeeze (Debian 6).
+ifeq ($(shell cut -c1 /etc/debian_version),6)
+override_dh_auto_build: clamav_build-indep clamav_build-arch
+	# Build all files.
+	dh_auto_build -- V=1
+else
+override_dh_auto_build-indep: clamav_build-indep
+	# Build architecture-independent files.
+	dh_auto_build -i -- V=1
+
+override_dh_auto_build-arch: clamav_build-arch
+	# Build architecture-dependent files.
+	dh_auto_build -a -- V=1
+endif
+
+override_dh_auto_test:
+ifneq (,$(filter alpha, $(DEB_HOST_ARCH)))
+	@echo "Ignoring errors because of #521737"
+	-dh_auto_test -- V=1
+else
+ifneq (,$(filter ia64 sparc, $(DEB_HOST_ARCH)))
+	dh_auto_test -- EF_ALIGNMENT=8 V=1
+else
+	dh_auto_test -- V=1 VERBOSE=1
+endif
+endif
+
+override_dh_strip:
+	# Move the debug symbols to the debug package:
+	dh_strip --dbg-package=clamav-dbg
+
+override_dh_installinit:
+	dh_installinit -pclamav-daemon
+	# Don't change the postinst/postrm scripts for clamav-freshclam, as they need non-standard code.
+	dh_installinit -pclamav-freshclam --noscripts
+	dh_installinit -pclamav-milter
+
+override_dh_installdocs-indep:
+	dh_installdocs
+	# Make the .rar test files which are no longer created
+	cat test/.split/split.clam-v2.raraa test/.split/split.clam-v2.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v2.rar
+	cat test/.split/split.clam-v3.raraa test/.split/split.clam-v3.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v3.rar
+
+# Install the upstream ChangeLog.
+override_dh_installchangelogs:
+	dh_installchangelogs -pclamav-base ChangeLog
+	dh_installchangelogs -pclamav-daemon ChangeLog
+	dh_installchangelogs -pclamav-dbg ChangeLog
+	dh_installchangelogs -pclamav-docs ChangeLog
+	dh_installchangelogs -pclamav-freshclam ChangeLog
+	dh_installchangelogs -pclamav-milter ChangeLog
+	dh_installchangelogs -pclamav-testfiles ChangeLog
+	dh_installchangelogs -pclamav ChangeLog
+	dh_installchangelogs -pclamdscan ChangeLog
+	dh_installchangelogs -plibclamav-dev ChangeLog
+	dh_installchangelogs -plibclamav6 ChangeLog
+
+# Don't compress the example configuration files and the documentation PDFs.
+override_dh_compress:
+	dh_compress -Xexamples -X.pdf
