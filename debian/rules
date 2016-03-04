@@ -1,7 +1,7 @@
 #! /usr/bin/make -f
 
 # Comment this out to turn off verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 # Automake 1.14 warns about not using subdir-objects,
 # but using this option breaks the build, see:
@@ -18,7 +18,7 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 CFLAGS   := $(shell dpkg-buildflags --get CFLAGS) -Wall -D_FILE_OFFSET_BITS=64
 CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS) -Wall -D_FILE_OFFSET_BITS=64
 CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
-LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS)
+LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS) -Wl,--as-needed
 
 # LLVM is only used on these archs, so no point in enabling it elsewhere
 # To add new llvm/jit archs add it here and to the arch list for llvm-dev in
@@ -89,21 +89,22 @@ override_dh_auto_configure:
 	egrep '^#[[:alpha:]]' etc/clamd.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
 	  if ! grep -q "$${opt}" debian/clamav-daemon.postinst.in ; then \
 	    echo "Unhandled option(clamd.conf): $${opt}"; \
-	    exit 1; \
+	    touch debian/exit; \
 	  fi;\
-	done;
+	done; \
 	egrep '^#[[:alpha:]]' etc/freshclam.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
 	  if ! grep -q "$${opt}" debian/clamav-freshclam.postinst.in ; then \
 	    echo "Unhandled option (freshclam.conf): $${opt}"; \
-	    exit 1; \
+	    touch debian/exit; \
 	  fi;\
-	done;
+	done; \
 	egrep '^#[[:alpha:]]' etc/clamav-milter.conf.sample | sed -e 's/^#//' | awk '{print $$1}' | while read opt; do \
 	  if ! grep -q "$${opt}" debian/clamav-milter.postinst.in ; then \
 	    echo "Unhandled option (clamav-milter.conf): $${opt}"; \
-	    exit 1; \
+	    touch debian/exit; \
 	  fi;\
-	done;
+	done; \
+	[ ! -f debian/exit ] || (rm debian/exit && exit 1)
 	# Configure using the specified flags.
 	dh_auto_configure -- $(CONFIG) $(DEBUG_OPTS)
 
@@ -145,15 +146,10 @@ override_dh_auto_build-arch: clamav_build-arch
 endif
 
 override_dh_auto_test:
-ifneq (,$(filter alpha, $(DEB_HOST_ARCH)))
-	@echo "Ignoring errors because of #521737"
-	-dh_auto_test -- V=1
-else
 ifneq (,$(filter ia64 sparc, $(DEB_HOST_ARCH)))
-	dh_auto_test -- EF_ALIGNMENT=8 V=1
+	T=900 dh_auto_test -- EF_ALIGNMENT=8 V=1 VERBOSE=1
 else
-	dh_auto_test -- V=1 VERBOSE=1
-endif
+	T=900 dh_auto_test -- V=1 VERBOSE=1
 endif
 
 override_dh_strip:
@@ -184,7 +180,7 @@ override_dh_installchangelogs:
 	dh_installchangelogs -pclamav ChangeLog
 	dh_installchangelogs -pclamdscan ChangeLog
 	dh_installchangelogs -plibclamav-dev ChangeLog
-	dh_installchangelogs -plibclamav6 ChangeLog
+	dh_installchangelogs -plibclamav7 ChangeLog
 
 # Don't compress the example configuration files and the documentation PDFs.
 override_dh_compress:

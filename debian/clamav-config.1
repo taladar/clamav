@@ -19,7 +19,7 @@
 .\"
 .TH CLAMAV-CONFIG 1 "June 2004" "Debian Project" "Debian GNU/Linux"
 .SH NAME
-clamav-config \- script to get information about libclamav6
+clamav-config \- script to get information about libclamav
 .SH SYNOPSIS
 .B clamav\-config 
 .BI [\-\-prefix[= DIR ]]
@@ -30,27 +30,27 @@ clamav-config \- script to get information about libclamav6
 .B clamav\-config
 is a tool that is used to configure to determine the compiler and
 linker flags that should be used to compile and link programs that use
-.BR libclamav6 .
+.BR libclamav .
 .SH OPTIONS
 .TP
 .B \-\-version
 Print the currently installed version of 
-.B libclamav6
+.B libclamav
 on the standard output.
 .TP
 .B \-\-libs
 Print the linker flags that are necessary to link a program with
-.BR libclamav6 .
+.BR libclamav .
 .TP
 .B \-\-cflags
 Print the compiler flags that are necessary to compile a program with 
-.BR libclamav6 .
+.BR libclamav .
 .TP
 .BI  \-\-prefix= PREFIX
 If specified, use 
 .I PREFIX
 instead of the installation prefix that 
-.B libclamav6
+.B libclamav
 was built with when computing the output for the 
 .B \-\-cflags
 and

@@ -142,9 +142,9 @@ case "$1" in
       echo "     create 640  $User adm" >> $DEBROTFILE
       echo "     postrotate" >> $DEBROTFILE
       echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTFILE
-      echo "         systemctl -q is-active clamav-freshclam && systemctl kill --signal=SIGHUP clamav-freshclam" >> $DEBROTFILE
+      echo "         systemctl -q is-active clamav-freshclam && systemctl kill --signal=SIGHUP clamav-freshclam || true" >> $DEBROTFILE
       echo "     else" >> $DEBROTFILE
-      echo "         /etc/init.d/clamav-freshclam reload-log > /dev/null" >> $DEBROTFILE
+      echo "         /etc/init.d/clamav-freshclam reload-log > /dev/null || true" >> $DEBROTFILE
       echo "     fi" >> $DEBROTFILE
       echo "     endscript" >> $DEBROTFILE
       echo "     }" >> $DEBROTFILE
@@ -278,7 +278,7 @@ EOF
     echo "HTTPProxyPassword $ppass" >> $DEBCONFFILE
   fi
 
-  if `dpkg --compare-versions "$2" lt 0.98.5+dfsg-4~`; then
+  if `dpkg --compare-versions "$2" lt 0.98.7+dfsg-2~`; then
     # Remove the PidFile variable from the configuration, if it is the previous default value.
     if [ "$PidFile" = "/var/run/clamav/freshclam.pid" ]; then
       PidFile=''

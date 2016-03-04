@@ -1,3 +1,60 @@
+clamav (0.99+dfsg-0+deb8u2) stable; urgency=medium
+
+  * Add libclamav-yara-avoid-unaliged-access-to-64bit-variab.patch to get the
+    testsuite passed on sparc. It also seem avoid invalid loads on ARMv5 cpus.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 22 Feb 2016 21:12:51 +0100
+
+clamav (0.99+dfsg-0+deb8u1) stable; urgency=medium
+
+  [ Andreas Cadhalpun ]
+  * Import final release of 0.99
+  * Drop patches included upstream:
+   - Avoid-emitting-incremental-progress-messages.patch
+   - bb-10731-Allow-to-specificy-a-group-for-the-socket.patch
+   - clamav-milter-add-additinal-SMFIF_-flags.patch
+   - remove-unnecessary-harmful-flags-from-libclamav.pc.patch
+   - hardcode-LLVM-linker-flag.patch
+  * Print all new options in one build attempt.
+  * Preserve new OnAccessMountPath, OnAccessDisableDDD and OnAccessPrevention
+    options in clamd.conf.
+  * Rename libclamav6 to libclamav7 and update symbols file.
+  * Add -Wl,--as-needed to LDFLAGS to avoid useless dependencies.
+  * Remove unused lintian overrides.
+  * Update debian/copyright.
+  * Drop patch numbers, because they cause too much diff noise.
+  * Add patch to support LLVM 3.6.
+  * debian/clamav-milter.postinst.in: Update to reflect the change from
+    examples/clamav-milter.conf to examples/clamav-milter.conf.sample.
+    Thanks to Christian Schrötter. (Closes: #795190)
+  * Use 'grep -a' instead of grep in maintainer scripts. (Closes: #799808)
+  * Restore the SE Linux context when creating /var/lib/ucf/cache.
+    Thanks to Russell Coker for the patch. (Closes: #802311)
+  * Adapt debian/watch to new download location www.clamav.net/download.html.
+  * Prevent the logrotate scripts from aborting if reloading/restarting fails.
+    Thanks to John Zaitseff. (Closes: #788652)
+  * Increase MaxRecursion to the upstream default of 16. (Closes: #787249)
+  * Bump the version for the PidFile removal check in the clamav-daemon and
+    clamav-freshclam postinst scripts (Closes: #767353)
+  * Add database existence check also to clamav-daemon.socket.
+    This works around systemd bug #775458. (Closes: #775112)
+
+  [ Sebastian Andrzej Siewior ]
+  * suggest libclamunrar7 instead of libclamunrar6
+  * use T=<timeout> so we can drop
+    unit_tests-increment-test-timeout-from-40secs-to-5mi from the patch queue.
+  * depend on libpcre3-dev, required for YARA support
+  * add new PCRE related options postinst script for clamd
+  * record new symbols in libclamav6.symbols
+  * also remove debian/clamav-freshclam.prerm clean
+  * Remove Fix-compiling-on-Hurd.patch included upstream.
+  * Add patch to allow M suffix for PCREMaxFileSize as the config file
+    suggests that this should be possible.
+  * Cherry pick tfm-fix-compile-errors.patch from tfm upstream.
+  * add a LFS safe fts() implementation from glibc
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 14 Dec 2015 21:42:04 +0100
+
 clamav (0.98.7+dfsg-0+deb8u1) stable; urgency=high
 
   [ Andreas Cadhalpun ]

@@ -1,0 +1,94 @@
+From bbc0790fa239ec754ca1693244acacd2e55f97b5 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Sat, 20 Feb 2016 15:53:48 +0100
+Subject: libclamav: yara: avoid unaliged access to 64bit variable
+
+The derefence of an unaligned 64bit variable results in a SIGBUS abort
+on 32bit SPARC. ARMv5 CPUs seem to perform the load but load garbish.
+This memcpy() workaround forces the compiler to do something that works
+on even if the data was not properly aligned. For X86 it means no
+change. ARM on other hand will produce slightly different code depending
+on the CPU used.
+
+Patch-Name: libclamav-yara-avoid-unaliged-access-to-64bit-variab.patch
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+---
+ libclamav/yara_exec.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/libclamav/yara_exec.c b/libclamav/yara_exec.c
+index dbd7ae8..808a030 100644
+--- a/libclamav/yara_exec.c
++++ b/libclamav/yara_exec.c
+@@ -184,7 +184,7 @@ int yr_execute_code(
+ #endif
+ 
+       case OP_PUSH:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         push(r1);
+         break;
+@@ -194,38 +194,38 @@ int yr_execute_code(
+         break;
+ 
+       case OP_CLEAR_M:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         mem[r1] = 0;
+         break;
+ 
+       case OP_ADD_M:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         pop(r2);
+         mem[r1] += r2;
+         break;
+ 
+       case OP_INCR_M:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         mem[r1]++;
+         break;
+ 
+       case OP_PUSH_M:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         push(mem[r1]);
+         break;
+ 
+       case OP_POP_M:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         pop(mem[r1]);
+         break;
+ 
+       case OP_SWAPUNDEF:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+         pop(r2);
+         if (r2 != UNDEFINED)
+@@ -540,7 +540,7 @@ int yr_execute_code(
+ 
+         // r1 = number of arguments
+ 
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+ 
+         // pop arguments from stack and copy them to args array
+@@ -854,7 +854,7 @@ int yr_execute_code(
+ 
+ #if REAL_YARA //not supported ClamAV
+       case OP_IMPORT:
+-        r1 = *(uint64_t*)(ip + 1);
++        memcpy(&r1, ip + 1, sizeof(uint64_t));
+         ip += sizeof(uint64_t);
+ 
+         FAIL_ON_ERROR(yr_modules_load(

@@ -57,6 +57,7 @@ ucf_upgrade_check()
     ucf --three-way --debconf-ok "$sourcefile" "$configfile"
   else
     [ -d /var/lib/ucf/cache ] || mkdir -p /var/lib/ucf/cache
+    pathfind restorecon && restorecon /var/lib/ucf/cache
     cp $sourcefile $configfile
     add_to_ucf $configfile $ucffile
   fi
@@ -67,11 +68,11 @@ slurp_config()
   CLAMAVCONF="$1"
   
   if [ -e "$CLAMAVCONF" ]; then
-    for variable in `egrep -v '^[[:space:]]*(#|$)' "$CLAMAVCONF" | awk '{print $1}'`; do
+    for variable in `egrep -a -v '^[[:space:]]*(#|$)' "$CLAMAVCONF" | awk '{print $1}'`; do
       case "$variable" in
         DatabaseMirror)
         if [ -z "$DatabaseMirror" ]; then
-          for i in `grep ^$variable $CLAMAVCONF | awk '{print $2}'`; do
+          for i in `grep -a ^$variable $CLAMAVCONF | awk '{print $2}'`; do
             value="$value $i"
           done
         else
@@ -80,7 +81,7 @@ slurp_config()
         ;;
         DatabaseCustomURL)
         if [ -z "$DatabaseCustomURL" ]; then
-          for i in `grep ^$variable $CLAMAVCONF | awk '{print $2}'`; do
+          for i in `grep -a ^$variable $CLAMAVCONF | awk '{print $2}'`; do
             value="$value $i"
           done
         else
@@ -89,7 +90,7 @@ slurp_config()
         ;;
         IncludePUA)
         if [ -z "$IncludePUA" ]; then
-          for i in `grep ^$variable $CLAMAVCONF | awk '{print $2}'`; do
+          for i in `grep -a ^$variable $CLAMAVCONF | awk '{print $2}'`; do
             value="$i $value"
           done
         else
@@ -98,7 +99,7 @@ slurp_config()
         ;;
         ExcludePUA)
         if [ -z "$ExcludePUA" ]; then
-          for i in `grep ^$variable $CLAMAVCONF | awk '{print $2}'`; do
+          for i in `grep -a ^$variable $CLAMAVCONF | awk '{print $2}'`; do
             value="$i $value"
           done
         else
@@ -107,7 +108,7 @@ slurp_config()
         ;;
         ExtraDatabase)
         if [ -z "$ExtraDatabase" ]; then
-          for i in `grep ^$variable $CLAMAVCONF | awk '{print $2}'`; do
+          for i in `grep -a ^$variable $CLAMAVCONF | awk '{print $2}'`; do
             value="$value $i"
           done
         else
@@ -115,10 +116,10 @@ slurp_config()
         fi
         ;;
         VirusEvent|OnUpdateExecute|OnErrorExecute|RejectMsg)
-        value=`grep ^$variable $CLAMAVCONF | head -n1 | sed -e s/$variable\ //`
+        value=`grep -a ^$variable $CLAMAVCONF | head -n1 | sed -e s/$variable\ //`
         ;;
         *)
-        value=`grep "^$variable[[:space:]]" $CLAMAVCONF | head -n1 | awk '{print $2}'`
+        value=`grep -a "^$variable[[:space:]]" $CLAMAVCONF | head -n1 | awk '{print $2}'`
         ;;
       esac
       if [ -z "$value" ]; then 

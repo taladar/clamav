@@ -26,7 +26,7 @@ if [ -e "$CLAMAVCONF" ]; then
 		# Test for '##' at the beginning of the configuration file.
 		# These are present in the example configuration file presented for manual editing,
 		# but not in the automatically created one, when using debconf to manage clamd.conf.
-		if [ -z `cat /etc/clamav/clamd.conf | sed -n 1p | grep '##'` ]; then
+		if [ -z `cat /etc/clamav/clamd.conf | sed -n 1p | grep -a '##'` ]; then
 			db_set clamav-daemon/debconf true
 		else
 			db_set clamav-daemon/debconf false

@@ -14,10 +14,10 @@ Files-Excluded:
 
 Files: *
 Copyright:
- 1998-2014, Sourcefire, Inc.
+ 1998-2015, Sourcefire, Inc.
  2002-2007, Tomasz Kojm <tkojm@clamav.net>
  2006, Sensory Networks, Inc
- 2007-2014, Cisco Systems, Inc
+ 2007-2015, Cisco Systems, Inc
  2014, Cisco and/or its affiliates
 License: GPL-2
  This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,8 @@ Comment:
 Files:
  libclamav/crypto.c
  libclamav/pdfng.c
+ libclamav/xdp.c
+ libclamav/xdp.h
 Copyright:
  2014, Cisco and/or its affiliates
 License: GPL-2 with OpenSSL exception
@@ -142,6 +144,8 @@ Files:
  config/compile
  config/depcomp
  config/missing
+ config/test-driver
+ config/ylwrap
  libclamav/c++/config/compile
  libclamav/c++/config/depcomp
  libclamav/c++/config/missing
@@ -270,22 +274,15 @@ Copyright:
  2003-2004 Stuart Caie
  2007-2013, Sourcefire, Inc.
 License: LGPL-2.1
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License version 2.1 as published by the Free Software Foundation.
- .
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
-Comment:
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- MA 02110-1301, USA.
- .
- On Debian systems, the full text of the GNU Lesser General Public License
- version 2.1 can be found in the file `/usr/share/common-licenses/LGPL-2.1'.
+
+Files:
+ clamd/fts.c
+ clamd/priv_fts.h
+ debian/patches/clamav_add_private_fts_implementation.patch
+Copyright:
+ 1990, 1993-1994, The Regents of the University of California.
+ 1994-2015, Free Software Foundation, Inc.
+License: LGPL-2.1 and BSD-3-clause
 
 Files:
  config/install-sh
@@ -328,8 +325,9 @@ License: BSD-2-clause
 
 Files:
  libclamav/qsort.c
+ shared/queue.h
 Copyright:
- 1992-1993, The Regents of the University of California.
+ 1991-1993, The Regents of the University of California.
 License: BSD-3-clause
 
 Files:
@@ -372,6 +370,7 @@ Comment:
 
 Files:
  libclamav/regex/strlcpy.c
+ libclamav/strlcat.c
 Copyright:
  1998, Todd C. Miller <Todd.Miller@courtesan.com>
 License: ISC
@@ -538,6 +537,71 @@ License: public-domain~3
 Comment:
  See COPYING.lzma.
 
+Files:
+ libclamav/yara_*
+Copyright:
+ Copyright (C) 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ Copyright (c) 2013. The YARA Authors. All Rights Reserved.
+License: Apache-2.0 with GPL exception
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ .
+    http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+Comment:
+ See COPYING.YARA. The GPL exeption has been granted by upstream in
+ https://bugzilla.clamav.net/show_bug.cgi?id=11336:
+  Steven Morgan 2015-07-21 23:02:01 CEST
+  The Apache 2 license notification for YARA is in the file COPYING.YARA,
+  similar to what we do for bzip2 and at least 9 other third party components
+  included in ClamAV. We also maintain the Apache v2 license header within the
+  YARA source code files as well as noting that the file is modified. We also
+  intend to write a GPL exclusion, as is done for OpenSSL. We believe these to
+  be sufficient indicators of which licenses apply to which source files.
+ .
+ On Debian systems, the full text of the Apache License, Version 2.0 can be
+ found in the file `/usr/share/common-licenses/Apache-2.0'.
+
+
+Files:
+ libclamav/yara_grammar.h
+Copyright:
+ 1984, 1989-1990, 2000-2011, Free Software Foundation, Inc.
+License: GPL-3+ with Bison exception
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ As a special exception, you may create a larger work that contains
+ part or all of the Bison parser skeleton and distribute that work
+ under terms of your choice, so long as that work isn't itself a
+ parser generator using the skeleton or a modified version thereof
+ as a parser skeleton.  Alternatively, if you modify or redistribute
+ the parser skeleton itself, you may (at your option) remove this
+ special exception, which will cause the skeleton and the resulting
+ Bison output files to be licensed under the GNU General Public
+ License without this special exception.
+Comment:
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in the file `/usr/share/common-licenses/GPL-3.
+
 License: GPL-2+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -548,6 +612,24 @@ License: GPL-2+
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
+License: LGPL-2.1
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License version 2.1 as published by the Free Software Foundation.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+Comment:
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ .
+ On Debian systems, the full text of the GNU Lesser General Public License
+ version 2.1 can be found in the file `/usr/share/common-licenses/LGPL-2.1'.
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy

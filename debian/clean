@@ -8,6 +8,7 @@ debian/clamav-daemon.init
 debian/clamav-freshclam.init
 debian/clamav-freshclam.config
 debian/clamav-freshclam.postinst
+debian/clamav-freshclam.prerm
 Makefile
 clamav-config
 clamav-config.h
