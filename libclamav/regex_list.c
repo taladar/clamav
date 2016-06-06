@@ -85,7 +85,8 @@ static inline size_t get_char_at_pos_with_skip(const struct pre_fixup_info* info
 		return (pos <= strlen(buffer)) ? buffer[pos>0 ? pos-1:0] : '\0';
 	}
 	str = info->pre_displayLink.data;
-	cli_dbgmsg("calc_pos_with_skip: skip:%lu, %lu - %lu \"%s\",\"%s\"\n", pos, info->host_start, info->host_end, str, buffer);
+	cli_dbgmsg("calc_pos_with_skip: skip:%llu, %llu - %llu \"%s\",\"%s\"\n", (long long unsigned)pos, (long long unsigned)info->host_start,
+               (long long unsigned)info->host_end, str, buffer);
 	pos += info->host_start;
 	while(str[realpos] && !isalnum(str[realpos])) realpos++;
 	for(; str[realpos] && (pos>0); pos--) {
@@ -630,6 +631,7 @@ static int add_pattern_suffix(void *cbdata, const char *suffix, size_t suffix_le
 	struct regex_matcher *matcher = cbdata;
 	struct regex_list *regex = cli_malloc(sizeof(*regex));
 	const struct cli_element *el;
+	void *tmp_matcher;  /*	save original address if OOM occurs */
 
 	assert(matcher);
 	if(!regex) {
@@ -650,11 +652,13 @@ static int add_pattern_suffix(void *cbdata, const char *suffix, size_t suffix_le
 		/* new suffix */
 		size_t n = matcher->suffix_cnt++;
 		el = cli_hashtab_insert(&matcher->suffix_hash, suffix, suffix_len, n);
-		matcher->suffix_regexes = cli_realloc(matcher->suffix_regexes, (n+1)*sizeof(*matcher->suffix_regexes));
-		if(!matcher->suffix_regexes) {
+		tmp_matcher = matcher->suffix_regexes;	/*  save the current value before cli_realloc()	*/
+		tmp_matcher = cli_realloc(matcher->suffix_regexes, (n+1)*sizeof(*matcher->suffix_regexes));
+		if(!tmp_matcher) {
 			free (regex);
 			return CL_EMEM;
 		}
+		matcher->suffix_regexes = tmp_matcher;	/*  success, point at new memory location   */
 		matcher->suffix_regexes[n].tail = regex;
 		matcher->suffix_regexes[n].head = regex;
 		if (suffix[0] == '/' && suffix[1] == '\0')

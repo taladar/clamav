@@ -133,7 +133,7 @@ struct metachain {
 
 struct clamscan_cb_data {
     struct metachain * chain;
-    char * filename;
+    const char * filename;
 };
 
 static cl_error_t pre(int fd, const char *type, void *context)
@@ -277,7 +277,7 @@ static cl_error_t meta(const char* container_type, unsigned long fsize_container
 static void clamscan_virus_found_cb(int fd, const char *virname, void *context)
 {
     struct clamscan_cb_data *data = (struct clamscan_cb_data *)context;
-    char * filename;
+    const char * filename;
 
     if (data == NULL)
         return;
@@ -369,6 +369,12 @@ static void scanfile(const char *filename, struct cl_engine *engine, const struc
         chain.chains = malloc(sizeof(char **));
         if (chain.chains) {
             chain.chains[0] = strdup(filename);
+            if (!chain.chains[0]) {
+                free(chain.chains);
+                logg("Unable to allocate memory in scanfile()\n");
+                info.errors++;
+                return;
+            }
             chain.nchains = 1;
         }
     }
@@ -389,9 +395,9 @@ static void scanfile(const char *filename, struct cl_engine *engine, const struc
                 char str[128];
                 int toolong = print_chain(&chain, str, sizeof(str));
 
-                logg("~%s%s!(%u)%s: %s FOUND\n", str, toolong ? "..." : "", chain.lastvir-1, chain.chains[chain.nchains-1], virname);
+                logg("~%s%s!(%llu)%s: %s FOUND\n", str, toolong ? "..." : "", (long long unsigned)(chain.lastvir-1), chain.chains[chain.nchains-1], virname);
             } else if (chain.lastvir) {
-                logg("~%s!(%u): %s FOUND\n", filename, chain.lastvir-1, virname);
+                logg("~%s!(%llu): %s FOUND\n", filename, (long long unsigned)(chain.lastvir-1), virname);
             }
         }
         if (!(options & CL_SCAN_ALLMATCHES))
@@ -792,6 +798,12 @@ int scanmanager(const struct optstruct *opts)
     if((opt = optget(opts,"bytecode-timeout"))->enabled)
         cl_engine_set_num(engine, CL_ENGINE_BYTECODE_TIMEOUT, opt->numarg);
 
+    if (optget(opts, "nocerts")->enabled)
+        cl_engine_set_num(engine, CL_ENGINE_DISABLE_PE_CERTS, 1);
+
+    if (optget(opts, "dumpcerts")->enabled)
+        cl_engine_set_num(engine, CL_ENGINE_PE_DUMPCERTS, 1);
+
     if((opt = optget(opts,"bytecode-mode"))->enabled) {
         enum bytecode_mode mode;
 
@@ -853,6 +865,23 @@ int scanmanager(const struct optstruct *opts)
         free(dbdir);
     }
 
+    /* pcre engine limits - required for cl_engine_compile */
+    if ((opt = optget(opts, "pcre-match-limit"))->active) {
+        if ((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_MATCH_LIMIT, opt->numarg))) {
+            logg("!cli_engine_set_num(CL_ENGINE_PCRE_MATCH_LIMIT) failed: %s\n", cl_strerror(ret));
+            cl_engine_free(engine);
+            return 2;
+        }
+    }
+
+    if ((opt = optget(opts, "pcre-recmatch-limit"))->active) {
+        if ((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_RECMATCH_LIMIT, opt->numarg))) {
+            logg("!cli_engine_set_num(CL_ENGINE_PCRE_RECMATCH_LIMIT) failed: %s\n", cl_strerror(ret));
+            cl_engine_free(engine);
+            return 2;
+        }
+    }
+
     if((ret = cl_engine_compile(engine)) != 0) {
         logg("!Database initialization error: %s\n", cl_strerror(ret));;
 
@@ -865,12 +894,6 @@ int scanmanager(const struct optstruct *opts)
         cl_engine_set_clcb_pre_cache(engine, pre);
         cl_engine_set_clcb_post_scan(engine, post);
     }
-
-    if (optget(opts, "nocerts")->enabled)
-        engine->dconf->pe |= PE_CONF_DISABLECERT;
-
-    if (optget(opts, "dumpcerts")->enabled)
-        engine->dconf->pe |= PE_CONF_DUMPCERT;
 
     /* set limits */
 
@@ -986,26 +1009,19 @@ int scanmanager(const struct optstruct *opts)
         }
     }
 
+    if((opt = optget(opts, "max-rechwp3"))->active) {
+        if((ret = cl_engine_set_num(engine, CL_ENGINE_MAX_RECHWP3, opt->numarg))) {
+            logg("!cli_engine_set_num(CL_ENGINE_MAX_RECHWP3) failed: %s\n", cl_strerror(ret));
+
+            cl_engine_free(engine);
+            return 2;
+        }
+    }
+
     if ((opt = optget(opts, "timelimit"))->active) {
         if ((ret = cl_engine_set_num(engine, CL_ENGINE_TIME_LIMIT, opt->numarg))) {
             logg("!cli_engine_set_num(CL_ENGINE_TIME_LIMIT) failed: %s\n", cl_strerror(ret));
 
-            cl_engine_free(engine);
-            return 2;
-        }
-    }
-
-    if ((opt = optget(opts, "pcre-match-limit"))->active) {
-        if ((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_MATCH_LIMIT, opt->numarg))) {
-            logg("!cli_engine_set_num(CL_ENGINE_PCRE_MATCH_LIMIT) failed: %s\n", cl_strerror(ret));
-            cl_engine_free(engine);
-            return 2;
-        }
-    }
-
-    if ((opt = optget(opts, "pcre-recmatch-limit"))->active) {
-        if ((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_RECMATCH_LIMIT, opt->numarg))) {
-            logg("!cli_engine_set_num(CL_ENGINE_PCRE_RECMATCH_LIMIT) failed: %s\n", cl_strerror(ret));
             cl_engine_free(engine);
             return 2;
         }
@@ -1046,6 +1062,9 @@ int scanmanager(const struct optstruct *opts)
     if(optget(opts, "block-encrypted")->enabled)
         options |= CL_SCAN_BLOCKENCRYPTED;
 
+    if(optget(opts, "block-macros")->enabled)
+        options |= CL_SCAN_BLOCKMACROS;
+
     if(optget(opts, "scan-pe")->enabled)
         options |= CL_SCAN_PE;
 
@@ -1066,6 +1085,12 @@ int scanmanager(const struct optstruct *opts)
 
     if(optget(opts, "scan-mail")->enabled)
         options |= CL_SCAN_MAIL;
+
+    if(optget(opts, "scan-xmldocs")->enabled)
+        options |= CL_SCAN_XMLDOCS;
+
+    if(optget(opts, "scan-hwp3")->enabled)
+        options |= CL_SCAN_HWP3;
 
     if(optget(opts, "algorithmic-detection")->enabled)
         options |= CL_SCAN_ALGORITHMIC;

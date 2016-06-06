@@ -91,7 +91,7 @@ short logg_syslog;
 #endif
 
 short int mprintf_disabled = 0, mprintf_verbose = 0, mprintf_quiet = 0,
-	  mprintf_stdout = 0, mprintf_nowarn = 0, mprintf_send_timeout = 100;
+	  mprintf_stdout = 0, mprintf_nowarn = 0, mprintf_send_timeout = 100, mprintf_progress = 0;
 
 #define ARGLEN(args, str, len)			    \
 {						    \
@@ -215,7 +215,7 @@ static int rename_logg(STATBUF *sb)
 
     if (!logg_rotate) {
         if (logg_fp) {
-            fprintf(logg_fp, "Log size = %zu, max = %zu\n", sb->st_size, logg_size);
+            fprintf(logg_fp, "Log size = %lld, max = %lld\n", (long long int)sb->st_size, (long long int)logg_size);
             fprintf(logg_fp, "WARNING: Log size limit met but log file rotation turned off. Forcing log file rotation anyways.\n");
         }
 

@@ -701,6 +701,10 @@ static void aes_decrypt(const unsigned char *in, off_t *length, unsigned char *q
 
     cli_dbgmsg("aes_decrypt: Calling rijndaelSetupDecrypt\n");
     nrounds = rijndaelSetupDecrypt(rk, (const unsigned char *)key, key_n*8);
+    if (!nrounds) {
+	cli_dbgmsg("cli_pdf: aes_decrypt: nrounds = 0\n");
+	return;
+    }
     cli_dbgmsg("aes_decrypt: Beginning rijndaelDecrypt\n");
 
     while (len >= 16) {
@@ -785,7 +789,7 @@ char *decrypt_any(struct pdf_struct *pdf, uint32_t id, const char *in, off_t *le
     if (n > 16)
         n = 16;
 
-    q = cli_malloc(*length);
+    q = cli_calloc(*length, sizeof(char));
     if (!q) {
         noisy_warnmsg("decrypt_any: malloc failed\n");
         return NULL;
@@ -1048,14 +1052,15 @@ int pdf_extract_obj(struct pdf_struct *pdf, struct pdf_obj *obj, uint32_t flags)
                     cli_dbgmsg("cli_pdf: calculated length %ld\n", length);
                 } else {
                     if (size > (size_t)length+2) {
-                        cli_dbgmsg("cli_pdf: calculated length %ld < %ld\n",
-                               length, size);
+                        cli_dbgmsg("cli_pdf: calculated length %llu < %llu\n",
+                                   (long long unsigned)length, (long long unsigned)size);
                         length = size;
                     }
                 }
 
                 if (orig_length && size > (size_t)orig_length + 20) {
-                    cli_dbgmsg("cli_pdf: orig length: %ld, length: %ld, size: %ld\n", orig_length, length, size);
+                    cli_dbgmsg("cli_pdf: orig length: %ld, length: %ld, size: %llu\n", orig_length, length,
+                               (long long unsigned)size);
                     pdfobj_flag(pdf, obj, BAD_STREAMLEN);
                 }
 

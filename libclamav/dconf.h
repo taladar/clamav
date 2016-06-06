@@ -63,9 +63,8 @@ struct cli_dconf {
 #define PE_CONF_UPACK	    0x4000
 #define PE_CONF_ASPACK	    0x8000
 #define PE_CONF_CATALOG	    0x10000
-#define PE_CONF_DISABLECERT 0x20000
-#define PE_CONF_DUMPCERT    0x40000
-#define PE_CONF_MATCHICON   0x80000
+#define PE_CONF_CERTS       0x20000
+#define PE_CONF_MATCHICON   0x40000
 
 /* Archive flags */
 #define ARCH_CONF_RAR	    0x1
@@ -91,6 +90,9 @@ struct cli_dconf {
 #define ARCH_CONF_HFSPLUS   0x100000
 #define ARCH_CONF_XZ        0x200000
 #define ARCH_CONF_PASSWD    0x400000
+#define ARCH_CONF_MBR       0x800000
+#define ARCH_CONF_GPT       0x1000000
+#define ARCH_CONF_APM       0x2000000
 
 /* Document flags */
 #define DOC_CONF_HTML		0x1
@@ -100,6 +102,9 @@ struct cli_dconf {
 #define DOC_CONF_HTML_SKIPRAW	0x10
 #define DOC_CONF_JSNORM         0x20
 #define DOC_CONF_SWF		0x40
+#define DOC_CONF_MSXML		0x80
+#define DOC_CONF_OOXML		0x100
+#define DOC_CONF_HWP		0x200
 
 /* Mail flags */
 #define MAIL_CONF_MBOX	    0x1

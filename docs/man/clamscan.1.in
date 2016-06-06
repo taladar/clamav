@@ -168,6 +168,12 @@ Scan SWF files. If you turn off this option, the original files will still be sc
 \fB\-\-scan\-html[=yes(*)/no]\fR
 Detect, normalize/decrypt and scan HTML files and embedded scripts. If you turn off this option, the original files will still be scanned, but without additional processing.
 .TP 
+\fB\-\-scan\-xmldocs[=yes(*)/no]\fR
+Scan xml-based document files supported by libclamav. If you turn off this option, the original files will still be scanned, but without additional processing.
+.TP 
+\fB\-\-scan\-hwp3[=yes(*)/no]\fR
+Scan HWP3 files. If you turn off this option, the original files will still be scanned, but without additional processing.
+.TP 
 \fB\-\-scan\-archive[=yes(*)/no]\fR
 Scan archives supported by libclamav. If you turn off this option, the original files will still be scanned, but without unpacking and additional processing.
 .TP 
@@ -176,6 +182,9 @@ Mark broken executables as viruses (Broken.Executable).
 .TP 
 \fB\-\-block\-encrypted[=yes/no(*)]\fR
 Mark encrypted archives as viruses (Encrypted.Zip, Encrypted.RAR).
+.TP 
+\fB\-\-block\-macros[=yes/no(*)]\fR
+Mark OLE2 files containing VBA macros as viruses (Heuristics.OLE2.ContainsMacros).
 .TP 
 \fB\-\-max\-filesize=#n\fR
 Extract and scan at most #n bytes from each archive. You may pass the value in kilobytes in format xK or xk, or megabytes in format xM or xm, where x is a number. This option protects your system against DoS attacks (default: 25 MB, max: <4 GB)
@@ -214,6 +223,9 @@ This option sets the maximum number of partitions of a raw disk image to be scan
 \fB\-\-max\-iconspe=#n\fR
 This option sets the maximum number of icons within a PE to be scanned. This must be a positive integer (default: 100).
 .TP
+\fB\-\-max\-rechwp3=#n\fR
+This option sets the maximum recursive calls to HWP3 parsing function (default: 16).
+.TP
 \fB\-\-pcre-match-limit=#n\fR
 Maximum calls to the PCRE match function (default: 10000).
 .TP
@@ -234,6 +246,9 @@ This option disables the submission of PE section data. (Default: submitting of 
 .TP
 \fB\-\-stats\-timeout=#n\fR
 This option sets the timeout in seconds to wait for communication back from the stats server. (Default: 10).
+.TP
+\fB\-\-disable\-cache\fR
+Disable caching and cache checks for hash sums of scanned files.
 .SH "EXAMPLES"
 .LP 
 .TP 

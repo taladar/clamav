@@ -1,3 +1,0 @@
-# These files are present in the upstream tarball, but removed in a debian patch, see #761199.
-clamav source: wildcard-matches-nothing-in-dep5-copyright libclamav/mspack.c (paragraph at line *)
-clamav source: wildcard-matches-nothing-in-dep5-copyright libclamav/mspack.h (paragraph at line *)

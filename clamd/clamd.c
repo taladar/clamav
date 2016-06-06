@@ -73,7 +73,7 @@
 #include "scanner.h"
 
 short debug_mode = 0, logok = 0;
-short foreground = 0;
+short foreground = -1;
 char hostid[37];
 
 char *get_hostid(void *cbdata);
@@ -125,7 +125,9 @@ int main(int argc, char **argv)
     int *lsockets=NULL;
     unsigned int nlsockets = 0;
     unsigned int dboptions = 0;
-    unsigned int i;
+    unsigned int i;	
+    int j;
+    int num_fd;
 #ifdef C_LINUX
     STATBUF sb;
 #endif
@@ -160,6 +162,30 @@ int main(int argc, char **argv)
 #endif
         debug_mode = 1;
     }
+
+    /* check foreground option from command line to override config file */
+    for(j = 0; j < argc; j += 1)
+    {
+        if ((memcmp(argv[j], "--foreground", 12) == 0) || (memcmp(argv[j], "-F", 2) == 0))
+        {
+            /* found */
+            break;
+        }
+    }
+
+    if (j < argc)
+    {
+        if(optget(opts, "Foreground")->enabled)
+        {
+            foreground = 1;
+        }
+        else
+        {
+            foreground = 0;
+        }
+    }
+
+    num_fd = sd_listen_fds(0);
 
     /* parse the config file */
     cfgfile = optget(opts, "config-file")->strarg;
@@ -300,7 +326,9 @@ int main(int argc, char **argv)
         if(optget(opts, "LocalSocket")->enabled)
             localsock = 1;
 
-        if(!tcpsock && !localsock) {
+        logg("#Received %d file descriptor(s) from systemd.\n", num_fd);
+
+        if(!tcpsock && !localsock && num_fd == 0) {
             logg("!Please define server type (local and/or TCP).\n");
             ret = 1;
             break;
@@ -333,7 +361,7 @@ int main(int argc, char **argv)
 
 
         if(logg_size)
-            logg("#Log file size limited to %u bytes.\n", logg_size);
+            logg("#Log file size limited to %lld bytes.\n", (long long int)logg_size);
         else
             logg("#Log file size limit disabled.\n");
 
@@ -580,9 +608,26 @@ int main(int argc, char **argv)
         }
 
         if (optget(opts, "DisableCertCheck")->enabled)
-            engine->dconf->pe |= PE_CONF_DISABLECERT;
+            cl_engine_set_num(engine, CL_ENGINE_DISABLE_PE_CERTS, 1);
 
         logg("#Loaded %u signatures.\n", sigs);
+
+        /* pcre engine limits - required for cl_engine_compile */
+        if((opt = optget(opts, "PCREMatchLimit"))->active) {
+            if((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_MATCH_LIMIT, opt->numarg))) {
+                logg("!cli_engine_set_num(PCREMatchLimit) failed: %s\n", cl_strerror(ret));
+                cl_engine_free(engine);
+                return 1;
+            }
+        }
+
+        if((opt = optget(opts, "PCRERecMatchLimit"))->active) {
+            if((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_RECMATCH_LIMIT, opt->numarg))) {
+                logg("!cli_engine_set_num(PCRERecMatchLimit) failed: %s\n", cl_strerror(ret));
+                cl_engine_free(engine);
+                return 1;
+            }
+        }
 
         if((ret = cl_engine_compile(engine)) != 0) {
             logg("!Database initialization error: %s\n", cl_strerror(ret));
@@ -590,7 +635,9 @@ int main(int argc, char **argv)
             break;
         }
 
-        if(tcpsock) {
+        if(tcpsock || num_fd > 0) {
+            int *t;
+
             opt = optget(opts, "TCPAddr");
             if (opt->enabled) {
                 int breakout = 0;
@@ -617,7 +664,7 @@ int main(int argc, char **argv)
             }
         }
 #ifndef _WIN32
-        if(localsock) {
+        if(localsock && num_fd == 0) {
             int *t;
             mode_t sock_mode, umsk = umask(0777); /* socket is created with 000 to avoid races */
 
@@ -679,8 +726,43 @@ int main(int argc, char **argv)
             nlsockets++;
         }
 
+        /* check for local sockets passed by systemd */
+        if (num_fd > 0)
+        {
+            int *t;
+            t = realloc(lsockets, sizeof(int) * (nlsockets + 1));
+            if (!(t)) {
+                ret = 1;
+                break;
+            }
+            lsockets = t;
+
+            lsockets[nlsockets] = localserver(opts);
+            if (lsockets[nlsockets] == -1)
+            {
+                ret = 1;
+                break;
+            }
+            else if (lsockets[nlsockets] > 0)
+            {
+                nlsockets++;
+            }
+        }
+
         /* fork into background */
-        if(!optget(opts, "Foreground")->enabled) {
+        if (foreground == -1)
+        {
+            if (optget(opts, "Foreground")->enabled)
+            {
+                foreground = 1;
+            }
+            else
+            {
+                foreground = 0;
+            }
+        }
+        if(foreground == 0)
+        {
 #ifdef C_BSD	    
             /* workaround for OpenBSD bug, see https://wwws.clamav.net/bugzilla/show_bug.cgi?id=885 */
             for(ret=0;(unsigned int)ret<nlsockets;ret++) {
@@ -714,8 +796,6 @@ int main(int argc, char **argv)
                 if(chdir("/") == -1)
                     logg("^Can't change current working directory to root\n");
 
-        } else {
-            foreground = 1;
         }
 #endif
 
@@ -729,22 +809,24 @@ int main(int argc, char **argv)
 
     } while (0);
 
-    logg("*Closing the main socket%s.\n", (nlsockets > 1) ? "s" : "");
+    if (num_fd == 0)
+    {
+        logg("*Closing the main socket%s.\n", (nlsockets > 1) ? "s" : "");
 
-    for (i = 0; i < nlsockets; i++) {
-        closesocket(lsockets[i]);
-    }
-
+        for (i = 0; i < nlsockets; i++) {
+            closesocket(lsockets[i]);
+        }
 #ifndef _WIN32
-    if(nlsockets && localsock) {
-        opt = optget(opts, "LocalSocket");
+        if(nlsockets && localsock) {
+            opt = optget(opts, "LocalSocket");
 
-        if(unlink(opt->strarg) == -1)
-            logg("!Can't unlink the socket file %s\n", opt->strarg);
-        else
-            logg("Socket file removed.\n");
-    }
+            if(unlink(opt->strarg) == -1)
+                logg("!Can't unlink the socket file %s\n", opt->strarg);
+            else
+                logg("Socket file removed.\n");
+        }
 #endif
+    }
 
     free(lsockets);
 

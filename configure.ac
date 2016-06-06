@@ -20,7 +20,7 @@ dnl   MA 02110-1301, USA.
 AC_PREREQ([2.59])
 dnl For a release change [devel] to the real version [0.xy]
 dnl also change VERSION below
-AC_INIT([ClamAV], [0.99], [http://bugs.clamav.net/], [clamav], [http://www.clamav.net/])
+AC_INIT([ClamAV], [0.99.2], [http://bugs.clamav.net/], [clamav], [http://www.clamav.net/])
 
 AH_BOTTOM([#include "platform.h"])
 dnl put configure auxiliary into config
@@ -87,6 +87,7 @@ AM_MAINTAINER_MODE
 m4_include([m4/reorganization/libs/libz.m4])
 m4_include([m4/reorganization/libs/bzip.m4])
 m4_include([m4/reorganization/libs/unrar.m4])
+m4_include([m4/reorganization/libs/systemd.m4])
 m4_include([m4/reorganization/code_checks/ipv6.m4])
 m4_include([m4/reorganization/code_checks/dns.m4])
 m4_include([m4/reorganization/code_checks/fanotify.m4])
@@ -124,6 +125,7 @@ m4_include([m4/reorganization/distcheck.m4])
 m4_include([m4/reorganization/llvm.m4])
 m4_include([m4/reorganization/sha_collect.m4])
 m4_include([m4/reorganization/yara.m4])
+m4_include([m4/reorganization/libfreshclam.m4])
 
 m4_include([m4/reorganization/bsd.m4])
 
@@ -139,9 +141,12 @@ clamscan/Makefile
 database/Makefile
 docs/Makefile
 clamd/Makefile
+clamd/clamav-daemon.service
+clamd/clamav-daemon.socket
 clamdscan/Makefile
 clamsubmit/Makefile
 clamav-milter/Makefile
+freshclam/clamav-freshclam.service
 freshclam/Makefile
 sigtool/Makefile
 clamconf/Makefile
@@ -150,6 +155,7 @@ test/Makefile
 unit_tests/Makefile
 clamdtop/Makefile
 clambc/Makefile
+libfreshclam/Makefile
 Makefile
 clamav-config
 libclamav.pc

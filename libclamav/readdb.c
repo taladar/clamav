@@ -760,26 +760,73 @@ char *cli_dbgets(char *buff, unsigned int size, FILE *fs, struct cli_dbio *dbio)
     }
 }
 
+static char *cli_signorm(const char *signame)
+{
+    char *new_signame = NULL;
+    size_t pad = 0;
+    size_t nsz;
+
+    if (!signame)
+        return NULL;
+
+    nsz = strlen(signame);
+
+    if (nsz > 11) {
+        if (!strncmp(signame+nsz-11, ".UNOFFICIAL", 11))
+            nsz -= 11;
+        else
+            return NULL;
+    } else if (nsz > 2)
+        return NULL;
+    
+    if (nsz < 3) {
+        pad = 3 - nsz;
+        nsz = 3;
+    }
+
+    new_signame = malloc(nsz + 1);
+    if (!new_signame) 
+        return NULL;
+
+    memcpy(new_signame, signame, nsz-pad);
+    new_signame[nsz] = '\0';
+
+    while (pad > 0)
+        new_signame[nsz-pad--] = '\x20';
+
+    return new_signame;
+}
+
 static int cli_chkign(const struct cli_matcher *ignored, const char *signame, const char *entry)
 {
+
     const char *md5_expected = NULL;
+    char *norm_signame;
     unsigned char digest[16];
+    int ret = 0;
 
     if(!ignored || !signame || !entry)
         return 0;
 
-    if(cli_bm_scanbuff((const unsigned char *) signame, strlen(signame), &md5_expected, NULL, ignored, 0, NULL, NULL,NULL) == CL_VIRUS) {
-        if(md5_expected) {
-            cl_hash_data("md5", entry, strlen(entry), digest, NULL);
-            if(memcmp(digest, (const unsigned char *) md5_expected, 16))
-                return 0;
-        }
+    norm_signame = cli_signorm(signame);
+    if (norm_signame != NULL)
+	signame = norm_signame;
 
-        cli_dbgmsg("Ignoring signature %s\n", signame);
-        return 1;
-    }
+    if(cli_bm_scanbuff((const unsigned char *) signame, strlen(signame), &md5_expected, NULL, ignored, 0, NULL, NULL,NULL) == CL_VIRUS)
+        do {
+            if(md5_expected) {
+                cl_hash_data("md5", entry, strlen(entry), digest, NULL);
+                if(memcmp(digest, (const unsigned char *) md5_expected, 16))
+                    break;
+            }
+            
+            cli_dbgmsg("Ignoring signature %s\n", signame);
+            ret = 1;
+        } while (0);
 
-    return 0;
+    if (norm_signame)
+	free(norm_signame);
+    return ret;
 }
 
 static int cli_chkpua(const char *signame, const char *pua_cats, unsigned int options)
@@ -2273,6 +2320,18 @@ static int cli_loadign(FILE *fs, struct cl_engine *engine, unsigned int options,
 	    ret = CL_EMALFDB;
 	    break;
 	}
+        if (len < 3) {
+            int pad = 3 - len;
+            /* patch-up for Boyer-Moore minimum length of 3: pad with spaces */ 
+            if (signame != buffer) {
+                strncpy (buffer, signame, len);
+                signame = buffer;
+            }
+            buffer[3] = '\0';
+            while (pad > 0)
+                buffer[3-pad--] = '\x20';
+            len = 3;
+        }
 
         new = (struct cli_bm_patt *) mpool_calloc(engine->mempool, 1, sizeof(struct cli_bm_patt));
 	if(!new) {
@@ -3079,6 +3138,16 @@ static char *parse_yara_hex_string(YR_STRING *string, int *ret)
         }
     }
 
+/* FIXME: removing this code because anchored bytes are not sufficiently 
+   general for the purposes of yara rule to ClamAV sig conversions.
+   1. ClamAV imposes a maximum value for the upper range limit of 32:
+      #define AC_CH_MAXDIST 32
+      Values larger cause an error in matcher-ac.c
+   2. If the upper range values is not present, ClamAV sets the missing
+      range value to be equal to the lower range value. This changes the
+      semantic of yara jumps.
+*/
+#ifdef YARA_ANCHOR_SUPPORT
     /* backward anchor overwrite, 2 (hex chars in one byte) */
     if ((ovr = strchr(res, '{')) && ((ovr - res) == 2)) {
         *ovr = '[';
@@ -3101,6 +3170,16 @@ static char *parse_yara_hex_string(YR_STRING *string, int *ret)
             return NULL;
         }
     }
+#else
+    if (((ovr = strchr(res, '{')) && ((ovr - res) == 2)) ||
+        ((ovr = strrchr(res, '}')) && ((res+j - ovr) == 3))) {
+        cli_errmsg("parse_yara_hex_string: Single byte subpatterns unsupported in ClamAV\n");
+        free(res);
+        if (ret != NULL)
+            *ret = CL_EMALFDB;
+        return NULL;
+    }
+#endif
 
     if (ret)
         *ret = CL_SUCCESS;
@@ -3241,172 +3320,10 @@ static void ytable_delete(struct cli_ytable *ytable)
     }
 }
 
-static int yara_subhex_verify(const char *hexstr, const char *end, size_t *maxsublen)
-{
-    size_t sublen = 0;
-    const char *track;
-    char in = 0;
-    int hexbyte = 0;
-
-    if (hexstr == end) {
-        cli_warnmsg("load_oneyara[verify]: string has empty sequence\n");
-        return CL_EMALFDB;
-    }
-
-    track = hexstr;
-    while (track != end) {
-        switch (*track) {
-        case '*':
-            if (sublen <= 2) {
-                if (maxsublen)
-                    *maxsublen = sublen;
-                cli_warnmsg("load_oneyara[verify]: string has unbounded wildcard on single byte subsequence\n");
-                return CL_EMALFDB;
-            }
-            if (maxsublen && (sublen > *maxsublen))
-                *maxsublen = sublen;
-            sublen = 0;
-            break;
-        case '?':
-            if (maxsublen && (sublen > *maxsublen))
-                *maxsublen = sublen;
-            hexbyte = !hexbyte;
-            sublen = 0;
-            break;
-        case '[':
-        case '{':
-            if (in) {
-                cli_warnmsg("load_oneyara[verify]: string has invalid nesting\n");
-                return CL_EMALFDB;
-            }
-            if (hexbyte) {
-                cli_warnmsg("load_oneyara[verify]: string has invalid hex sequence\n");
-                return CL_EMALFDB;
-            }
-            if (maxsublen && (sublen > *maxsublen))
-                *maxsublen = sublen;
-            sublen = 0;
-            in = *track;
-            break;
-        case ']':
-            if (in != '[') {
-                cli_warnmsg("load_oneyara[verify]: string has invalid ranged anchored\n");
-                return CL_EMALFDB;
-            }
-            in = 0;
-            break;
-        case '}':
-            if (in != '{') {
-                cli_warnmsg("load_oneyara[verify]: string has invalid ranged wildcard\n");
-                return CL_EMALFDB;
-            }
-            in = 0;
-            break;
-        default:
-            if (!in) {
-                if ((*track >= 'A' && *track <= 'F') ||
-                    (*track >= 'a' && *track <= 'f') ||
-                    (*track >= '0' && *track <= '9')) {
-
-                    hexbyte = !hexbyte;
-                    sublen++;
-                } else {
-                    cli_warnmsg("load_oneyara[verify]: unknown character: %x\n", *track);
-                    return CL_EMALFDB;
-                }
-            }
-            break;
-        }
-
-        track++;
-    }
-
-    if (in) {
-        cli_warnmsg("load_oneyara[verify]: string has unterminated wildcard sequence\n");
-        return CL_EMALFDB;
-    }
-    if (hexbyte) {
-        cli_warnmsg("load_oneyara[verify]: string has invalid hex sequence\n");
-        return CL_EMALFDB;
-    }
-    if (maxsublen && (sublen > *maxsublen))
-        *maxsublen = sublen;
-
-    return CL_SUCCESS;
-}
-
-static int yara_altstr_verify(const char *hexstr, int lvl, const char **end)
-{
-    const char *track, *sub;
-    int ret, range;
-    size_t offset;
-
-    if (lvl > ACPATT_ALTN_MAXNEST) {
-        cli_warnmsg("load_oneyara[verify]: string has unsupported alternate sequence (nest level)\n");
-        return CL_EMALFDB;
-    }
-
-    track = hexstr;
-    while ((offset = strcspn(track, "(|){}"))) {
-        sub = track + offset;
-        if (*sub == '\0') {
-            cli_warnmsg("load_oneyara[verify]: string has unterminated alternate sequence\n");
-            return CL_EMALFDB;
-        }
-
-        /* verify subhex */
-        if ((ret = yara_subhex_verify(track, sub, NULL)) != CL_SUCCESS)
-            return ret;
-
-        track = sub;
-        if (*track == '(') {
-            if ((ret = yara_altstr_verify(track+1, lvl+1, &sub)) != CL_SUCCESS)
-                return ret;
-        } else if (*track == ')') {
-            if (end)
-                *end = track;
-            break;
-        } else if (*track == '{') { /* clamav converted '[' */
-            if ((offset = strcspn(track, "}-"))) {
-                sub = track + offset;
-                switch (*sub) {
-                case '\0':
-                    cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (unterminated ranged wildcard)\n");
-                    return CL_EMALFDB;
-                case '-':
-                    cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (variable ranged wildcard)\n");
-                    return CL_EMALFDB;
-                case '}':
-                    if (sscanf(track, "{%3d}", &range) != 1) {
-                        cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (invalid wildcard)\n");
-                        return CL_EMALFDB;
-                    }
-                    if (range >= 128) {
-                        cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (128+ ranged wildcard)\n");
-                        return CL_EMALFDB;
-                    }
-                }
-            } else {
-                cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (unterminated ranged wildcard)\n");
-                return CL_EMALFDB;
-            }
-        } else if (*track != '|') {
-            cli_warnmsg("load_oneyara[verify]: string has unsupported alternating sequence (invalid sequence)\n");
-            return CL_EMALFDB;
-        }
-
-        track = ++sub;
-    }
-
-    return CL_SUCCESS;
-}
-
 /* should only operate on HEX STRINGS */
-static int yara_hexstr_verify(YR_STRING *string, const char *hexstr)
+static int yara_hexstr_verify(YR_STRING *string, const char *hexstr, uint32_t *lsigid, struct cl_engine *engine, unsigned int options)
 {
     int ret = CL_SUCCESS;
-    const char *track, *end;
-    size_t maxsublen = 0, length;
 
     /* Quick Check 1: NULL String */
     if (!hexstr || !string) {
@@ -3416,35 +3333,18 @@ static int yara_hexstr_verify(YR_STRING *string, const char *hexstr)
 
     /* Quick Check 2: String Too Short */
     if (strlen(hexstr)/2 < CLI_DEFAULT_AC_MINDEPTH) {
-        cli_warnmsg("load_oneyara[verify]: string is too short %s\n", string->identifier);
+        cli_warnmsg("load_oneyara[verify]: string is too short: %s\n", string->identifier);
         return CL_EMALFDB;
     }
 
-    /* Long Check: No Alternating Strings, Subhex must be Length 2 */
-    track = hexstr;
-    while ((end = strchr(track, '('))) {
-        if (track != end) {
-            if ((ret = yara_subhex_verify(track, end, &maxsublen)) != CL_SUCCESS)
-                return ret;
+    /* Long Check: Attempt to load hexstr */
+    if((ret = cli_sigopts_handler(engine->test_root, "test-hex", hexstr, 0, 0, 0, "*", 0, lsigid, options)) != CL_SUCCESS) {
+        if (ret == CL_EMALFDB) {
+            cli_warnmsg("load_oneyara[verify]: recovered from database loading error\n");
+            /* TODO: if necessary, reset testing matcher if error occurs */
+            cli_warnmsg("load_oneyara[verify]: string failed test insertion: %s\n", string->identifier);
         }
-
-        track = end + 1;
-        if ((ret = yara_altstr_verify(track, 0, &end)) != CL_SUCCESS)
-            return ret;
-
-        track = end + 1;
-    }
-
-    /* Check: Suffix (or Non-Alt Hex) */
-    length = strlen(track);
-    if (length > 0)
-        if ((ret = yara_subhex_verify(track, track + length, &maxsublen)) != CL_SUCCESS)
-            return ret;
-
-    /* REQUIRES - Subpatterns must be at least length 2 */
-    if (maxsublen < 2) {
-        cli_warnmsg("load_oneyara[verify]: cannot find a static subpattern of length 2\n");
-        return CL_EMALFDB;
+        return ret;
     }
 
     return CL_SUCCESS;
@@ -3465,7 +3365,7 @@ static int load_oneyara(YR_RULE *rule, int chkpua, struct cl_engine *engine, uns
     struct cli_lsig_tdb tdb;
     uint32_t lsigid[2];
     struct cli_matcher *root;
-    struct cli_ac_lsig **newtable, *lsig;
+    struct cli_ac_lsig **newtable, *lsig, *tsig = NULL;
     unsigned short target = 0;
     size_t lsize;
     char *logic = NULL, *target_str = NULL;
@@ -3583,7 +3483,52 @@ static int load_oneyara(YR_RULE *rule, int chkpua, struct cl_engine *engine, uns
             }
 
             /* handle lack of hexstr support here in order to suppress */
-            ret = yara_hexstr_verify(string, substr);
+            /* initalize testing matcher */
+            if (!engine->test_root) {
+                engine->test_root = (struct cli_matcher *) mpool_calloc(engine->mempool, 1, sizeof(struct cli_matcher));
+                if (!engine->test_root) {
+                    cli_errmsg("load_oneyara[verify]: cannot allocate memory for test cli_matcher\n");
+                    return CL_EMEM;
+                }
+#ifdef USE_MPOOL
+                engine->test_root->mempool = engine->mempool;
+#endif
+                if((ret = cli_ac_init(engine->test_root, engine->ac_mindepth, engine->ac_maxdepth, engine->dconf->other&OTHER_CONF_PREFILTERING))) {
+                    cli_errmsg("load_oneyara: cannot initialize test ac root\n");
+                    return ret;
+                }
+            }
+
+            /* generate a test lsig if one does not exist */
+            if (!tsig) {
+                /*** populating lsig ***/
+                tsig = (struct cli_ac_lsig *) mpool_calloc(engine->mempool, 1, sizeof(struct cli_ac_lsig));
+                if(!tsig) {
+                    cli_errmsg("load_oneyara: cannot allocate memory for test lsig\n");
+                    return CL_EMEM;
+                }
+
+                root = engine->test_root;
+
+                tsig->type = CLI_YARA_NORMAL;
+                lsigid[0] = tsig->id = root->ac_lsigs;
+
+                root->ac_lsigs++;
+                newtable = (struct cli_ac_lsig **) mpool_realloc(engine->mempool, root->ac_lsigtable, root->ac_lsigs * sizeof(struct cli_ac_lsig *));
+                if(!newtable) {
+                    root->ac_lsigs--;
+                    cli_errmsg("load_oneyara: cannot allocate test root->ac_lsigtable\n");
+                    mpool_free(engine->mempool, tsig);
+                    return CL_EMEM;
+                }
+
+                newtable[root->ac_lsigs - 1] = tsig;
+                root->ac_lsigtable = newtable;
+            }
+
+            /* attempt to insert hexsig */
+            lsigid[1] = 0;
+            ret = yara_hexstr_verify(string, substr, lsigid, engine, options);
             if (ret != CL_SUCCESS) {
                 str_error++;
                 free(substr);
@@ -4163,7 +4108,6 @@ static int cli_loadpwdb(FILE *fs, struct cl_engine *engine, unsigned int options
 
         /* use the tdb to track filetypes and check flevels */
         memset(&tdb, 0, sizeof(tdb));
-        tdb.mempool = engine->mempool;
         ret = init_tdb(&tdb, engine, attribs, passname);
         free(attribs);
         if(ret != CL_SUCCESS) {
@@ -5097,6 +5041,25 @@ int cl_engine_free(struct cl_engine *engine)
 	cli_bm_free(engine->ignored);
 	mpool_free(engine->mempool, engine->ignored);
     }
+    if(engine->test_root) {
+	root = engine->test_root;
+	if(!root->ac_only)
+	    cli_bm_free(root);
+	cli_ac_free(root);
+	if(root->ac_lsigtable) {
+	    for(i = 0; i < root->ac_lsigs; i++) {
+		if (root->ac_lsigtable[i]->type == CLI_LSIG_NORMAL)
+		    mpool_free(engine->mempool, root->ac_lsigtable[i]->u.logic);
+		FREE_TDB(root->ac_lsigtable[i]->tdb);
+		mpool_free(engine->mempool, root->ac_lsigtable[i]);
+	    }
+	    mpool_free(engine->mempool, root->ac_lsigtable);
+	}
+#if HAVE_PCRE
+	cli_pcre_freetable(root);
+#endif /* HAVE_PCRE */
+	mpool_free(engine->mempool, root);
+    }
 
 #ifdef USE_MPOOL
     if(engine->mempool) mpool_destroy(engine->mempool);
@@ -5171,6 +5134,26 @@ int cl_engine_compile(struct cl_engine *engine)
 	cli_bm_free(engine->ignored);
 	mpool_free(engine->mempool, engine->ignored);
 	engine->ignored = NULL;
+    }
+    if(engine->test_root) {
+	root = engine->test_root;
+	if(!root->ac_only)
+	    cli_bm_free(root);
+	cli_ac_free(root);
+	if(root->ac_lsigtable) {
+	    for(i = 0; i < root->ac_lsigs; i++) {
+		if (root->ac_lsigtable[i]->type == CLI_LSIG_NORMAL)
+		    mpool_free(engine->mempool, root->ac_lsigtable[i]->u.logic);
+		FREE_TDB(root->ac_lsigtable[i]->tdb);
+		mpool_free(engine->mempool, root->ac_lsigtable[i]);
+	    }
+	    mpool_free(engine->mempool, root->ac_lsigtable);
+	}
+#if HAVE_PCRE
+	cli_pcre_freetable(root);
+#endif /* HAVE_PCRE */
+	mpool_free(engine->mempool, root);
+	engine->test_root = NULL;
     }
     cli_dconf_print(engine->dconf);
     mpool_flush(engine->mempool);

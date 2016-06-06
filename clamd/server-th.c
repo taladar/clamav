@@ -49,6 +49,7 @@
 
 #include "shared/output.h"
 #include "shared/optparser.h"
+#include "shared/misc.h"
 
 #include "onaccess_fan.h"
 #include "server.h"
@@ -455,13 +456,19 @@ static void *acceptloop_th(void *arg)
     }
     pthread_mutex_unlock(fds->buf_mutex);
 
-    for (i=0;i < fds->nfds; i++) {
-	if (fds->buf[i].fd == -1)
-	    continue;
-	logg("$Shutdown: closed fd %d\n", fds->buf[i].fd);
-	shutdown(fds->buf[i].fd, 2);
-	closesocket(fds->buf[i].fd);
+    if (sd_listen_fds(0) == 0)
+    {
+        /* only close the sockets, when not using systemd socket activation */
+        for (i=0;i < fds->nfds; i++)
+        {
+            if (fds->buf[i].fd == -1)
+                continue;
+            logg("$Shutdown: closed fd %d\n", fds->buf[i].fd);
+            shutdown(fds->buf[i].fd, 2);
+            closesocket(fds->buf[i].fd);
+        }
     }
+
     fds_free(fds);
     pthread_mutex_destroy(fds->buf_mutex);
     pthread_mutex_lock(&exit_mutex);
@@ -692,7 +699,7 @@ static int handle_stream(client_conn_t *conn, struct fd_buf *buf, const struct o
 	    logg("!INSTREAM: Can't write to temporary file.\n");
 	    *error = 1;
 	}
-	logg("$Processed %lu bytes of chunkdata, pos %lu\n", cmdlen, pos);
+	logg("$Processed %llu bytes of chunkdata, pos %llu\n", (long long unsigned)cmdlen, (long long unsigned)pos);
 	pos += cmdlen;
 	if (pos == buf->off) {
 	    buf->off = 0;
@@ -884,23 +891,20 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
     val = cl_engine_get_num(engine, CL_ENGINE_MAX_ICONSPE, NULL);
     logg("Limits: MaxIconsPE limit set to %llu.\n", val);
 
-    if((opt = optget(opts, "PCREMatchLimit"))->active) {
-        if((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_MATCH_LIMIT, opt->numarg))) {
-            logg("!cli_engine_set_num(PCREMatchLimit) failed: %s\n", cl_strerror(ret));
+    if((opt = optget(opts, "MaxRecHWP3"))->active) {
+        if((ret = cl_engine_set_num(engine, CL_ENGINE_MAX_RECHWP3, opt->numarg))) {
+            logg("!cli_engine_set_num(MaxRecHWP3) failed: %s\n", cl_strerror(ret));
             cl_engine_free(engine);
             return 1;
         }
     }
+    val = cl_engine_get_num(engine, CL_ENGINE_MAX_RECHWP3, NULL);
+    logg("Limits: MaxRecHWP3 limit set to %llu.\n", val);
+
+    /* options are handled in main (clamd.c) */
     val = cl_engine_get_num(engine, CL_ENGINE_PCRE_MATCH_LIMIT, NULL);
     logg("Limits: PCREMatchLimit limit set to %llu.\n", val);
 
-    if((opt = optget(opts, "PCRERecMatchLimit"))->active) {
-        if((ret = cl_engine_set_num(engine, CL_ENGINE_PCRE_RECMATCH_LIMIT, opt->numarg))) {
-            logg("!cli_engine_set_num(PCRERecMatchLimit) failed: %s\n", cl_strerror(ret));
-            cl_engine_free(engine);
-            return 1;
-        }
-    }
     val = cl_engine_get_num(engine, CL_ENGINE_PCRE_RECMATCH_LIMIT, NULL);
     logg("Limits: PCRERecMatchLimit limit set to %llu.\n", val);
 
@@ -1000,6 +1004,20 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	logg("HTML support disabled.\n");
     }
 
+    if(optget(opts, "ScanXMLDOCS")->enabled) {
+	logg("XMLDOCS support enabled.\n");
+	options |= CL_SCAN_XMLDOCS;
+    } else {
+	logg("XMLDOCS support disabled.\n");
+    }
+
+    if(optget(opts, "ScanHWP3")->enabled) {
+	logg("HWP3 support enabled.\n");
+	options |= CL_SCAN_HWP3;
+    } else {
+	logg("HWP3 support disabled.\n");
+    }
+
     if(optget(opts,"PhishingScanURLs")->enabled) {
 
 	if(optget(opts,"PhishingAlwaysBlockCloak")->enabled) {
@@ -1094,22 +1112,60 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	int max_max_queue;
 	unsigned warn = optget(opts, "MaxQueue")->active;
 	const unsigned clamdfiles = 6;
+#ifdef C_SOLARIS
+	int solaris_has_extended_stdio = 0;
+#endif
 	/* Condition to not run out of file descriptors:
 	 * MaxThreads * MaxRecursion + (MaxQueue - MaxThreads) + CLAMDFILES < RLIMIT_NOFILE 
 	 * CLAMDFILES is 6: 3 standard FD + logfile + 2 FD for reloading the DB
 	 * */
 #ifdef C_SOLARIS
+
+	/*
+	**  If compiling 64bit, then set the solaris_has_extended_stdio
+	**  flag
+	*/
+
+#if defined(_LP64)
+	solaris_has_extended_stdio++;
+#endif
+
 #ifdef HAVE_ENABLE_EXTENDED_FILE_STDIO
 	if (enable_extended_FILE_stdio(-1, -1) == -1) {
 	    logg("^Unable to set extended FILE stdio, clamd will be limited to max 256 open files\n");
 	    rlim.rlim_cur = rlim.rlim_cur > 255 ? 255 : rlim.rlim_cur;
 	}
+	else
+	{
+	   solaris_has_extended_stdio++;
+	}
+
 #elif !defined(_LP64)
-	if (rlim.rlim_cur > 255) {
+	if (solaris_has_extended_stdio && rlim.rlim_cur > 255) {
 	    rlim.rlim_cur = 255;
 	    logg("^Solaris only supports 256 open files for 32-bit processes, you need at least Solaris 10u4, or compile as 64-bit to support more!\n");
 	}
 #endif
+
+	/*
+	**  If compiling in 64bit or the file stdio has been extended,
+	**  then increase the soft limit for the number of open files
+	**  as the default is usually 256
+	*/
+
+	if (solaris_has_extended_stdio)
+	{
+	   rlim_t saved_soft_limit = rlim.rlim_cur;
+
+	   rlim.rlim_cur = rlim.rlim_max;
+	   if (setrlimit (RLIMIT_NOFILE, &rlim) < 0)
+	   {
+	      logg("!setrlimit() for RLIMIT_NOFILE to %lu failed: %s\n",
+		   (unsigned long) rlim.rlim_cur, strerror (errno));
+	      rlim.rlim_cur = saved_soft_limit;
+	   }
+	} /*  If 64bit or has extended stdio  */
+
 #endif
 	opt = optget(opts,"MaxRecursion");
 	maxrec = opt->numarg;
@@ -1385,16 +1441,22 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	if (progexit) {
 	    pthread_mutex_unlock(&exit_mutex);
 	    pthread_mutex_lock(fds->buf_mutex);
-	    for (i=0;i < fds->nfds; i++) {
-		if (fds->buf[i].fd == -1)
-		    continue;
-		thrmgr_group_terminate(fds->buf[i].group);
-		if (thrmgr_group_finished(fds->buf[i].group, EXIT_ERROR)) {
-		    logg("$Shutdown closed fd %d\n", fds->buf[i].fd);
-		    shutdown(fds->buf[i].fd, 2);
-		    closesocket(fds->buf[i].fd);
-		    fds->buf[i].fd = -1;
-		}
+        if (sd_listen_fds(0) == 0)
+        {
+            /* only close the sockets, when not using systemd socket activation */
+            for (i=0;i < fds->nfds; i++)
+            {
+                if (fds->buf[i].fd == -1)
+                    continue;
+                thrmgr_group_terminate(fds->buf[i].group);
+                if (thrmgr_group_finished(fds->buf[i].group, EXIT_ERROR))
+                {
+                    logg("$Shutdown closed fd %d\n", fds->buf[i].fd);
+                    shutdown(fds->buf[i].fd, 2);
+                    closesocket(fds->buf[i].fd);
+                    fds->buf[i].fd = -1;
+                }
+            }
 	    }
 	    pthread_mutex_unlock(fds->buf_mutex);
 	    break;
@@ -1495,9 +1557,13 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 #endif
     if(dbstat.entries)
 	cl_statfree(&dbstat);
-    logg("*Shutting down the main socket%s.\n", (nsockets > 1) ? "s" : "");
-    for (i = 0; i < nsockets; i++)
-	shutdown(socketds[i], 2);
+    if (sd_listen_fds(0) == 0)
+    {
+        /* only close the sockets, when not using systemd socket activation */
+        logg("*Shutting down the main socket%s.\n", (nsockets > 1) ? "s" : "");
+        for (i = 0; i < nsockets; i++)
+            shutdown(socketds[i], 2);
+    }
 
     if((opt = optget(opts, "PidFile"))->enabled) {
 	if(unlink(opt->strarg) == -1)

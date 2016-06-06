@@ -444,6 +444,7 @@ struct cl_engine *cl_engine_new(void)
 
     /* Engine max settings */
     new->maxiconspe = CLI_DEFAULT_MAXICONSPE;
+    new->maxrechwp3 = CLI_DEFAULT_MAXRECHWP3;
 
     /* PCRE matching limitations */
 #if HAVE_PCRE
@@ -616,9 +617,12 @@ int cl_engine_set_num(struct cl_engine *engine, enum cl_engine_field field, long
 	case CL_ENGINE_MAX_ICONSPE:
 	    engine->maxiconspe = (uint32_t)num;
 	    break;
+	case CL_ENGINE_MAX_RECHWP3:
+	    engine->maxrechwp3 = (uint32_t)num;
+	    break;
 	case CL_ENGINE_TIME_LIMIT:
-            engine->time_limit = (uint32_t)num;
-            break;
+	    engine->time_limit = (uint32_t)num;
+	    break;
 	case CL_ENGINE_PCRE_MATCH_LIMIT:
 	    engine->pcre_match_limit = (uint64_t)num;
 	    break;
@@ -627,6 +631,20 @@ int cl_engine_set_num(struct cl_engine *engine, enum cl_engine_field field, long
 	    break;
 	case CL_ENGINE_PCRE_MAX_FILESIZE:
 	    engine->pcre_max_filesize = (uint64_t)num;
+	    break;
+	case CL_ENGINE_DISABLE_PE_CERTS:
+	    if (num) {
+		engine->engine_options |= ENGINE_OPTIONS_DISABLE_PE_CERTS;
+	    } else {
+		engine->engine_options &= ~(ENGINE_OPTIONS_DISABLE_PE_CERTS);
+	    }
+	    break;
+	case CL_ENGINE_PE_DUMPCERTS:
+	    if (num) {
+		engine->engine_options |= ENGINE_OPTIONS_PE_DUMPCERTS;
+	    } else {
+		engine->engine_options &= ~(ENGINE_OPTIONS_PE_DUMPCERTS);
+	    }
 	    break;
 	default:
 	    cli_errmsg("cl_engine_set_num: Incorrect field number\n");
@@ -701,6 +719,8 @@ long long cl_engine_get_num(const struct cl_engine *engine, enum cl_engine_field
 	    return engine->maxpartitions;
 	case CL_ENGINE_MAX_ICONSPE:
 	    return engine->maxiconspe;
+    case CL_ENGINE_MAX_RECHWP3:
+	    return engine->maxrechwp3;
 	case CL_ENGINE_TIME_LIMIT:
             return engine->time_limit;
 	case CL_ENGINE_PCRE_MATCH_LIMIT:
@@ -772,7 +792,8 @@ struct cl_settings *cl_engine_settings_copy(const struct cl_engine *engine)
 
     settings = (struct cl_settings *) malloc(sizeof(struct cl_settings));
     if(!settings) {
-        cli_errmsg("cl_engine_settings_copy: Unable to allocate memory for settings %u\n", sizeof(struct cl_settings));
+        cli_errmsg("cl_engine_settings_copy: Unable to allocate memory for settings %llu\n",
+                   (long long unsigned)sizeof(struct cl_settings));
         return NULL;
     }
 
@@ -820,6 +841,7 @@ struct cl_settings *cl_engine_settings_copy(const struct cl_engine *engine)
     settings->maxpartitions = engine->maxpartitions;
 
     settings->maxiconspe = engine->maxiconspe;
+    settings->maxrechwp3 = engine->maxrechwp3;
 
     settings->pcre_match_limit = engine->pcre_match_limit;
     settings->pcre_recmatch_limit = engine->pcre_recmatch_limit;
@@ -892,6 +914,7 @@ int cl_engine_settings_apply(struct cl_engine *engine, const struct cl_settings 
     engine->maxpartitions = settings->maxpartitions;
 
     engine->maxiconspe = settings->maxiconspe;
+    engine->maxrechwp3 = settings->maxrechwp3;
 
     engine->pcre_match_limit = settings->pcre_match_limit;
     engine->pcre_recmatch_limit = settings->pcre_recmatch_limit;
@@ -1208,7 +1231,7 @@ int cli_rmdirs(const char *dirname)
 		    if(strcmp(dent->d_name, ".") && strcmp(dent->d_name, "..")) {
 			path = cli_malloc(strlen(dirname) + strlen(dent->d_name) + 2);
 			if(!path) {
-                cli_errmsg("cli_rmdirs: Unable to allocate memory for path %lu\n", strlen(dirname) + strlen(dent->d_name) + 2);
+                cli_errmsg("cli_rmdirs: Unable to allocate memory for path %llu\n", (long long unsigned)(strlen(dirname) + strlen(dent->d_name) + 2));
 			    closedir(dd);
 			    return -1;
 			}
@@ -1280,7 +1303,7 @@ bitset_t *cli_bitset_init(void)
 	
 	bs = cli_malloc(sizeof(bitset_t));
 	if (!bs) {
-        cli_errmsg("cli_bitset_init: Unable to allocate memory for bs %u\n", sizeof(bitset_t));
+        cli_errmsg("cli_bitset_init: Unable to allocate memory for bs %llu\n", (long long unsigned)sizeof(bitset_t));
 		return NULL;
 	}
 	bs->length = BITSET_DEFAULT_SIZE;

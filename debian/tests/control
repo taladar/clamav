@@ -1,3 +1,0 @@
-Tests: clamd client milter
-Depends: clamav-daemon, clamav, clamav-milter
-Restrictions: needs-root
