@@ -1,6 +1,6 @@
 --- a/clamd/localserver.c
 +++ b/clamd/localserver.c
-@@ -62,12 +62,7 @@
+@@ -63,12 +63,7 @@
  	char *estr;
  
      int num_fd = sd_listen_fds(0);
@@ -16,10 +16,16 @@
          int i;
 --- a/clamd/tcpserver.c
 +++ b/clamd/tcpserver.c
-@@ -61,14 +61,10 @@
+@@ -58,19 +58,15 @@
+     int yes = 1;
+     int res;
+     unsigned int i=0;
+-	int num_fd;
++    int num_fd;
+ 
      sockets = *lsockets;
  
-     int num_fd = sd_listen_fds(0);
+     num_fd = sd_listen_fds(0);
 -    if (num_fd > 2)
 -    {
 -        logg("!TCP: Received more than two file descriptors from systemd.\n");
@@ -33,7 +39,7 @@
          int i;
          for(i = 0; i < num_fd; i += 1)
          {
-@@ -77,34 +73,37 @@
+@@ -79,34 +75,37 @@
              {
                  /* correct socket */
                  logg("#TCP: Received AF_INET SOCK_STREAM socket from systemd.\n");
