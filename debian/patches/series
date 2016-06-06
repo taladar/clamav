@@ -1,0 +1,9 @@
+Change-paths-in-sample-conf-file-to-match-Debian.patch
+add-support-for-system-tomsfastmath.patch
+tfm-drop-__DATE__.patch
+Allow-M-suffix-for-PCREMaxFileSize.patch
+tfm-fix-compile-errors.patch
+clamav_add_private_fts_implementation.patch
+fix-ssize_t-size_t-off_t-printf-modifier.patch
+libclamav-use-libmspack.patch
+drop-AllowSupplementaryGroups-option-and-make-it-def.patch

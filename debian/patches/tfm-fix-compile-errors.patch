@@ -1,0 +1,71 @@
+From 53b63d8cd4779138f07b9bf790aca73155a6d5ec Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Thu, 13 Aug 2015 23:37:54 +0200
+Subject: tfm: fix compile errors
+
+Upstream commit:
+|From 77be93c2013675a28993e427e4753ca40b43f08f Mon Sep 17 00:00:00 2001
+|From: Steffen Jaeckel <s@jaeckel.eu>
+|Date: Sun, 15 Feb 2015 14:50:20 +0100
+|Subject: fix compile errors
+
+I hope it fixes the armhf FTBFs with gcc-5
+
+Patch-Name: tfm-fix-compile-errors.patch
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+---
+ libclamav/tomsfastmath/mul/fp_mul_comba.c         | 4 +++-
+ libclamav/tomsfastmath/sqr/fp_sqr_comba.c         | 2 +-
+ libclamav/tomsfastmath/sqr/fp_sqr_comba_generic.c | 7 +++++--
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/libclamav/tomsfastmath/mul/fp_mul_comba.c b/libclamav/tomsfastmath/mul/fp_mul_comba.c
+index ab7eff1..d0b6c3b 100644
+--- a/libclamav/tomsfastmath/mul/fp_mul_comba.c
++++ b/libclamav/tomsfastmath/mul/fp_mul_comba.c
+@@ -346,7 +346,9 @@ void fp_mul_comba(fp_int *A, fp_int *B, fp_int *C)
+       /* execute loop */
+       COMBA_FORWARD;
+       for (iz = 0; iz < iy; ++iz) {
+-          MULADD(*tmpx++, *tmpy--);
++          fp_digit _tmpx = *tmpx++;
++          fp_digit _tmpy = *tmpy--;
++          MULADD(_tmpx, _tmpy);
+       }
+ 
+       /* store term */
+diff --git a/libclamav/tomsfastmath/sqr/fp_sqr_comba.c b/libclamav/tomsfastmath/sqr/fp_sqr_comba.c
+index cd37321..521c1b9 100644
+--- a/libclamav/tomsfastmath/sqr/fp_sqr_comba.c
++++ b/libclamav/tomsfastmath/sqr/fp_sqr_comba.c
+@@ -109,7 +109,7 @@ asm(                                                     \
+      "addq  %%rax,%0     \n\t"                            \
+      "adcq  %%rdx,%1     \n\t"                            \
+      "adcq  $0,%2        \n\t"                            \
+-     :"=r"(c0), "=r"(c1), "=r"(c2): "0"(c0), "1"(c1), "2"(c2), "g"(i) :"%rax","%rdx","cc");
++     :"=r"(c0), "=r"(c1), "=r"(c2): "0"(c0), "1"(c1), "2"(c2), "x"(i) :"%rax","%rdx","cc");
+ 
+ #define SQRADD2(i, j)                                     \
+ asm(                                                     \
+diff --git a/libclamav/tomsfastmath/sqr/fp_sqr_comba_generic.c b/libclamav/tomsfastmath/sqr/fp_sqr_comba_generic.c
+index 844f0d4..30e3543 100644
+--- a/libclamav/tomsfastmath/sqr/fp_sqr_comba_generic.c
++++ b/libclamav/tomsfastmath/sqr/fp_sqr_comba_generic.c
+@@ -68,12 +68,15 @@ void fp_sqr_comba(fp_int *A, fp_int *B)
+ 
+       /* execute loop */
+       for (iz = 0; iz < iy; iz++) {
+-          SQRADD2(*tmpx++, *tmpy--);
++          fp_digit _tmpx = *tmpx++;
++          fp_digit _tmpy = *tmpy--;
++          SQRADD2(_tmpx, _tmpy);
+       }
+ 
+       /* even columns have the square term in them */
+       if ((ix&1) == 0) {
+-          SQRADD(A->dp[ix>>1], A->dp[ix>>1]);
++          fp_digit _a_dp = A->dp[ix>>1];
++          SQRADD(_a_dp, A->dp[ix>>1]);
+       }
+ 
+       /* store it */

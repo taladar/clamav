@@ -1,0 +1,2 @@
+debian/script usr/share/bug/clamdscan/
+debian/tmp/usr/bin/clamdscan

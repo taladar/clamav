@@ -1,0 +1,299 @@
+From e2d16f09dc4d4acf3bc52f0406e904ae9819fff7 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Sun, 17 Aug 2014 21:24:03 +0200
+Subject: fix ssize_t/size_t/off_t printf modifier
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes a segfault on ARM, Sparc, … if 64bit off_t is used. Once LFS
+is enabled then off_t becomes 64bit and there is no portable way to express
+it except to cast the variable to signed long long. However with LFS
+enabled we can spare that cast.
+The 32bit Architectures may explode here because the earlier 64bit off_t
+consumes two argument slots and the filename (on which glibc uses
+strlen()) becomes invalid.
+
+In brief:
+ssize_t -> %zd
+size_t  -> %zu
+off_t  -> %llu (with LFS enabled)
+
+https://bugzilla.clamav.net/show_bug.cgi?id=11092
+
+Patch-Name: fix-ssize_t-size_t-off_t-printf-modifier.patch
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+---
+ clamd/server-th.c           |  1 +
+ libclamav/adc.c             |  1 +
+ libclamav/asn1.c            |  1 +
+ libclamav/bytecode.c        |  4 ++--
+ libclamav/bytecode_api.c    |  2 +-
+ libclamav/hashtab.c         |  1 +
+ libclamav/jsparse/js-norm.c |  1 +
+ libclamav/matcher.c         |  1 +
+ libclamav/mbox.c            |  1 +
+ libclamav/others.c          |  1 +
+ libclamav/pdf.c             | 22 ++++++++++++++--------
+ libclamav/regex_list.c      |  1 +
+ libclamav/scanners.c        |  5 +++--
+ shared/misc.h               |  4 ++++
+ sigtool/sigtool.c           |  3 ++-
+ 15 files changed, 35 insertions(+), 14 deletions(-)
+
+diff --git a/clamd/server-th.c b/clamd/server-th.c
+index 5fd73fd..bb3b10e 100644
+--- a/clamd/server-th.c
++++ b/clamd/server-th.c
+@@ -60,6 +60,7 @@
+ #include "libclamav/others.h"
+ #include "libclamav/readdb.h"
+ #include "libclamav/cltypes.h"
++#include "misc.h"
+ 
+ #define BUFFSIZE 1024
+ 
+diff --git a/libclamav/adc.c b/libclamav/adc.c
+index 0b91057..e718df3 100644
+--- a/libclamav/adc.c
++++ b/libclamav/adc.c
+@@ -29,6 +29,7 @@
+ #include <string.h>
+ #endif
+ 
++#include "shared/misc.h"
+ #include "clamav.h"
+ #include "cltypes.h"
+ #include "others.h"
+diff --git a/libclamav/asn1.c b/libclamav/asn1.c
+index 3cdd955..2075633 100644
+--- a/libclamav/asn1.c
++++ b/libclamav/asn1.c
+@@ -25,6 +25,7 @@
+ 
+ #include <time.h>
+ 
++#include "shared/misc.h"
+ #include "clamav.h"
+ #include "asn1.h"
+ #include "bignum.h"
+diff --git a/libclamav/bytecode.c b/libclamav/bytecode.c
+index 4a0c920..c2d4193 100644
+--- a/libclamav/bytecode.c
++++ b/libclamav/bytecode.c
+@@ -1497,8 +1497,8 @@ void cli_sigperf_print()
+     cli_infomsg (NULL, "%-*s %*s %*s %*s %*s\n", max_name_len, "=============",
+ 	    8, "=====", 8, "========", 12, "===========", 9, "=========");
+     while (elem->run_count) {
+-	cli_infomsg (NULL, "%-*s %*lu %*lu %*llu %*.2f\n", max_name_len, elem->bc_name,
+-		     8, elem->run_count, 8, elem->match_count, 
++	cli_infomsg (NULL, "%-*s %*lu %*lu %*" PRIu64 " %*.2f\n", max_name_len,
++		elem->bc_name, 8, elem->run_count, 8, elem->match_count,
+ 		12, elem->usecs, 9, (double)elem->usecs/elem->run_count);
+ 	elem++;
+     }
+diff --git a/libclamav/bytecode_api.c b/libclamav/bytecode_api.c
+index 41d7cac..a33e6da 100644
+--- a/libclamav/bytecode_api.c
++++ b/libclamav/bytecode_api.c
+@@ -123,7 +123,7 @@ int32_t cli_bcapi_seek(struct cli_bc_ctx* ctx, int32_t pos, uint32_t whence)
+             return -1;
+     }
+     if (off < 0 || off > ctx->file_size) {
+-        cli_dbgmsg("bcapi_seek: out of file: %ld (max %d)\n",
++        cli_dbgmsg("bcapi_seek: out of file: %" PRId64 " (max %d)\n",
+                    off, ctx->file_size);
+         return -1;
+     }
+diff --git a/libclamav/hashtab.c b/libclamav/hashtab.c
+index 03db980..4801c4f 100644
+--- a/libclamav/hashtab.c
++++ b/libclamav/hashtab.c
+@@ -26,6 +26,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ 
++#include "shared/misc.h"
+ #include "cltypes.h"
+ #include "clamav.h"
+ #include "others.h"
+diff --git a/libclamav/jsparse/js-norm.c b/libclamav/jsparse/js-norm.c
+index 486dea2..0014090 100644
+--- a/libclamav/jsparse/js-norm.c
++++ b/libclamav/jsparse/js-norm.c
+@@ -35,6 +35,7 @@
+ #include <ctype.h>
+ #include <assert.h>
+ 
++#include "shared/misc.h"
+ #include "clamav.h"
+ #include "cltypes.h"
+ #include "jsparse/lexglobal.h"
+diff --git a/libclamav/matcher.c b/libclamav/matcher.c
+index 88d2f27..afcc3a5 100644
+--- a/libclamav/matcher.c
++++ b/libclamav/matcher.c
+@@ -59,6 +59,7 @@
+ #include "yara_clam.h"
+ #include "yara_exec.h"
+ #endif
++#include "shared/misc.h"
+ 
+ #ifdef CLI_PERF_LOGGING
+ 
+diff --git a/libclamav/mbox.c b/libclamav/mbox.c
+index 8319992..96bdbd2 100644
+--- a/libclamav/mbox.c
++++ b/libclamav/mbox.c
+@@ -70,6 +70,7 @@
+ #include "mbox.h"
+ #include "dconf.h"
+ #include "fmap.h"
++#include "shared/misc.h"
+ 
+ #define DCONF_PHISHING mctx->ctx->dconf->phishing
+ 
+diff --git a/libclamav/others.c b/libclamav/others.c
+index fd67a5d..5da0b05 100644
+--- a/libclamav/others.c
++++ b/libclamav/others.c
+@@ -80,6 +80,7 @@
+ #include "cache.h"
+ #include "readdb.h"
+ #include "stats.h"
++#include "shared/misc.h"
+ 
+ int (*cli_unrar_open)(int fd, const char *dirname, unrar_state_t *state);
+ int (*cli_unrar_extract_next_prepare)(unrar_state_t *state, const char *dirname);
+diff --git a/libclamav/pdf.c b/libclamav/pdf.c
+index 3d95319..4f7139e 100644
+--- a/libclamav/pdf.c
++++ b/libclamav/pdf.c
+@@ -61,6 +61,7 @@
+ #include "textnorm.h"
+ #include "conv.h"
+ #include "json_api.h"
++#include "shared/misc.h"
+ 
+ #ifdef	CL_DEBUG
+ /*#define	SAVE_TMP	
+@@ -1024,10 +1025,12 @@ int pdf_extract_obj(struct pdf_struct *pdf, struct pdf_obj *obj, uint32_t flags)
+ 
+                 orig_length = length;
+                 if (length > pdf->size || obj->start + p_stream + length > pdf->size) {
+-                    cli_dbgmsg("cli_pdf: length out of file: %ld + %ld > %ld\n",
+-                           p_stream, length, pdf->size);
+-                    noisy_warnmsg("length out of file, truncated: %ld + %ld > %ld\n",
+-                           p_stream, length, pdf->size);
++                    cli_dbgmsg("cli_pdf: length out of file: %" PRId64 " + %"
++				    PRId64 " > % " PRId64 "\n", p_stream,
++				    length, pdf->size);
++                    noisy_warnmsg("length out of file, truncated: %" PRId64
++				    " + %" PRId64 " > %" PRId64 "\n",
++				    p_stream, length, pdf->size);
+                     length = pdf->size - (obj->start + p_stream);
+                 }
+ 
+@@ -1049,7 +1052,8 @@ int pdf_extract_obj(struct pdf_struct *pdf, struct pdf_obj *obj, uint32_t flags)
+                     if (length < 0)
+                         length = 0;
+ 
+-                    cli_dbgmsg("cli_pdf: calculated length %ld\n", length);
++                    cli_dbgmsg("cli_pdf: calculated length %" PRId64 "\n",
++				    length);
+                 } else {
+                     if (size > (size_t)length+2) {
+                         cli_dbgmsg("cli_pdf: calculated length %llu < %llu\n",
+@@ -1246,7 +1250,7 @@ int pdf_extract_obj(struct pdf_struct *pdf, struct pdf_obj *obj, uint32_t flags)
+         }
+     } while (0);
+ 
+-    cli_dbgmsg("cli_pdf: extracted %ld bytes %u %u obj\n", sum, obj->id>>8, obj->id&0xff);
++    cli_dbgmsg("cli_pdf: extracted %" PRId64 " bytes %u %u obj\n", sum, obj->id>>8, obj->id&0xff);
+     cli_dbgmsg("         ... to %s\n", fullname);
+ 
+     if (flags & PDF_EXTRACT_OBJ_SCAN && sum) {
+@@ -2500,7 +2504,8 @@ int cli_pdf(const char *dir, cli_ctx *ctx, off_t offset)
+ 
+     if (pdfver != start || offset) {
+         pdf.flags |= 1 << BAD_PDF_HEADERPOS;
+-        cli_dbgmsg("cli_pdf: PDF header is not at position 0: %ld\n",pdfver-start+offset);
++        cli_dbgmsg("cli_pdf: PDF header is not at position 0: %" PRId64 "\n",
++			pdfver - start + offset);
+ #if HAVE_JSON
+         if (pdfobj)
+             cli_jsonbool(pdfobj, "BadVersionLocation", 1);
+@@ -2609,7 +2614,8 @@ int cli_pdf(const char *dir, cli_ctx *ctx, off_t offset)
+     while ((rc = pdf_findobj(&pdf)) > 0) {
+         struct pdf_obj *obj = &pdf.objs[pdf.nobjs-1];
+ 
+-        cli_dbgmsg("cli_pdf: found %d %d obj @%ld\n", obj->id >> 8, obj->id&0xff, obj->start + offset);
++        cli_dbgmsg("cli_pdf: found %d %d obj @%" PRId64 "\n", obj->id >> 8,
++			obj->id & 0xff, obj->start + offset);
+     }
+ 
+     if (pdf.nobjs)
+diff --git a/libclamav/regex_list.c b/libclamav/regex_list.c
+index d956c85..d644d3b 100644
+--- a/libclamav/regex_list.c
++++ b/libclamav/regex_list.c
+@@ -42,6 +42,7 @@
+ #include <assert.h>
+ 
+ #include "regex/regex.h"
++#include "shared/misc.h"
+ 
+ #include "clamav.h"
+ #include "others.h"
+diff --git a/libclamav/scanners.c b/libclamav/scanners.c
+index d78dfdd..ed0bbf0 100644
+--- a/libclamav/scanners.c
++++ b/libclamav/scanners.c
+@@ -49,6 +49,7 @@
+ #define DCONF_MAIL  ctx->dconf->mail
+ #define DCONF_OTHER ctx->dconf->other
+ 
++#include "shared/misc.h"
+ #include "clamav.h"
+ #include "others.h"
+ #include "dconf.h"
+@@ -3472,8 +3473,8 @@ int cli_map_scandesc(cl_fmap_t *map, off_t offset, size_t length, cli_ctx *ctx,
+ 
+     if (!length) length = old_len - offset;
+     if (length > old_len - offset) {
+-	cli_dbgmsg("Data truncated: %lu -> %lu\n",
+-		   (unsigned long)length, old_len - offset);
++	cli_dbgmsg("Data truncated: %" _sizet" -> %" PRIu64" \n", length,
++			old_len - offset);
+ 	length = old_len - offset;
+     }
+ 
+diff --git a/shared/misc.h b/shared/misc.h
+index 84c288a..88e533b 100644
+--- a/shared/misc.h
++++ b/shared/misc.h
+@@ -52,6 +52,10 @@
+ #define PATH_MAX 1024
+ #endif
+ 
++#include <inttypes.h>
++#define _sizet	"zu"
++#define _ssizet	"zd"
++
+ char *freshdbdir(void);
+ void print_version(const char *dbdir);
+ int check_flevel(void);
+diff --git a/sigtool/sigtool.c b/sigtool/sigtool.c
+index 76cbef5..9cbd044 100644
+--- a/sigtool/sigtool.c
++++ b/sigtool/sigtool.c
+@@ -450,7 +450,8 @@ static char *getdsig(const char *host, const char *user, const unsigned char *da
+ 	    closesocket(sockd);
+ 	    return NULL;
+ 	} else {
+-	    mprintf("Signature received (length = %lu)\n", (unsigned long)strlen(buff) - 10);
++	    mprintf("Signature received (length = %" _sizet ")\n",
++			    strlen(buff) - 10);
+ 	}
+     } else {
+ 	mprintf("!getdsig: Communication error with remote server\n");
