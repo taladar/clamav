@@ -1,3 +1,10 @@
+clamav (0.99.2+dfsg-0+deb8u2) stable; urgency=medium
+
+  * Don't fail if AllowSupplementaryGroups is still set in the config file but
+    ignore it and continue (Closes: #826406).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 06 Jun 2016 22:06:52 +0200
+
 clamav (0.99.2+dfsg-0+deb8u1) stable; urgency=medium
 
   * Import new Upstream.

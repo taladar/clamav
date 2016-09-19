@@ -7,3 +7,4 @@ clamav_add_private_fts_implementation.patch
 fix-ssize_t-size_t-off_t-printf-modifier.patch
 libclamav-use-libmspack.patch
 drop-AllowSupplementaryGroups-option-and-make-it-def.patch
+ingore-AllowSupplementaryGroups-option.patch

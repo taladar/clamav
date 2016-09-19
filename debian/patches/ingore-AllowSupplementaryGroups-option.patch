@@ -1,0 +1,28 @@
+From 279c06a817c13eb22dc3ade949ea8b4a8aea9825 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Mon, 6 Jun 2016 21:17:34 +0200
+Subject: Ignore AllowSupplementaryGroups if set
+
+Ignore the AllowSupplementaryGroups option if set. This should ease
+stable auto upgrade in case nobody touches the config files.
+
+BTS: https://bugs.debian.org/826406
+Patch-Name: ingore-AllowSupplementaryGroups-option.patch
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+---
+ shared/optparser.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/shared/optparser.c b/shared/optparser.c
+index e2b28cc..f8911ea 100644
+--- a/shared/optparser.c
++++ b/shared/optparser.c
+@@ -285,6 +285,8 @@ const struct clam_option __clam_options[] = {
+ 
+     { "User", NULL, 0, CLOPT_TYPE_STRING, NULL, -1, NULL, 0, OPT_CLAMD | OPT_MILTER, "Run the daemon as a specified user (the process must be started by root).", "clamav" },
+ 
++    { "AllowSupplementaryGroups", NULL, 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_FRESHCLAM | OPT_MILTER, "Initialize a supplementary group access (the process must be started by root).", "no" },
++
+     /* Scan options */
+     { "Bytecode", "bytecode", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled ClamAV will load bytecode from the database. It is highly recommended you keep this option on, otherwise you'll miss detections for many new viruses.", "yes" },
+ 
