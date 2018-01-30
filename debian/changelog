@@ -145,6 +145,13 @@ clamav (0.99.4+dfsg-1+deb8u1) jessie; urgency=medium
 
  -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 03 Mar 2018 13:54:29 +0100
 
+clamav (0.99.2+dfsg-0+deb8u3.1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix systemd socket activation so it allows more than on TCP socket
+
+ -- Matthias Hörmann <mhoermann@saltation.de>  Tue, 30 Jan 2018 15:00:00 +0200
+
 clamav (0.99.2+dfsg-0+deb8u3) jessie; urgency=medium
 
   * Apply security patches from 0.99.3 (Closes: #888484):
