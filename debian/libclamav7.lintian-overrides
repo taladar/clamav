@@ -2,3 +2,4 @@
 # It still embeds a modified version of zlib to support 64 bit decompression,
 # which is not part of zlib, see #308799.
 libclamav7 binary: embedded-library usr/lib/libclamav.so.7.*: zlib
+libclamav7 binary: symbols-file-contains-debian-revision
