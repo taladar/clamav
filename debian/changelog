@@ -1,3 +1,15 @@
+clamav (0.99.2+dfsg-0+deb8u3) jessie; urgency=medium
+
+  * Apply security patches from 0.99.3 (Closes: #888484):
+    - fixes for the following CVE's: CVE-2017-6418, CVE-2017-6420,
+      CVE-2017-12374, CVE-2017-12375, CVE-2017-12376, CVE-2017-12377,
+      CVE-2017-12378, CVE-2017-12379, CVE-2017-12380.
+  * Bump symbol version of cl_retflevel because CL_FLEVEL changed.
+  * Cherry-pick patch from bb11549 to fix a temp file cleanup issue
+    (Closes: #824196).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 27 Jan 2018 01:29:24 +0100
+
 clamav (0.99.2+dfsg-0+deb8u2) stable; urgency=medium
 
   * Don't fail if AllowSupplementaryGroups is still set in the config file but

@@ -1,0 +1,45 @@
+From d915808a16fa93d5999457078e2f2a4979b8585f Mon Sep 17 00:00:00 2001
+From: Steven Morgan <stevmorg@cisco.com>
+Date: Wed, 8 Mar 2017 08:58:28 -0500
+Subject: bb11798 - fix unit tests.
+
+Patch-Name: bb11798-fix-unit-tests.patch
+---
+ libclamav/wwunpack.c      | 9 +++------
+ unit_tests/check_jsnorm.c | 2 +-
+ 2 files changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/libclamav/wwunpack.c b/libclamav/wwunpack.c
+index 38c1808..a13550e 100644
+--- a/libclamav/wwunpack.c
++++ b/libclamav/wwunpack.c
+@@ -226,13 +226,10 @@ int wwunpack(uint8_t *exe, uint32_t exesz, uint8_t *wwsect, struct cli_exe_secti
+ 	return CL_EFORMAT;
+     exe[pe+6]=(uint8_t)scount;
+     exe[pe+7]=(uint8_t)(scount>>8);
+-    if (!CLI_ISCONTAINED(wwsect, sects[scount].rsz, wwsect+0x295, 4) ||
+-        !CLI_ISCONTAINED(wwsect, sects[scount].rsz, wwsect+0x295+sects[scount].rva, 4) ||
+-        !CLI_ISCONTAINED(wwsect, sects[scount].rsz, wwsect+0x295+sects[scount].rva+0x299, 4)) {
++    if (!CLI_ISCONTAINED(wwsect, sects[scount].rsz, wwsect+0x295, 4))
+         cli_dbgmsg("WWPack: unpack memory address out of bounds.\n");
+-        return CL_EFORMAT;
+-    }
+-    cli_writeint32(&exe[pe+0x28], cli_readint32(wwsect+0x295)+sects[scount].rva+0x299);
++    else
++        cli_writeint32(&exe[pe+0x28], cli_readint32(wwsect+0x295)+sects[scount].rva+0x299);
+     cli_writeint32(&exe[pe+0x50], cli_readint32(&exe[pe+0x50])-sects[scount].vsz);
+ 
+     structs = &exe[(0xffff&cli_readint32(&exe[pe+0x14]))+pe+0x18];
+diff --git a/unit_tests/check_jsnorm.c b/unit_tests/check_jsnorm.c
+index 7515a0c..9587ea4 100644
+--- a/unit_tests/check_jsnorm.c
++++ b/unit_tests/check_jsnorm.c
+@@ -145,7 +145,7 @@ END_TEST
+ 
+ START_TEST (test_token_dval)
+ {
+-	int val = 0.12345;
++	double val = 0.12345;
+ 	yystype tok;
+ 	memset(&tok, 0, sizeof(tok));
+ 

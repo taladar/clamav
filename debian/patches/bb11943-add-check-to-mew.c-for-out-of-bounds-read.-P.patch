@@ -1,0 +1,24 @@
+From 0b00a85dfdb2133cc244016d4b6d97387a73521a Mon Sep 17 00:00:00 2001
+From: Steven Morgan <stevmorg@cisco.com>
+Date: Fri, 27 Oct 2017 16:52:29 -0400
+Subject: bb11943 - add check to mew.c for out of bounds read. Patch supplied
+ by Suleman Ali.
+
+Patch-Name: bb11943-add-check-to-mew.c-for-out-of-bounds-read.-P.patch
+---
+ libclamav/mew.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libclamav/mew.c b/libclamav/mew.c
+index 0e0c011..14d2bc2 100644
+--- a/libclamav/mew.c
++++ b/libclamav/mew.c
+@@ -424,6 +424,8 @@ int mew_lzma(char *orgsource, const char *buf, uint32_t size_sum, uint32_t vma,
+ 		loc_edi = 1;
+ 		var14 = var10 = var24 = 1;
+ 
++                if(CLI_ISCONTAINED(orgsource, size_sum, var2C, 5))
++                    return -1;
+ 		lzma_bswap_4861dc(&var40, var2C);
+ 		new_edx = 0;
+ 	} while (var28 <= loc_esi); /* source = 0 */
