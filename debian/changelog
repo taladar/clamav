@@ -1,3 +1,10 @@
+clamav (0.99.2+dfsg-6.1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix systemd socket activation so it allows more than one TCP socket
+
+ -- Matthias Hörmann <mhoermann@saltation.de>  Tue, 27 Feb 2018 16:32:21 +0100
+
 clamav (0.99.2+dfsg-6) unstable; urgency=medium
 
   * Fix detection of curl. Patch by Reiner Herrmann <reiner@reiner-h.de>
