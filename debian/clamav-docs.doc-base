@@ -1,0 +1,13 @@
+Document: clamav-docs
+Author: Tomasz Kojm
+Title: ClamAV Documentation
+Abstract: Documentation for the ClamAV suite
+Section: System/Security
+
+Format: PDF
+Files: /usr/share/doc/clamav-docs/clamdoc.pdf
+
+Format: HTML
+Index: /usr/share/doc/clamav-docs/html/index.html
+Files: /usr/share/doc/clamav-docs/html/*.html
+

@@ -1,0 +1,2 @@
+# This is intentionally shipped compressed and uncompressed to be able to test, if clamav detects also the compressed file.
+clamav-testfiles: duplicated-compressed-file usr/share/clamav-testfiles/clam.exe.bz2

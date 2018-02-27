@@ -1,0 +1,4 @@
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ clamav-milter\[[0-9]+\]: Loading new database$
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ clamav-milter\[[0-9]+\]: ClamAV: Protecting against [0-9]+ viruses$
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ clamav-milter\[[0-9]+\]: Loaded ClamAV [/: [:alnum:]]+
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ clamav-milter\[[0-9]+\]: [[:alnum:]]+: clean message from

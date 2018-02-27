@@ -1,0 +1,2 @@
+debian/script usr/share/bug/clamav-base/
+debian/source_clamav.py usr/share/apport/package-hooks/

@@ -1,0 +1,20 @@
+#!/bin/bash
+#----------------------
+# Testing clamav-daemon
+#----------------------
+set -e
+DAEMON=clamd
+
+# copy the file form unit tests to clamav directory
+cp `dirname $0`/../../unit_tests/input/bytecode.cvd /var/lib/clamav/main.cvd > /dev/null 2>&1
+cp `dirname $0`/../../unit_tests/input/bytecode.cvd /var/lib/clamav/daily.cvd > /dev/null 2>&1
+
+# restart clamav
+/etc/init.d/clamav-daemon start > /dev/null 2>&1
+
+if pidof -x $DAEMON > /dev/null; then
+    echo "OK"
+else
+    echo "ERROR: ${DAEMON} IS NOT RUNNING"
+    exit 1
+fi

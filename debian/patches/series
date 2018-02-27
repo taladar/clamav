@@ -1,0 +1,14 @@
+Change-paths-in-sample-conf-file-to-match-Debian.patch
+add-support-for-system-tomsfastmath.patch
+Allow-M-suffix-for-PCREMaxFileSize.patch
+clamav_add_private_fts_implementation.patch
+fix-ssize_t-size_t-off_t-printf-modifier.patch
+libclamav-use-libmspack.patch
+drop-AllowSupplementaryGroups-option-and-make-it-def.patch
+make_it_compile_against_openssl_1_1_0.patch
+clamd_dont_depend_on_clamav_demon_socket.patch
+Add-support-for-LLVM-3.7.patch
+Add-support-for-LLVM-3.8.patch
+Add-support-for-LLVM-3.9.patch
+bb11549-fix-temp-file-cleanup-issue.patch
+Fix_detection_of_libcurl.patch
