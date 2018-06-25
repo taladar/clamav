@@ -77,6 +77,8 @@ d
 }
 /LTDL/d
 /ltdl/d
+/.*m4\/reorganization\/llvm.m4/d
+/.*m4\/reorganization\/libmspack.m4/d
 /AC_OUTPUT(\[.*Makefile/d
 s/clamscan\/clamscan.c/libclamunrar_iface\/unrar_iface.c/
 ' configure.ac

@@ -8,7 +8,7 @@ dnl
 dnl
 INPUT_MAIL_FILTER(`clamav', `S=local:/var/run/clamav/clamav-milter.ctl, F=, T=S:4m;R:4m')dnl
 dnl
-dnl INPUT_MAIL_FILTER usualy already does the right thing
+dnl INPUT_MAIL_FILTER usually already does the right thing
 dnl to confINPUT_MAIL_FILTERS, but to be sure, we do it
 dnl again, if necessary.
 dnl

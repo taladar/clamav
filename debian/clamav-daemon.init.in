@@ -110,7 +110,7 @@ chown $User $(dirname "$THEPIDFILE")
 
 case "$1" in
   start)
-  # Check for database existance (start will fail if it's missing)
+  # Check for database existence (start will fail if it's missing)
   for db in main daily; do
     if [ ! -e "$DATABASEDIR"/"$db".cvd ] && [ ! -d "$DATABASEDIR"/"$db".inc ] && [ ! -e "$DATABASEDIR"/"$db".cld ]; then
       log_failure_msg "Clamav signatures not found in $DATABASEDIR"

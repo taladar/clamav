@@ -288,9 +288,6 @@ EOF
   [ -n "$OnUpdateExecute" ] && echo "OnUpdateExecute $OnUpdateExecute" >> $DEBCONFFILE
   [ -n "$OnErrorExecute" ] && echo "OnErrorExecute $OnErrorExecute" >> $DEBCONFFILE
   [ -n "$LocalIPAddress" ] && echo "LocalIPAddress $LocalIPAddress" >> $DEBCONFFILE
-  [ -n "$SubmitDetectionStats" ] && echo "SubmitDetectionStats $SubmitDetectionStats" >> $DEBCONFFILE
-  [ -n "$DetectionStatsCountry" ] && echo "DetectionStatsCountry $DetectionStatsCountry" >> $DEBCONFFILE
-  [ -n "$DetectionStatsHostID" ] && echo "DetectionStatsHostID $DetectionStatsHostID" >> $DEBCONFFILE
   [ -n "$PrivateMirror" ] && echo "PrivateMirror $PrivateMirror" >> $DEBCONFFILE
   if [ -n "$DatabaseCustomURL" ]; then
     for i in $DatabaseCustomURL; do
@@ -355,7 +352,7 @@ EOF
 	break
       fi
     done
-    update-rc.d -f clamav-freshclam remove > /dev/null 2>&1
+    update-rc.d -f clamav-freshclam disable > /dev/null 2>&1 || true
   else
     echo "Starting database update: "
     if pathfind invoke-rc.d; then
@@ -363,7 +360,7 @@ EOF
     else
       /etc/init.d/clamav-freshclam no-daemon || true
     fi
-    update-rc.d -f clamav-freshclam remove > /dev/null 2>&1
+    update-rc.d -f clamav-freshclam disable > /dev/null 2>&1 || true
   fi
   ;;
   abort-upgrade|abort-remove|abort-deconfigure)

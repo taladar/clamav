@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2018-04-21 21:54+0200\n"
 "PO-Revision-Date: 2014-07-06 12:42+0000\n"
 "Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
 "Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
@@ -57,8 +57,7 @@ msgid ""
 " manual:  no automatic invocation of freshclam. This is not recommended,\n"
 "          as ClamAV's database is constantly updated."
 msgstr ""
-" dæmon:   freshclam kører hele tiden som dæmon. Du bør vælge dette, "
-"hvis\n"
+" dæmon:   freshclam kører hele tiden som dæmon. Du bør vælge dette, hvis\n"
 "          du har en permanent netforbindelse.\n"
 " ifup.d:  freshclam vil køre som dæmon i al den tid, din internet-\n"
 "          forbindelse er oppe. Vælg dette, hvis du bruger en \n"
@@ -128,8 +127,8 @@ msgid ""
 "If you need to supply a username and password to the proxy, enter it here. "
 "Otherwise, leave this blank."
 msgstr ""
-"Hvis proxyen kræver brugernavn og adgangskode, så angiv dem her. Ellers "
-"lad feltet stå tomt."
+"Hvis proxyen kræver brugernavn og adgangskode, så angiv dem her. Ellers lad "
+"feltet stå tomt."
 
 #. Type: string
 #. Description
@@ -170,8 +169,8 @@ msgid ""
 msgstr ""
 "Hvis dæmonen kører, mens netforbindelsen er nede, vil logfilen blive fyldt "
 "med en masse beskeder såsom »ERROR: Connection with database.clamav.net "
-"failed.«, så det kan være svært at se, hvornår freshclam i "
-"virkeligheden ikke kan komme til at opdatere databasen."
+"failed.«, så det kan være svært at se, hvornår freshclam i virkeligheden "
+"ikke kan komme til at opdatere databasen."
 
 #. Type: string
 #. Description
@@ -223,9 +222,9 @@ msgid ""
 msgstr ""
 "Hvis du ikke vælger denne indstilling, vil clamd's indlæsning af databaser "
 "blive forsinket betydeligt (den tjekker som udgangspunkt hver sjette time), "
-"således at du risikerer, at en ny virus slipper igennem, selvom din "
-"database er fuldt opdateret. Brug ikke denne indstilling, hvis du ikke "
-"bruger clamd, da den vil resultere i fejl."
+"således at du risikerer, at en ny virus slipper igennem, selvom din database "
+"er fuldt opdateret. Brug ikke denne indstilling, hvis du ikke bruger clamd, "
+"da den vil resultere i fejl."
 
 #. Type: boolean
 #. Description
@@ -248,12 +247,13 @@ msgid ""
 msgstr ""
 "Når aktiveret for første gang vil freshclam hente en ny databasefil "
 "(safebrowsing.cvd), som vil blive indlæst automatisk af clamd og clamscan "
-"under den næste genindlæsning, så længe at den heuristiske phishing-detektering "
-"er tændt. Denne database inkluderer information om internetsider, som kan "
-"være phishing-sider eller mulige kilder til malware. Når du bruger denne "
-"indstilling, er det krævet at du kører freshclam mindst hver 30. minut. "
-"Freshclam bruger ClamAV's spejlinfrastruktur til at distribuere databasen og "
-"dets opdateringer, men alt indhold leveres under Googles betingelser for brug."
+"under den næste genindlæsning, så længe at den heuristiske phishing-"
+"detektering er tændt. Denne database inkluderer information om "
+"internetsider, som kan være phishing-sider eller mulige kilder til malware. "
+"Når du bruger denne indstilling, er det krævet at du kører freshclam mindst "
+"hver 30. minut. Freshclam bruger ClamAV's spejlinfrastruktur til at "
+"distribuere databasen og dets opdateringer, men alt indhold leveres under "
+"Googles betingelser for brug."
 
 #. Type: boolean
 #. Description
@@ -280,14 +280,14 @@ msgid ""
 "DatabaseMirror, DNSDatabaseInfo and ScriptedUpdates. It can be used multiple "
 "times to provide fall-back mirrors."
 msgstr ""
-"Denne indstilling gør det nemt for dig at pege freshclam mod private "
-"spejl. Hvis PrivateMirror er angivet, så forsøger freshclam ikke at bruge "
-"DNS til at bestemme hvorvidt dets databaser er forældede, i stedet vil "
-"programmet bruge If-Modified-Since-forespørgslen eller direkte kontrollere "
+"Denne indstilling gør det nemt for dig at pege freshclam mod private spejl. "
+"Hvis PrivateMirror er angivet, så forsøger freshclam ikke at bruge DNS til "
+"at bestemme hvorvidt dets databaser er forældede, i stedet vil programmet "
+"bruge If-Modified-Since-forespørgslen eller direkte kontrollere "
 "teksthovederne på den eksterne databases filer. For hver database forsøger "
-"freshclam først at hente CVD-filen. Denne indstilling overskriver DatabaseMirror, "
-"DNSDatabaseInfo og ScriptedUpdates. Den kan bruges flere gange, så du også "
-"har reservespejl."
+"freshclam først at hente CVD-filen. Denne indstilling overskriver "
+"DatabaseMirror, DNSDatabaseInfo og ScriptedUpdates. Den kan bruges flere "
+"gange, så du også har reservespejl."
 
 #. Type: boolean
 #. Description
@@ -402,8 +402,8 @@ msgid ""
 "listen on a single address or host name, enter it here."
 msgstr ""
 "Skriv »any« for at lytte på alle de IP-adresser, der er sat op. Hvis du i "
-"stedet ønsker at lytte på en enkelt adresse eller et værtsnavn så skriv "
-"den her."
+"stedet ønsker at lytte på en enkelt adresse eller et værtsnavn så skriv den "
+"her."
 
 #. Type: boolean
 #. Description
@@ -460,8 +460,7 @@ msgstr "Maksimalt tilladt længde af datastrøm (i Mb):"
 #: ../clamav-daemon.templates:12001
 msgid "You can set a limit on the stream length that can be scanned."
 msgstr ""
-"Du kan sætte en begrænsning på størrelsen af de strømme, der kan "
-"skannes."
+"Du kan sætte en begrænsning på størrelsen af de strømme, der kan skannes."
 
 #. Type: string
 #. Description
@@ -495,8 +494,7 @@ msgstr "Ønsker du at dæmonen skal følge symbolske mappehenvisninger?"
 #. Description
 #: ../clamav-daemon.templates:15001
 msgid "Do you want the daemon to follow regular file symlinks?"
-msgstr ""
-"Ønsker du at dæmonen skal følge almindelige symbolske filhenvisninger?"
+msgstr "Ønsker du at dæmonen skal følge almindelige symbolske filhenvisninger?"
 
 #. Type: string
 #. Description
@@ -587,8 +585,8 @@ msgstr ""
 #: ../clamav-daemon.templates:26001
 msgid "Do you want memory or nested map scans to dump the content to disk?"
 msgstr ""
-"Ønsker du hukommelse eller indlejrede kortskanninger til at dumpe "
-"indholdet til disken?"
+"Ønsker du hukommelse eller indlejrede kortskanninger til at dumpe indholdet "
+"til disken?"
 
 #. Type: boolean
 #. Description
@@ -597,8 +595,8 @@ msgid ""
 "If you turn on this option, more data is written to disk and is available "
 "when the LeaveTemporaryFiles option is enabled."
 msgstr ""
-"Hvis du aktiverer denne indstilling, bliver flere data skrevet til disken "
-"og er tilgængelige når tilvalget LeaveTemporaryFiles er aktiveret."
+"Hvis du aktiverer denne indstilling, bliver flere data skrevet til disken og "
+"er tilgængelige når tilvalget LeaveTemporaryFiles er aktiveret."
 
 #. Type: boolean
 #. Description
@@ -618,11 +616,11 @@ msgid ""
 "file does match a revoked certificate, the file is marked as virus."
 msgstr ""
 "Bestemte PE-filer indeholder en authenticode-underskrift. Som standad "
-"kontrolleres underskriftkæden i PE-filen mod en database med troværdige "
-"og tilbagekaldte certifikater, hvis den skannede fil er markeret som en "
-"virus. Hvis et certifikat i kæden valideres mod en troværdig root, men ikke "
-"matcher et tilbagekaldt certifikat, så markeres filen som hvidlistet. Hvis "
-"filen ikke matcher et tilbagekaldt certifikat, så markeres filen som en virus."
+"kontrolleres underskriftkæden i PE-filen mod en database med troværdige og "
+"tilbagekaldte certifikater, hvis den skannede fil er markeret som en virus. "
+"Hvis et certifikat i kæden valideres mod en troværdig root, men ikke matcher "
+"et tilbagekaldt certifikat, så markeres filen som hvidlistet. Hvis filen "
+"ikke matcher et tilbagekaldt certifikat, så markeres filen som en virus."
 
 #. Type: boolean
 #. Description
@@ -655,8 +653,8 @@ msgid ""
 "the system."
 msgstr ""
 "Filer større end denne værdi vil springe de yderligere analysetrin over. "
-"Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan "
-"medføre alvorlig skade på systemet."
+"Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan medføre "
+"alvorlig skade på systemet."
 
 #. Type: string
 #. Description
@@ -673,8 +671,8 @@ msgid ""
 "the system."
 msgstr ""
 "HTML-filer større end denne værdi vil ikke blive normaliseret eller skannet. "
-"Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan "
-"medføre alvorlig skade på systemet."
+"Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan medføre "
+"alvorlig skade på systemet."
 
 #. Type: string
 #. Description
@@ -690,9 +688,9 @@ msgid ""
 "Note: disabling this limit or setting it too high may result in severe "
 "damage to the system."
 msgstr ""
-"HTML-filer større end denne værdi efter normalisering vil ikke blive skannet. "
-"Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan "
-"medføre alvorlig skade på systemet."
+"HTML-filer større end denne værdi efter normalisering vil ikke blive "
+"skannet. Bemærk: Deaktivering af denne begrænsning eller en for høj værdi "
+"kan medføre alvorlig skade på systemet."
 
 #. Type: string
 #. Description
@@ -709,8 +707,8 @@ msgid ""
 "damage to the system."
 msgstr ""
 "Skriptindhold større end denne værdi vil ikke blive normaliseret eller "
-"skannet. Bemærk: Deaktivering af denne begrænsning eller en for høj værdi kan "
-"medføre alvorlig skade på systemet."
+"skannet. Bemærk: Deaktivering af denne begrænsning eller en for høj værdi "
+"kan medføre alvorlig skade på systemet."
 
 #. Type: string
 #. Description
@@ -767,8 +765,8 @@ msgstr ""
 "Det anbefales at køre ClamAV-programmerne som en bruger der ikke er "
 "privilegeret. Det vil fungere med de fleste postdistributionsprogrammer "
 "(MTA) med en smule justering, men hvis du vil benytte clamd til at udføre "
-"skanninger af filsystemer, kan det nok ikke undgås at køre den som root. "
-"Se README.Debian i pakken clamav-base for detaljer."
+"skanninger af filsystemer, kan det nok ikke undgås at køre den som root. Se "
+"README.Debian i pakken clamav-base for detaljer."
 
 #. Type: string
 #. Description
@@ -844,42 +842,6 @@ msgstr "Tidsudløb for bytecodeudførsel i millisekunder:"
 
 #. Type: boolean
 #. Description
-#: ../clamav-daemon.templates:40001
-msgid "Do you want to submit statistical information?"
-msgstr "Ønsker du at indsende statistisk information?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr "Ønsker du at deaktivere indsendelse af filer markeret som malware?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr ""
-"Hvis aktiveret vil individuelle PE-sektioner med filer markeret som malware "
-"blive indsendt."
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr "HostID, en UUID til indsendelse af statistisk information:"
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr ""
-"Ventetid i sekunder for tilbagemelding fra statistikserveren:"
-
-#. Type: boolean
-#. Description
 #: ../clamav-milter.templates:2001
 msgid "Some options must be configured for clamav-milter."
 msgstr "Nogle indstillinger skal konfigureres for clamav-milter."
@@ -894,9 +856,9 @@ msgid ""
 "manual changes in /etc/clamav/clamav-milter.conf will be respected."
 msgstr ""
 "ClamAV-programmet vil ikke fungere, hvis de ikke er sat op. Hvis du ikke "
-"konfigurerer automatisk, må du selv sætte /etc/clamav/clamav-milter.conf "
-"op eller køre »dpkg-reconfigure clamav-milter« senere. Uanset hvad vil "
-"manuelle ændringer i /etc/clamav/clamav-milter.conf blive respekteret."
+"konfigurerer automatisk, må du selv sætte /etc/clamav/clamav-milter.conf op "
+"eller køre »dpkg-reconfigure clamav-milter« senere. Uanset hvad vil manuelle "
+"ændringer i /etc/clamav/clamav-milter.conf blive respekteret."
 
 #. Type: string
 #. Description
@@ -914,8 +876,8 @@ msgid ""
 " - IPv4 socket       : inet:port@[hostname|ip-address]\n"
 " - IPv6 socket       : inet6:port@[hostname|ip-address]"
 msgstr ""
-"Vælg venligst den metode som skal bruges af clamav-milter til at "
-"kommunikere med Sendmail. De følgende formater kan bruges:\n"
+"Vælg venligst den metode som skal bruges af clamav-milter til at kommunikere "
+"med Sendmail. De følgende formater kan bruges:\n"
 " - Unix-domænesokkel : [[unix|lokal]:]/sti/til/fil\n"
 " - IPv4-sokkel       : inet:port@[værtsnavn|ip-adresse]\n"
 " - IPv6-sokkel       : inet6:port@[værtsnavn|ip-adresse]"
@@ -978,11 +940,10 @@ msgid ""
 "it is used in combination with an MTA), the user running clamav-milter need "
 "to be added to the relevant group(s)."
 msgstr ""
-"Clamv-milter kører som udgangspunkt som en bruger, der ikke er "
-"priviligeret. Hvis du har brug for, at clamav-milter skal kunne tilgå "
-"filer, der ejes af en anden bruger (f.eks. i kombination med et "
-"postleveringsprogram), skal du tilføje brugeren, der kører clamav-milter, "
-"til de relevante grupper."
+"Clamv-milter kører som udgangspunkt som en bruger, der ikke er priviligeret. "
+"Hvis du har brug for, at clamav-milter skal kunne tilgå filer, der ejes af "
+"en anden bruger (f.eks. i kombination med et postleveringsprogram), skal du "
+"tilføje brugeren, der kører clamav-milter, til de relevante grupper."
 
 #. Type: string
 #. Description
@@ -1025,8 +986,8 @@ msgid ""
 "Clamav-milter can run in a chroot jail. It will enter it after reading the "
 "configuration file and before dropping root privileges."
 msgstr ""
-"Clamav-milter kan køre i et chrootfængsel. Den vil indgå i dette efter, "
-"at programmet har løst konfigurationsfilen og før den smider "
+"Clamav-milter kan køre i et chrootfængsel. Den vil indgå i dette efter, at "
+"programmet har løst konfigurationsfilen og før den smider "
 "administratorprivilegierne."
 
 #. Type: string
@@ -1087,14 +1048,13 @@ msgid ""
 "   address, and the \"port\" is only required for IPv6 addresses,\n"
 "   defaulting to 3310 otherwise."
 msgstr ""
-"Angiv venligst soklen der skal bruges til at forbinde til ClamAV-dæmonen "
-"for skanningsformål. Mulige valg er:\n"
+"Angiv venligst soklen der skal bruges til at forbinde til ClamAV-dæmonen for "
+"skanningsformål. Mulige valg er:\n"
 " - en lokal unixsokkel der bruger en absolut sti, i formatet »unix:sti«\n"
 "   (for eksempel: unix:/var/run/clamd/clamd.socket);\n"
 " - en lokal eller ekstern TCP-sokkel i formatet »tcp:vært:port« (for "
 "eksempel:\n"
-"   cp:192.168.0.1). »Værtværdien« kan enten være et værtsnavn eller "
-"en\n"
+"   cp:192.168.0.1). »Værtværdien« kan enten være et værtsnavn eller en\n"
 "   IP-adresse, og »porten« er kun krævet for IPv6-adresser,\n"
 "   ellers er standarden 3310."
 
@@ -1110,8 +1070,8 @@ msgid ""
 "You may specify multiple choices, separated by spaces. In such case, the "
 "clamd servers will be selected in a round-robin fashion."
 msgstr ""
-"Du må angive flere valg, adskilt af mellemrum. I sådanne tilfælde, vil "
-"clamd-serverne blive valgt efter metoden round-robin."
+"Du må angive flere valg, adskilt af mellemrum. I sådanne tilfælde, vil clamd-"
+"serverne blive valgt efter metoden round-robin."
 
 #. Type: string
 #. Description
@@ -1130,8 +1090,8 @@ msgid ""
 msgstr ""
 "Angiv venligst, i CIDR-notation (vært(navn)/maske), værterne hvor ingen "
 "skanning skal udføres på indgående post. Flere punkter skal adskilles af "
-"mellemrum. Den »lokale« genvej kan brues til at specificere lokalt "
-"oprindet (ikke-SMTP) e-post."
+"mellemrum. Den »lokale« genvej kan brues til at specificere lokalt oprindet "
+"(ikke-SMTP) e-post."
 
 #. Type: string
 #. Description
@@ -1162,9 +1122,8 @@ msgid ""
 "Each line in this file should be a POSIX regular expression; lines starting "
 "with \"#\", \":\" or \"!\" will be ignored as comments."
 msgstr ""
-"Hver linje i denne fil skal være et POSIX-regulært udtryk; linjer "
-"startende med »#«, »:« eller »!« vil blive ignoreret som værende "
-"kommentarer."
+"Hver linje i denne fil skal være et POSIX-regulært udtryk; linjer startende "
+"med »#«, »:« eller »!« vil blive ignoreret som værende kommentarer."
 
 #. Type: string
 #. Description
@@ -1175,8 +1134,8 @@ msgid ""
 "\" prefix, it affects recipient addresses."
 msgstr ""
 "Linjer skal starte med »Fra:« (uden mellemrum efter kolonnet) for at "
-"hvidlistningen gælder for matchende afsenderadresser; ellers, eller med præ"
-"fikset »Til:«, påvirker den modtageradresser."
+"hvidlistningen gælder for matchende afsenderadresser; ellers, eller med "
+"præfikset »Til:«, påvirker den modtageradresser."
 
 #. Type: select
 #. Choices
@@ -1225,8 +1184,7 @@ msgstr "Handling at udføre på inficerede beskeder:"
 #. Description
 #: ../clamav-milter.templates:17002
 msgid "Please choose the action to perform on \"infected\" messages:"
-msgstr ""
-"Vælg venligst handlingen der skal udføres på »inficerede« beskeder:"
+msgstr "Vælg venligst handlingen der skal udføres på »inficerede« beskeder:"
 
 #. Type: select
 #. Description
@@ -1264,9 +1222,9 @@ msgid ""
 "data structures, no scanners available, network timeouts, unknown scanner "
 "replies...:"
 msgstr ""
-"Vælg venligst handlingen der skal udføres ved fejl såsom fejl ved "
-"tildeling af datastrukturer, ingen skannere tilgængelige, netværkstidsudløb, "
-"ukendte skannersvar ...:"
+"Vælg venligst handlingen der skal udføres ved fejl såsom fejl ved tildeling "
+"af datastrukturer, ingen skannere tilgængelige, netværkstidsudløb, ukendte "
+"skannersvar ...:"
 
 #. Type: select
 #. Description
@@ -1346,9 +1304,9 @@ msgid ""
 "headers will be attached to each processed message, possibly replacing "
 "existing similar headers."
 msgstr ""
-"Hvis du vælger denne indstilling vil teksthovederne »X-Virus-Scanned« "
-"og »X-Virus-Status« blive tilføjet til hver behandlet besked, og dermed "
-"højst sandsynlig erstatte lignende eksisterende teksthoveder."
+"Hvis du vælger denne indstilling vil teksthovederne »X-Virus-Scanned« og »X-"
+"Virus-Status« blive tilføjet til hver behandlet besked, og dermed højst "
+"sandsynlig erstatte lignende eksisterende teksthoveder."
 
 #. Type: string
 #. Description
@@ -1386,7 +1344,8 @@ msgid ""
 "running clamav-milter multiple times.  This option disables log file locking."
 msgstr ""
 "Som standard er logfilen låst for skrivning. Låsningen beskytter mod, at "
-"clamav-milter kan køre flere gange. Denne indstilling deaktiverer logfillåsning."
+"clamav-milter kan køre flere gange. Denne indstilling deaktiverer "
+"logfillåsning."
 
 #. Type: string
 #. Description
@@ -1401,8 +1360,8 @@ msgid ""
 "Please specify the maximum size for the log file. Using \"0\" will allow "
 "that file to grow indefinitely."
 msgstr ""
-"Angiv venligst den maksimale størrelse for logfilen. Brug af »0« vil "
-"tillade at filen vokser uendeligt."
+"Angiv venligst den maksimale størrelse for logfilen. Brug af »0« vil tillade "
+"at filen vokser uendeligt."
 
 #. Type: boolean
 #. Description
@@ -1511,9 +1470,9 @@ msgid ""
 " - Basic: minimal information;\n"
 " - Full : verbose information."
 msgstr ""
-"Vælg venligst informationsniveauet som vil blive logget, når der ikke "
-"findes en trussel i en skannet besked (dette er brugbart under fejlsøgning "
-"men øger dramatisk loggens størrelse):\n"
+"Vælg venligst informationsniveauet som vil blive logget, når der ikke findes "
+"en trussel i en skannet besked (dette er brugbart under fejlsøgning men øger "
+"dramatisk loggens størrelse):\n"
 " - Slukket: Ingen logning;\n"
 " - Basis:   Minimal information;\n"
 " - Fuld:    Uddybende information."
@@ -1531,8 +1490,8 @@ msgid ""
 "Please specify the maximum size for scanned messages. Messages bigger than "
 "this limit will not be scanned."
 msgstr ""
-"Angiv venligst den maksimale størrelse for skannede beskeder. Beskeder større "
-"end denne begrænsning vil ikke blive skannet."
+"Angiv venligst den maksimale størrelse for skannede beskeder. Beskeder "
+"større end denne begrænsning vil ikke blive skannet."
 
 #. Type: string
 #. Description
@@ -1541,8 +1500,8 @@ msgid ""
 "You should check that this value is lower than the value of \"StreamMaxLength"
 "\" in the clamd.conf file."
 msgstr ""
-"Du bør tjekke at denne værdi er mindre end værdien af »StreamMaxLength« "
-"i clamd.conf-filen."
+"Du bør tjekke at denne værdi er mindre end værdien af »StreamMaxLength« i "
+"clamd.conf-filen."
 
 #. Type: boolean
 #. Description
@@ -1563,14 +1522,14 @@ msgid ""
 "is on: then one line is logged for each recipient and the command indicated "
 "by VirusAction is also executed once for each recipient."
 msgstr ""
-"Denne indstilling påvirker opførelsen af LogInfected, LogClean og VirusAction, "
-"når en besked med flere modtagere skannes: Hvis SupportMultipleRecipients "
-"er deaktiveret (standard) så oprettes der et enkelt logpunkt for beskeden og "
-"i tilfælde af at beskeden bestemmes som være ondsindet, så køres kommandoen "
-"indikeret af VirusAction igen. I begge tilfælde rapporteres kun den sidste "
-"modtager. Hvis SupportMultipleRecipients er aktiveret: en linje logges for "
-"hver modtager og kommandoen indikeret af VirusAction køres også en gang for "
-"hver modtager."
+"Denne indstilling påvirker opførelsen af LogInfected, LogClean og "
+"VirusAction, når en besked med flere modtagere skannes: Hvis "
+"SupportMultipleRecipients er deaktiveret (standard) så oprettes der et "
+"enkelt logpunkt for beskeden og i tilfælde af at beskeden bestemmes som være "
+"ondsindet, så køres kommandoen indikeret af VirusAction igen. I begge "
+"tilfælde rapporteres kun den sidste modtager. Hvis SupportMultipleRecipients "
+"er aktiveret: en linje logges for hver modtager og kommandoen indikeret af "
+"VirusAction køres også en gang for hver modtager."
 
 #. Type: boolean
 #. Description
@@ -1579,6 +1538,25 @@ msgid ""
 "Note: although it's probably a good idea to enable this option, the default "
 "value is currently set to off for legacy reasons."
 msgstr ""
-"Bemærk: Selvom det sikkert er en god ide at aktivere denne indstilling, "
-"så er standardværdien deaktiveret på grund af arv (legacy)."
+"Bemærk: Selvom det sikkert er en god ide at aktivere denne indstilling, så "
+"er standardværdien deaktiveret på grund af arv (legacy)."
 
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "Ønsker du at indsende statistisk information?"
+
+#~ msgid "Do you want to disable submitting files flagged as malware?"
+#~ msgstr "Ønsker du at deaktivere indsendelse af filer markeret som malware?"
+
+#~ msgid ""
+#~ "If this is enabled, individual PE sections of files flagged as malware "
+#~ "will be submitted."
+#~ msgstr ""
+#~ "Hvis aktiveret vil individuelle PE-sektioner med filer markeret som "
+#~ "malware blive indsendt."
+
+#~ msgid "HostID, a UUID to use when submitting statistical information:"
+#~ msgstr "HostID, en UUID til indsendelse af statistisk information:"
+
+#~ msgid ""
+#~ "Time in seconds to wait for the stats server to come back with a response:"
+#~ msgstr "Ventetid i sekunder for tilbagemelding fra statistikserveren:"

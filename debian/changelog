@@ -1,3 +1,36 @@
+clamav (0.100.0+dfsg-0+deb8u1) jessie; urgency=medium
+
+  [ Sebastian Andrzej Siewior ]
+  * New upstream release.
+    - remove various documentation files including Changelog from the file
+      list because they are no longer included in upstream archive.
+    - update symbol file
+  * Don't replace config file with sample config after debconf gets disabled
+    (in milter and daemon (Closes: #870253).
+  * Add bytecode.c(l|v)d to log clamav-freshclam.logcheck.ignore.server. Patch
+     by Václav Ovsík <vaclav.ovsik@gmail.com> (Closes: #868766).
+  * Disable the freshclam service if changed to `manual' mode so it does not
+    start again after system reboot with systemd (Closes: #881780).
+  * Drop "demime = *" from Debian.README for clamav, this option is deprecated
+    and will be removed from exim (Closes: #881634).
+  * Point Vcs-* tags to salsa.
+
+  [ Scott Kitterman ]
+  * Update README.Debian to describe how to disable apparmor for clamav-daemon
+    and clamav-freshclam (Closes: #884707)
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 25 Apr 2018 21:58:31 +0200
+
+clamav (0.99.4+dfsg-1+deb8u1) jessie; urgency=medium
+
+  * Update to upstream 0.99.4:
+    Fixes for CVE: CVE-2018-1000085, CVE-2018-0202.
+  * Update the gpg signing key (the old DSA expired).
+  * Update version of private symbols due to version change.
+  * Bump symbol version of cl_retflevel because CL_FLEVEL changed.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 03 Mar 2018 13:54:29 +0100
+
 clamav (0.99.2+dfsg-0+deb8u3) jessie; urgency=medium
 
   * Apply security patches from 0.99.3 (Closes: #888484):

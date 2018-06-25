@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav_0.98.4~rc1+dfsg-3_de\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2018-04-21 21:54+0200\n"
 "PO-Revision-Date: 2014-06-12 10:23+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: Deutsch <debian-l10n-german@lists.debian.org>\n"
@@ -872,46 +872,6 @@ msgstr "Timeout für die Ausführung von Bytecode (in Millisekunden):"
 
 #. Type: boolean
 #. Description
-#: ../clamav-daemon.templates:40001
-msgid "Do you want to submit statistical information?"
-msgstr "Sollen statistische Informationen übermittelt werden?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr ""
-"Wollen Sie die Übermittlung von Dateien deaktivieren, die als Malware "
-"gekennzeichnet sind?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr ""
-"Falls dies aktiviert ist, werden individuelle PE-Abschnitte von Dateien "
-"übertragen, die als Malware gekennzeichnet sind."
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr ""
-"HostID, eine UUID, die beim Übermitteln statistischer Informationen "
-"verwendet werden soll:"
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr ""
-"Zeit in Sekunden, die auf die Antwort des Statusservers gewartet werden soll:"
-
-#. Type: boolean
-#. Description
 #: ../clamav-milter.templates:2001
 msgid "Some options must be configured for clamav-milter."
 msgstr "Einige Optionen für Clamav-Milter müssen konfiguriert werden."
@@ -1623,3 +1583,29 @@ msgstr ""
 "Hinweis: Obwohl es wahrscheinlich eine gute Idee ist, diese Option "
 "einzuschalten, ist der Standardwert aus historischen Gründen auf »Aus« "
 "geschaltet."
+
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "Sollen statistische Informationen übermittelt werden?"
+
+#~ msgid "Do you want to disable submitting files flagged as malware?"
+#~ msgstr ""
+#~ "Wollen Sie die Übermittlung von Dateien deaktivieren, die als Malware "
+#~ "gekennzeichnet sind?"
+
+#~ msgid ""
+#~ "If this is enabled, individual PE sections of files flagged as malware "
+#~ "will be submitted."
+#~ msgstr ""
+#~ "Falls dies aktiviert ist, werden individuelle PE-Abschnitte von Dateien "
+#~ "übertragen, die als Malware gekennzeichnet sind."
+
+#~ msgid "HostID, a UUID to use when submitting statistical information:"
+#~ msgstr ""
+#~ "HostID, eine UUID, die beim Übermitteln statistischer Informationen "
+#~ "verwendet werden soll:"
+
+#~ msgid ""
+#~ "Time in seconds to wait for the stats server to come back with a response:"
+#~ msgstr ""
+#~ "Zeit in Sekunden, die auf die Antwort des Statusservers gewartet werden "
+#~ "soll:"

@@ -1,4 +1,4 @@
-From 53b63d8cd4779138f07b9bf790aca73155a6d5ec Mon Sep 17 00:00:00 2001
+From 9b8611478101c9ee4e0ca014fd0222a4b117a750 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Date: Thu, 13 Aug 2015 23:37:54 +0200
 Subject: tfm: fix compile errors

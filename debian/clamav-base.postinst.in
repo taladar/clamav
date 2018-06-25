@@ -29,7 +29,7 @@ case "$1" in
   DATABASEDIR=/var/lib/clamav
   LOGDIR=/var/log/clamav
   user=clamav
-  
+
   # Set up the clamav user on new install
   if [ -z "$2" ]; then
     adduser --system --no-create-home --quiet \

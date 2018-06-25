@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav 0.97.3+dfsg-2\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2018-04-21 21:54+0200\n"
 "PO-Revision-Date: 2014-09-23 18:02+0200\n"
 "Last-Translator: Frans Spiesschaert <Frans.Spiesschaert@yucom.be>\n"
 "Language-Team: Debian Dutch l10n Team <debian-l10n-dutch@lists.debian.org>\n"
@@ -876,47 +876,6 @@ msgstr "Verlooptijd voor uitvoering van bytecode in milliseconden:"
 
 #. Type: boolean
 #. Description
-#: ../clamav-daemon.templates:40001
-msgid "Do you want to submit statistical information?"
-msgstr "Wilt u statistische informatie rapporteren?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr ""
-"Wilt u het rapporteren van bestanden die als malware aangeduid werden, "
-"uitschakelen?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr ""
-"Als dit geactiveerd is, worden de aparte PE-secties (secties van Portable "
-"Executable-bestanden) gerapporteerd van bestanden die als malware aangeduid "
-"werden."
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr ""
-"HostID, de te gebruiken UUID voor het rapporteren van statistische informatie"
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr ""
-"Tijd in seconden dat op het antwoord van de de statistiekserver gewacht "
-"wordt:"
-
-#. Type: boolean
-#. Description
 #: ../clamav-milter.templates:2001
 msgid "Some options must be configured for clamav-milter."
 msgstr "Enkele instellingen van clamav-milter dienen geconfigureerd te worden."
@@ -1627,3 +1586,30 @@ msgid ""
 msgstr ""
 "Merk op: hoewel het wellicht een goede zaak is om deze optie aan te zetten, "
 "staat ze standaard toch uit om historische redenen."
+
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "Wilt u statistische informatie rapporteren?"
+
+#~ msgid "Do you want to disable submitting files flagged as malware?"
+#~ msgstr ""
+#~ "Wilt u het rapporteren van bestanden die als malware aangeduid werden, "
+#~ "uitschakelen?"
+
+#~ msgid ""
+#~ "If this is enabled, individual PE sections of files flagged as malware "
+#~ "will be submitted."
+#~ msgstr ""
+#~ "Als dit geactiveerd is, worden de aparte PE-secties (secties van Portable "
+#~ "Executable-bestanden) gerapporteerd van bestanden die als malware "
+#~ "aangeduid werden."
+
+#~ msgid "HostID, a UUID to use when submitting statistical information:"
+#~ msgstr ""
+#~ "HostID, de te gebruiken UUID voor het rapporteren van statistische "
+#~ "informatie"
+
+#~ msgid ""
+#~ "Time in seconds to wait for the stats server to come back with a response:"
+#~ msgstr ""
+#~ "Tijd in seconden dat op het antwoord van de de statistiekserver gewacht "
+#~ "wordt:"

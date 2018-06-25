@@ -1,4 +1,4 @@
-From f71fa3a9548d52dee0a21df2e21badf6efd6f329 Mon Sep 17 00:00:00 2001
+From 695e62fa35394cd85899bb892f54279029d9701c Mon Sep 17 00:00:00 2001
 From: Scott Kitterman <scott@kitterman.com>
 Date: Mon, 10 Mar 2014 19:20:18 -0400
 Subject: Change paths in sample conf file to match Debian
@@ -9,10 +9,10 @@ Patch-Name: Change-paths-in-sample-conf-file-to-match-Debian.patch
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/etc/clamav-milter.conf.sample b/etc/clamav-milter.conf.sample
-index b7d66a4..ed0d519 100644
+index c61012c..b500019 100644
 --- a/etc/clamav-milter.conf.sample
 +++ b/etc/clamav-milter.conf.sample
-@@ -64,7 +64,7 @@ Example
+@@ -61,7 +61,7 @@ Example
  # daemon (main thread).
  #
  # Default: disabled
@@ -21,8 +21,8 @@ index b7d66a4..ed0d519 100644
  
  # Optional path to the global temporary directory.
  # Default: system specific (usually /tmp or /var/tmp).
-@@ -90,7 +90,7 @@ Example
- # with the same socket: clamd servers will be selected in a round-robin fashion.
+@@ -88,7 +88,7 @@ Example
+ # fashion.
  #
  # Default: no default
 -#ClamdSocket tcp:scanner.mydomain:7357
@@ -30,7 +30,7 @@ index b7d66a4..ed0d519 100644
  
  
  ##
-@@ -212,7 +212,7 @@ Example
+@@ -211,7 +211,7 @@ Example
  # A full path is required.
  #
  # Default: disabled

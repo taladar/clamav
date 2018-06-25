@@ -217,7 +217,7 @@ EOF
     
   else
     ucf_cleanup "$CLAMAVMILTERCONF"
-    ucf_upgrade_check "$CLAMAVMILTERCONF" /usr/share/doc/clamav-milter/examples/clamav-milter.conf.sample /var/lib/ucf/cache/:etc:clamav:clamav-milter.conf
+    ucf -p "$CLAMAVMILTERCONF"
   fi
 
   if [ -f "$CLAMAVMILTERCONF" ] && [ ! -L "$CLAMAVMILTERCONF" ]; then

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav 0.98.4~rc1+dfsg-3\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2018-04-21 21:54+0200\n"
 "PO-Revision-Date: 2014-06-07 09:00+0400\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
@@ -844,41 +844,6 @@ msgstr "Задержка выполнения байт-кода в миллис�
 
 #. Type: boolean
 #. Description
-#: ../clamav-daemon.templates:40001
-msgid "Do you want to submit statistical information?"
-msgstr "Включить отправку статистической информации?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr "Отключить отправку файлов, помеченных как вредоносные?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr ""
-"Если ответить утвердительно, то будут отправляться отдельные разделы файлов "
-"PE, помеченных как вредоносные."
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr "HostID, UUID используемые при отправке статической информации:"
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr "Время в секундах ожидания ответа от сервера статистики:"
-
-#. Type: boolean
-#. Description
 #: ../clamav-milter.templates:2001
 msgid "Some options must be configured for clamav-milter."
 msgstr "Для clamav-milter требуется настроить несколько параметров."
@@ -1569,3 +1534,23 @@ msgid ""
 msgstr ""
 "Замечание: хотя, вероятно, правильно ответить утвердительно, по умолчанию "
 "действие выключено в целях обратной совместимости."
+
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "Включить отправку статистической информации?"
+
+#~ msgid "Do you want to disable submitting files flagged as malware?"
+#~ msgstr "Отключить отправку файлов, помеченных как вредоносные?"
+
+#~ msgid ""
+#~ "If this is enabled, individual PE sections of files flagged as malware "
+#~ "will be submitted."
+#~ msgstr ""
+#~ "Если ответить утвердительно, то будут отправляться отдельные разделы "
+#~ "файлов PE, помеченных как вредоносные."
+
+#~ msgid "HostID, a UUID to use when submitting statistical information:"
+#~ msgstr "HostID, UUID используемые при отправке статической информации:"
+
+#~ msgid ""
+#~ "Time in seconds to wait for the stats server to come back with a response:"
+#~ msgstr "Время в секундах ожидания ответа от сервера статистики:"

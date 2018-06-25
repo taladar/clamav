@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Filters mail through clamav. Intented to be used as a maildrop xfilter,
+# Filters mail through clamav. Intended to be used as a maildrop xfilter,
 # So it takes care to exit 0 on success, and nonzero on error. Adds a
 # X-Virii-Status header.
 # Contributed by Joey Hess <joeyh@debian.org> to be used with procmail

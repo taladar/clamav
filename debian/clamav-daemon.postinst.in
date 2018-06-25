@@ -108,14 +108,6 @@ case "$1" in
     LogRotate="$RET"
     db_get clamav-daemon/SelfCheck || true
     SelfCheck="$RET"
-    db_get clamav-daemon/StatsEnabled || true
-    StatsEnabled="$RET"
-    db_get clamav-daemon/StatsPEDisabled || true
-    StatsPEDisabled="$RET"
-    db_get clamav-daemon/StatsHostID || true
-    StatsHostID="$RET"
-    db_get clamav-daemon/StatsTimeout || true
-    StatsTimeout="$RET"
     db_get clamav-daemon/Bytecode || true
     Bytecode="$RET"
     if [ "$Bytecode" = "true" ]; then
@@ -148,6 +140,8 @@ case "$1" in
     MaxScriptNormalize="$RET"
     db_get clamav-daemon/MaxZipTypeRcg || true
     MaxZipTypeRcg="$RET"
+    db_get clamav-daemon/BlockMax || RET=""
+    BlockMax="$RET"
 
     # Test for the broken versions, see #741675.
     if [ "$2" = "0.98.1+dfsg-3" ] || [ "$2" = "0.98.1+dfsg-1+deb7u2" ] || [ "$2" = "0.98.1+dfsg-1+deb6u2" ]; then
@@ -206,6 +200,7 @@ case "$1" in
     [ -z "$DetectBrokenExecutables" ] && DetectBrokenExecutables=false
     [ -z "$ScanOLE2" ] && ScanOLE2=true
     [ -z "$OLE2BlockMacros" ] && OLE2BlockMacros=false
+    [ -z "$OnAccessExcludeRootUID" ] && OnAccessExcludeRootUID=no
     [ -z "$ScanPDF" ] && ScanPDF=true
     [ -z "$ScanPartialMessages" ] && ScanPartialMessages=false
     [ -z "$PhishingSignatures" ] && PhishingSignatures=true
@@ -229,6 +224,8 @@ case "$1" in
     [ -z "$ScanXMLDOCS" ] && ScanXMLDOCS=true
     [ -z "$ScanHWP3" ] && ScanHWP3=true
     [ -z "$MaxRecHWP3" ] && MaxRecHWP3=16
+    [ -z "$PreludeEnable" ] && PreludeEnable=no
+    [ -z "$PreludeAnalyzerName" ] && PreludeAnalyzerName=ClamAV
 
     if `dpkg --compare-versions "$2" lt 0.98.7+dfsg-2~`; then
       # Update the MaxRecursion variable, if it is the previous default value.
@@ -298,6 +295,8 @@ LogRotate $LogRotate
 LogFacility $LogFacility
 LogClean $LogClean
 LogVerbose $LogVerbose
+PreludeEnable $PreludeEnable
+PreludeAnalyzerName $PreludeAnalyzerName
 DatabaseDirectory $DatabaseDirectory
 OfficialDatabaseOnly $OfficialDatabaseOnly
 SelfCheck $SelfCheck
@@ -351,10 +350,6 @@ PCREMaxFileSize $PCREMaxFileSize
 ScanXMLDOCS $ScanXMLDOCS
 ScanHWP3 $ScanHWP3
 MaxRecHWP3 $MaxRecHWP3
-StatsEnabled $StatsEnabled
-StatsPEDisabled $StatsPEDisabled
-StatsHostID $StatsHostID
-StatsTimeout $StatsTimeout
 EOF
 
     if is_true "$StructuredDataDetection"; then
@@ -404,6 +399,9 @@ EOF
         PidFile=''
       fi
     fi
+    if [ -n "$BlockMax" ]; then
+		echo "BlockMax $BlockMax" >> $DEBCONFFILE
+    fi
     # Preserve manually created, usually not needed options.
     [ -n "$PidFile" ] && echo "PidFile $PidFile" >> $DEBCONFFILE
     [ -n "$ExcludePath" ] && echo "ExcludePath $ExcludePath" >> $DEBCONFFILE
@@ -446,7 +444,7 @@ EOF
   else
     # Let the configuration be handled manually.
     ucf_cleanup "$CLAMAVCONF"
-    ucf_upgrade_check "$CLAMAVCONF" /usr/share/doc/clamav-daemon/examples/clamd.conf.sample /var/lib/ucf/cache/:etc:clamav:clamd.conf
+    ucf -p "$CLAMAVCONF"
     if [ -e "$CLAMAVSYSTEMDLISTENCONF" ]; then
       echo "Disabling old systemd socket override options for clamav-daemon"
       mv "$CLAMAVSYSTEMDLISTENCONF" "$CLAMAVSYSTEMDLISTENCONF".dpkg-old

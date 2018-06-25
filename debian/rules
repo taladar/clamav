@@ -43,7 +43,7 @@ endif
 CONFIG := CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
 	--with-dbdir=/var/lib/clamav --sysconfdir=/etc/clamav \
 	--disable-clamav --disable-unrar --enable-milter --enable-dns-fix \
-	--with-libjson \
+	--with-libjson --with-system-libmspack --with-libcurl=/usr \
 	--with-gnu-ld $(SYSTEM_LLVM) \
 	--with-systemdsystemunitdir=/lib/systemd/system
 
@@ -94,7 +94,7 @@ override_dh_auto_configure:
 	  fi;\
 	done; \
 	# Check if for library features whih may get upgrade.
-	if ! grep -q "CL_FLEVEL 84" libclamav/others.h ; then \
+	if ! grep -q "CL_FLEVEL 91" libclamav/others.h ; then \
 		echo "cl_retflevel needs boosting in symbol file"; \
 		touch debian/exit; \
 	fi;
@@ -164,19 +164,6 @@ override_dh_installdocs-indep:
 	cat test/.split/split.clam-v2.raraa test/.split/split.clam-v2.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v2.rar
 	cat test/.split/split.clam-v3.raraa test/.split/split.clam-v3.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v3.rar
 
-# Install the upstream ChangeLog.
-override_dh_installchangelogs:
-	dh_installchangelogs -pclamav-base ChangeLog
-	dh_installchangelogs -pclamav-daemon ChangeLog
-	dh_installchangelogs -pclamav-dbg ChangeLog
-	dh_installchangelogs -pclamav-docs ChangeLog
-	dh_installchangelogs -pclamav-freshclam ChangeLog
-	dh_installchangelogs -pclamav-milter ChangeLog
-	dh_installchangelogs -pclamav-testfiles ChangeLog
-	dh_installchangelogs -pclamav ChangeLog
-	dh_installchangelogs -pclamdscan ChangeLog
-	dh_installchangelogs -plibclamav-dev ChangeLog
-	dh_installchangelogs -plibclamav7 ChangeLog
 
 # Don't compress the example configuration files and the documentation PDFs.
 override_dh_compress:

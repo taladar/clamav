@@ -84,10 +84,6 @@ set_debconf_value daemon MaxHTMLNoTags
 set_debconf_value daemon MaxScriptNormalize
 set_debconf_value daemon MaxZipTypeRcg
 set_debconf_value daemon SelfCheck
-set_debconf_value daemon StatsEnabled
-set_debconf_value daemon StatsPEDisabled
-set_debconf_value daemon StatsHostID
-set_debconf_value daemon StatsTimeout
 if [ -n "$User" ]; then
   db_set clamav-daemon/User "$User" || true
   if ! [ "$User" = 'root' ]; then
@@ -367,19 +363,7 @@ while [ "$STATE" != "End" ]; do
     StateGeneric low clamav-daemon/MaxZipTypeRcg SelfCheck MaxScriptNormalize
     ;;
     "SelfCheck")
-    StateGeneric low clamav-daemon/SelfCheck StatsEnabled MaxZipTypeRcg
-    ;;
-    "StatsEnabled")
-    StateGeneric low clamav-daemon/StatsEnabled StatsPEDisabled SelfCheck
-    ;;
-    "StatsPEDisabled")
-    StateGeneric low clamav-daemon/StatsPEDisabled StatsHostID StatsEnabled
-    ;;
-    "StatsHostID")
-    StateGeneric low clamav-daemon/StatsHostID StatsTimeout StatsPEDisabled
-    ;;
-    "StatsTimeout")
-    StateGenericDigit low clamav-daemon/StatsTimeout User StatsHostID
+    StateGeneric low clamav-daemon/SelfCheck MaxZipTypeRcg
     ;;
     "User")
     StateUser
