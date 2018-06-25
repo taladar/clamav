@@ -36,7 +36,7 @@
 #include "clamav.h"
 #include "cltypes.h"
 #include "others.h"
-#include "mspack.h"
+#include "mspack_internal.h"
 #include "cab.h"
 
 #define EC32(x) cli_readint32(&x) /* Convert little endian to host */

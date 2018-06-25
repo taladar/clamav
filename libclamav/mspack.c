@@ -28,7 +28,7 @@
 
 #include "others.h"
 #include "clamav.h"
-#include "mspack.h"
+#include "mspack_internal.h"
 
 #if HAVE_LIMITS_H
 # include <limits.h>

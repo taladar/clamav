@@ -38,7 +38,7 @@
 #include "clamav.h"
 #include "fmap.h"
 #include "others.h"
-#include "mspack.h"
+#include "mspack_internal.h"
 #include "cltypes.h"
 #include "chmunpack.h"
 #include "cab.h"
