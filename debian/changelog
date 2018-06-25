@@ -112,6 +112,13 @@ clamav (0.100.1+dfsg-0+deb8u1) jessie-security; urgency=medium
 
  -- Santiago Ruano Rincón <santiagorr@riseup.net>  Mon, 06 Aug 2018 16:59:51 +0200
 
+clamav (0.100.0+dfsg-0+deb8u1.1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix systemd socket activation so it allows more than on TCP socket
+
+ -- Matthias Hörmann <mhoermann@saltation.de>  Mon, 25 Jun 2018 09:34:29 +0200
+
 clamav (0.100.0+dfsg-0+deb8u1) jessie; urgency=medium
 
   [ Sebastian Andrzej Siewior ]

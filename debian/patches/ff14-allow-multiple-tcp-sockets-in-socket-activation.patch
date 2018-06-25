@@ -1,7 +1,7 @@
 --- a/clamd/localserver.c
 +++ b/clamd/localserver.c
-@@ -63,12 +63,7 @@
- 	char *estr;
+@@ -68,12 +68,7 @@
+         int cnt;
  
      int num_fd = sd_listen_fds(0);
 -    if (num_fd > 2)
