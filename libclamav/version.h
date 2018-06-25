@@ -1,1 +1,1 @@
-#define REPO_VERSION "devel-clamav-0.99.2"
+#define REPO_VERSION "devel-d58b948"

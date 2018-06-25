@@ -519,6 +519,8 @@ remote_cvdhead (const char *cvdfile, const char *localfile,
     struct cl_cvd *cvd;
     char last_modified[36], uastr[128];
 
+    /* Initialize mirror status variable to unknown */
+    *ims = -1;
 
     if (proxy)
     {
@@ -659,6 +661,7 @@ remote_cvdhead (const char *cvdfile, const char *localfile,
     if ((strstr (buffer, "HTTP/1.1 304")) != NULL
         || (strstr (buffer, "HTTP/1.0 304")) != NULL)
     {
+        /* mirror status: up to date */
         *ims = 0;
         logg ("OK (IMS)\n");
         mirman_update (mdat->currip, mdat->af, mdat, 0);
@@ -666,6 +669,7 @@ remote_cvdhead (const char *cvdfile, const char *localfile,
     }
     else
     {
+        /* mirror status: newer versin available */
         *ims = 1;
     }
 
@@ -1064,7 +1068,7 @@ getcvd (const char *cvdfile, const char *newfile, const char *hostname,
         return ret;
     }
 
-    /* bb#10983 - temporaily rename newfile to correct extension for verification */
+    /* bb#10983 - temporarily rename newfile to correct extension for verification */
     newfile2 = strdup (newfile);
     if (!newfile2)
     {
@@ -1908,12 +1912,19 @@ updatedb (const char *dbname, const char *hostname, char *ip, int *signo,
     {
         if (optget (opts, "PrivateMirror")->enabled)
         {
+            /*
+             * For a private mirror, get the CLD instead of the CVD.
+             */
             remote =
                 remote_cvdhead (cldfile, localname, hostname, ip, localip,
                                 proxy, port, user, pass, uas, &ims, ctimeout,
                                 rtimeout, mdat, logerr, can_whitelist,
                                 attempt);
-            if (!remote) {
+            if (!remote && (ims != 0)) {
+                /*
+                 * Failed to get CLD update, and it's unknown if the status is up-to-date.
+                 * Attempt to get the CVD instead.
+                 */
                 iscld = -1;
                 remote =
                     remote_cvdhead (cvdfile, localname, hostname, ip, localip,
@@ -1980,7 +1991,7 @@ updatedb (const char *dbname, const char *hostname, char *ip, int *signo,
             logg ("^Current functionality level = %d, recommended = %d\n",
                   flevel, current->fl);
             logg ("Please check if ClamAV tools are linked against the proper version of libclamav\n");
-            logg ("DON'T PANIC! Read http://www.clamav.net/doc/install.html\n");
+            logg ("DON'T PANIC! Read https://www.clamav.net/documents/installing-clamav\n");
         }
 
         *signo += current->sigs;
@@ -2231,7 +2242,7 @@ updatedb (const char *dbname, const char *hostname, char *ip, int *signo,
         logg ("^Your ClamAV installation is OUTDATED!\n");
         logg ("^Current functionality level = %d, recommended = %d\n", flevel,
               current->fl);
-        logg ("DON'T PANIC! Read http://www.clamav.net/documents/upgrading-clamav\n");
+        logg ("DON'T PANIC! Read https://www.clamav.net/documents/installing-clamav\n");
 
     }
 
@@ -2348,6 +2359,7 @@ updatecustomdb (const char *url, int *signo, const struct optstruct *opts,
     }
     else if (!strncasecmp (url, "file://", 7))
     {
+        time_t dbtime, rtime;
         rpath = &url[7];
 #ifdef _WIN32
         dbname = strrchr (rpath, '\\');
@@ -2360,12 +2372,24 @@ updatecustomdb (const char *url, int *signo, const struct optstruct *opts,
             return FCE_FAILEDUPDATE;
         }
 
+        if (CLAMSTAT (rpath, &sb) == -1)
+        {
+	    logg ("DatabaseCustomURL: file %s missing\n", rpath);
+	    return FCE_FAILEDUPDATE;
+        }
+        rtime = sb.st_mtime;
+        dbtime = (CLAMSTAT (dbname, &sb) != -1) ? sb.st_mtime : 0;
+        if (dbtime > rtime)
+        {
+            logg ("%s is up to date (version: custom database)\n", dbname);
+            return FC_UPTODATE;
+        }
+
         newfile = cli_gentemp (updtmpdir);
         if (!newfile)
             return FCE_FAILEDUPDATE;
 
         /* FIXME: preserve file permissions, calculate % */
-        logg ("Downloading %s [  0%%]\r", dbname);
         if (cli_filecopy (rpath, newfile) == -1)
         {
             logg ("DatabaseCustomURL: Can't copy file %s into database directory\n", rpath);
@@ -2461,7 +2485,7 @@ downloadmanager (const struct optstruct *opts, const char *hostname,
                  unsigned int attempt)
 {
     time_t currtime;
-    int ret, custret, updated = 0, outdated = 0, signo = 0, logerr;
+    int ret, custret = 0, updated = 0, outdated = 0, signo = 0, logerr;
     unsigned int ttl;
     char ipaddr[46], *dnsreply = NULL, *pt, *localip = NULL, *newver = NULL;
     const struct optstruct *opt;
@@ -2544,6 +2568,7 @@ downloadmanager (const struct optstruct *opts, const char *hostname,
                     strncpy (vstr, get_version (), 32);
                     vstr[31] = 0;
                     if (vwarning && !strstr (vstr, "devel")
+                        && !strstr (vstr, "beta")
                         && !strstr (vstr, "rc"))
                     {
                         pt = strchr (vstr, '-');
@@ -2552,7 +2577,7 @@ downloadmanager (const struct optstruct *opts, const char *hostname,
                         {
                             logg ("^Your ClamAV installation is OUTDATED!\n");
                             logg ("^Local version: %s Recommended version: %s\n", vstr, newver);
-                            logg ("DON'T PANIC! Read http://www.clamav.net/documents/upgrading-clamav\n");
+                            logg ("DON'T PANIC! Read https://www.clamav.net/documents/upgrading-clamav\n");
                             outdated = 1;
                         }
                     }
@@ -2880,5 +2905,5 @@ downloadmanager (const struct optstruct *opts, const char *hostname,
     if (newver)
         free (newver);
 
-    return 0;
+    return updated ? 0 : FC_UPTODATE;
 }

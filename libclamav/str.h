@@ -1,8 +1,11 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2015, 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2008 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Nigel Horne, Török Edvin
+ * 
+ *  Acknowledgements: cli_strcasestr() contains a public domain code from:
+ *                    http://unixpapa.com/incnote/string.html
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -31,6 +34,18 @@
 #define cli_strcasestr strcasestr
 #else
 const char *cli_strcasestr(const char *haystack, const char *needle);
+#endif
+
+#if defined(HAVE_STRNDUP) && !defined(HAVE_STRNI)
+#define cli_strndup strndup
+#else
+char *cli_strndup(const char *s, size_t n);
+#endif
+
+#if defined(HAVE_STRNLEN) && !defined(HAVE_STRNI)
+#define cli_strnlen strnlen
+#else
+size_t cli_strnlen(const char *s, size_t n);
 #endif
 
 #include <stdio.h>

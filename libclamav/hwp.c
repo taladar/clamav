@@ -1,7 +1,7 @@
 /*
  * HWP Stuff
  * 
- * Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (C) 2015, 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  * 
  * Authors: Kevin Lin
  * 
@@ -316,7 +316,7 @@ int cli_hwp5header(cli_ctx *ctx, hwp5_header_t *hwp5)
         }
 
         /* magic */
-        cli_jsonstr(header, "Magic", hwp5->signature);
+        cli_jsonstr(header, "Magic", (char*)hwp5->signature);
 
         /* version */
         cli_jsonint(header, "RawVersion", hwp5->version);
@@ -569,7 +569,7 @@ static inline int parsehwp3_docinfo(cli_ctx *ctx, off_t offset, struct hwp3_doci
         }
 
         /* Printed File Name */
-        str = convert_hstr_to_utf8(hwp3_ptr+DI_PNAME, 40, "HWP3.x", &iret);
+        str = convert_hstr_to_utf8((char*)(hwp3_ptr+DI_PNAME), 40, "HWP3.x", &iret);
         if (!str || (iret == CL_EMEM))
             return CL_EMEM;
 
@@ -581,7 +581,7 @@ static inline int parsehwp3_docinfo(cli_ctx *ctx, off_t offset, struct hwp3_doci
         free(str);
 
         /* Annotation */
-        str = convert_hstr_to_utf8(hwp3_ptr+DI_ANNOTE, 24, "HWP3.x", &iret);
+        str = convert_hstr_to_utf8((char*)(hwp3_ptr+DI_ANNOTE), 24, "HWP3.x", &iret);
         if (!str || (iret == CL_EMEM))
             return CL_EMEM;
 
@@ -620,7 +620,7 @@ static inline int parsehwp3_docsummary(cli_ctx *ctx, off_t offset)
     }
 
     for (i = 0; i < NUM_DOCSUMMARY_FIELDS; i++) {
-        str = convert_hstr_to_utf8(hwp3_ptr+hwp3_docsummary_fields[i].offset, 112, "HWP3.x", &iret);
+        str = convert_hstr_to_utf8((char*)(hwp3_ptr + hwp3_docsummary_fields[i].offset), 112, "HWP3.x", &iret);
         if (!str || (iret == CL_EMEM))
             return CL_EMEM;
 
@@ -1036,7 +1036,7 @@ static inline int parsehwp3_paragraph(cli_ctx *ctx, fmap_t *map, int p, int leve
 
                     hwp3_debug("HWP3.x: Paragraph[%d, %d]: box object contains %u cell(s)\n", level, p, ncells);
 
-                    /* cell informations (27 bytes x ncells(offset 80 of table)) */
+                    /* cell information (27 bytes x ncells(offset 80 of table)) */
                     hwp3_debug("HWP3.x: Paragraph[%d, %d]: box cell info array starts @ %llu\n", level, p, (long long unsigned)offset);
                     offset += (27 * ncells);
 
@@ -1525,7 +1525,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 #endif
 
     if (fmap_readn(map, &infoid, (*offset), sizeof(infoid)) != sizeof(infoid)) {
-        cli_errmsg("HWP3.x: Failed to read infomation block id @ %llu\n",
+        cli_errmsg("HWP3.x: Failed to read information block id @ %llu\n",
                    (long long unsigned)(*offset));
         return CL_EREAD;
     }
@@ -1547,16 +1547,16 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 
     /* Booking Information(5) - no length field and no content */
     if (infoid == 5) {
-        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Booking Infomation\n", infoloc);
+        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Booking Information\n", infoloc);
 #if HAVE_JSON
         if (ctx->options & CL_SCAN_FILE_PROPERTIES)
-            cli_jsonstr(entry, "Type", "Booking Infomation");
+            cli_jsonstr(entry, "Type", "Booking Information");
 #endif
         return CL_SUCCESS;
     }
 
     if (fmap_readn(map, &infolen, (*offset), sizeof(infolen)) != sizeof(infolen)) {
-        cli_errmsg("HWP3.x: Failed to read infomation block len @ %llu\n",
+        cli_errmsg("HWP3.x: Failed to read information block len @ %llu\n",
                    (long long unsigned)(*offset));
         return CL_EREAD;
     }
@@ -1602,7 +1602,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 #if HWP3_DEBUG /* additional fields can be added */
         memset(field, 0, HWP3_FIELD_LENGTH);
         if (fmap_readn(map, field, (*offset), 16) != 16) {
-            cli_errmsg("HWP3.x: Failed to read infomation block field @ %llu\n",
+            cli_errmsg("HWP3.x: Failed to read information block field @ %llu\n",
                        (long long unsigned)(*offset));
             return CL_EREAD;
         }
@@ -1610,7 +1610,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 
         memset(field, 0, HWP3_FIELD_LENGTH);
         if (fmap_readn(map, field, (*offset)+16, 16) != 16) {
-            cli_errmsg("HWP3.x: Failed to read infomation block field @ %llu\n",
+            cli_errmsg("HWP3.x: Failed to read information block field @ %llu\n",
                        (long long unsigned)(*offset));
             return CL_EREAD;
         }
@@ -1630,7 +1630,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
             ret = cli_map_scan(map, (*offset), infolen, ctx, CL_TYPE_ANY);
         break;
     case 3: /* Hypertext/Hyperlink Information */
-        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Hypertext/Hyperlink Infomation\n", infoloc);
+        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Hypertext/Hyperlink Information\n", infoloc);
         if (infolen % 617) {
             cli_errmsg("HWP3.x: Information Block[%llu]: Invalid multiple of 617 => %u\n", infoloc, infolen);
             return CL_EFORMAT;
@@ -1640,7 +1640,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
         hwp3_debug("HWP3.x: Information Block[%llu]: COUNT: %d entries\n", infoloc, count);
 #if HAVE_JSON
         if (ctx->options & CL_SCAN_FILE_PROPERTIES) {
-            cli_jsonstr(entry, "Type", "Hypertext/Hyperlink Infomation");
+            cli_jsonstr(entry, "Type", "Hypertext/Hyperlink Information");
             cli_jsonint(entry, "Count", count);
         }
 #endif
@@ -1649,7 +1649,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 #if HWP3_DEBUG /* additional fields can be added */
             memset(field, 0, HWP3_FIELD_LENGTH);
             if (fmap_readn(map, field, (*offset), 256) != 256) {
-                cli_errmsg("HWP3.x: Failed to read infomation block field @ %llu\n",
+                cli_errmsg("HWP3.x: Failed to read information block field @ %llu\n",
                            (long long unsigned)(*offset));
                 return CL_EREAD;
             }
@@ -1669,7 +1669,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
         break;
     case 5: /* Booking Information */
         /* should never run this as it is short-circuited above */
-        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Booking Infomation\n", infoloc);
+        hwp3_debug("HWP3.x: Information Block[%llu]: TYPE: Booking Information\n", infoloc);
 #if HAVE_JSON
         if (ctx->options & CL_SCAN_FILE_PROPERTIES)
             cli_jsonstr(entry, "Type", "Booking Information");
@@ -1686,7 +1686,7 @@ static inline int parsehwp3_infoblk_1(cli_ctx *ctx, fmap_t *dmap, off_t *offset,
 #if HWP3_DEBUG /* additional fields can be added */
         memset(field, 0, HWP3_FIELD_LENGTH);
         if (fmap_readn(map, field, (*offset)+24, 256) != 256) {
-            cli_errmsg("HWP3.x: Failed to read infomation block field @ %llu\n",
+            cli_errmsg("HWP3.x: Failed to read information block field @ %llu\n",
                        (long long unsigned)(*offset));
             return CL_EREAD;
         }
@@ -1843,10 +1843,10 @@ int cli_scanhwp3(cli_ctx *ctx)
 
 #if HAVE_JSON
     /*
-    /* magic *
+    // magic 
     cli_jsonstr(header, "Magic", hwp5->signature);
 
-    /* version *
+    // version
     cli_jsonint(header, "RawVersion", hwp5->version);
     */
 #endif
@@ -1933,10 +1933,12 @@ static int hwpml_scan_cb(void *cbdata, int fd, cli_ctx *ctx)
     return cli_magic_scandesc(fd, ctx);
 }
 
-static int hwpml_binary_cb(int fd, cli_ctx *ctx, int num_attribs, struct attrib_entry *attribs)
+static int hwpml_binary_cb(int fd, cli_ctx *ctx, int num_attribs, struct attrib_entry *attribs, void *cbdata)
 {
     int i, ret, df = 0, com = 0, enc = 0;
     char *tempfile;
+
+    UNUSEDPARAM(cbdata);
 
     /* check attributes for compression and encoding */
     for (i = 0; i < num_attribs; i++) {
@@ -2058,6 +2060,7 @@ int cli_scanhwpml(cli_ctx *ctx)
 {
 #if HAVE_LIBXML2
     struct msxml_cbdata cbdata;
+    struct msxml_ctx mxctx;
     xmlTextReaderPtr reader = NULL;
     int state, ret = CL_SUCCESS;
 
@@ -2071,7 +2074,7 @@ int cli_scanhwpml(cli_ctx *ctx)
 
     reader = xmlReaderForIO(msxml_read_cb, NULL, &cbdata, "hwpml.xml", NULL, CLAMAV_MIN_XMLREADER_FLAGS);
     if (!reader) {
-        cli_dbgmsg("cli_scanhwpml: cannot intialize xmlReader\n");
+        cli_dbgmsg("cli_scanhwpml: cannot initialize xmlReader\n");
 
 #if HAVE_JSON
         ret = cli_json_parse_error(ctx->wrkproperty, "HWPML_ERROR_XML_READER_IO");
@@ -2079,7 +2082,9 @@ int cli_scanhwpml(cli_ctx *ctx)
         return ret; // libxml2 failed!
     }
 
-    ret = cli_msxml_parse_document(ctx, reader, hwpml_keys, num_hwpml_keys, 1, hwpml_binary_cb);
+    memset(&mxctx, 0, sizeof(mxctx));
+    mxctx.scan_cb = hwpml_binary_cb;
+    ret = cli_msxml_parse_document(ctx, reader, hwpml_keys, num_hwpml_keys, MSXML_FLAG_JSON, &mxctx);
 
     xmlTextReaderClose(reader);
     xmlFreeTextReader(reader);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2015, 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2009 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Trog, Török Edvin
@@ -50,6 +50,8 @@
 #include "shared/output.h"
 #include "shared/optparser.h"
 #include "shared/misc.h"
+
+#include "shared/idmef_logging.h"
 
 #include "onaccess_fan.h"
 #include "server.h"
@@ -435,7 +437,7 @@ static void *acceptloop_th(void *arg)
 	    } else if (errno != EINTR) {
 		/* very bad - need to exit or restart */
 #ifdef HAVE_STRERROR_R
-		strerror_r(errno, buff, BUFFSIZE);
+		(void)strerror_r(errno, buff, BUFFSIZE);
 		logg("!accept() failed: %s\n", buff);
 #else
 		logg("!accept() failed\n");
@@ -931,6 +933,13 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	logg("Archive support disabled.\n");
     }
 
+    if (optget(opts, "BlockMax")->enabled) {
+        logg("BlockMax heuristic detection enabled.\n");
+        options |= CL_SCAN_BLOCKMAX;
+    } else {
+        logg("BlockMax heuristic detection disabled.\n");
+    }
+
     if(optget(opts, "AlgorithmicDetection")->enabled) {
 	logg("Algorithmic detection enabled.\n");
 	options |= CL_SCAN_ALGORITHMIC;
@@ -1033,7 +1042,7 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 
     if(optget(opts,"PartitionIntersection")->enabled) {
         options |= CL_SCAN_PARTITION_INTXN;
-        logg("Raw DMG: Always checking for partitons intersections\n");
+        logg("Raw DMG: Always checking for partitions intersections\n");
     }
 
     if(optget(opts,"HeuristicScanPrecedence")->enabled) {

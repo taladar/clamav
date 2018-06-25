@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2015, 2017 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2010 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Trog
@@ -86,7 +86,7 @@ int (*cli_unrar_extract_next_prepare)(unrar_state_t *state, const char *dirname)
 int (*cli_unrar_extract_next)(unrar_state_t *state, const char *dirname);
 void (*cli_unrar_close)(unrar_state_t *state);
 int have_rar = 0;
-static int is_rar_initd = 0;
+static int is_rar_inited = 0;
 
 static int warn_dlerror(const char *msg)
 {
@@ -173,8 +173,8 @@ static lt_dlhandle lt_dlfind(const char *name, const char *featurename)
 static void cli_rarload(void) {
     lt_dlhandle rhandle;
 
-    if(is_rar_initd) return;
-    is_rar_initd = 1;
+    if(is_rar_inited) return;
+    is_rar_inited = 1;
 
     rhandle = lt_dlfind("libclamunrar_iface", "unrar");
     if (!rhandle)
@@ -934,6 +934,16 @@ int cl_engine_settings_free(struct cl_settings *settings)
     return CL_SUCCESS;
 }
 
+void cli_check_blockmax(cli_ctx *ctx, int rc)
+{
+    if (BLOCKMAX && !ctx->limit_exceeded) {
+        cli_append_virus (ctx, "Heuristic.Limits.Exceeded");
+        ctx->limit_exceeded = 1;
+        cli_dbgmsg ("Limit %s Exceeded: scanning may be incomplete and additional analysis needed for this file.\n",
+            cl_strerror(rc));
+    }
+}
+
 int cli_checklimits(const char *who, cli_ctx *ctx, unsigned long need1, unsigned long need2, unsigned long need3) {
     int ret = CL_SUCCESS;
     unsigned long needed;
@@ -963,8 +973,12 @@ int cli_checklimits(const char *who, cli_ctx *ctx, unsigned long need1, unsigned
 
     if(ctx->engine->maxfiles && ctx->scannedfiles>=ctx->engine->maxfiles) {
         cli_dbgmsg("%s: files limit reached (max: %u)\n", who, ctx->engine->maxfiles);
-	return CL_EMAXFILES;
+	ret = CL_EMAXFILES;
     }
+
+    if (ret != CL_SUCCESS)
+        cli_check_blockmax(ctx, ret);
+
     return ret;
 }
 
@@ -1074,14 +1088,40 @@ int cli_unlink(const char *pathname)
 	return 0;
 }
 
-void cli_append_virus(cli_ctx * ctx, const char * virname)
+void cli_virus_found_cb(cli_ctx * ctx)
+{
+    if (ctx->engine->cb_virus_found)
+        ctx->engine->cb_virus_found(fmap_fd(*ctx->fmap), (const char *)*ctx->virname, ctx->cb_ctx);
+}
+
+int cli_append_possibly_unwanted(cli_ctx * ctx, const char * virname)
+{
+    if (SCAN_ALL)
+        return cli_append_virus(ctx, virname);
+    else if (ctx->options & CL_SCAN_HEURISTIC_PRECEDENCE)
+        return cli_append_virus(ctx, virname);
+    else if (ctx->num_viruses == 0 && ctx->virname != NULL && *ctx->virname == NULL) {
+        ctx->found_possibly_unwanted = 1;
+        ctx->num_viruses++;
+        *ctx->virname = virname;
+    }
+    return CL_CLEAN;
+}
+
+int cli_append_virus(cli_ctx * ctx, const char * virname)
 {
     if (ctx->virname == NULL)
-        return;
-    if (ctx->engine->cb_virus_found)
-        ctx->engine->cb_virus_found(fmap_fd(*ctx->fmap), virname, ctx->cb_ctx);
-    ctx->num_viruses++;
-    *ctx->virname = virname;
+        return CL_CLEAN;
+    if (ctx->fmap != NULL && (*ctx->fmap) != NULL && CL_VIRUS != cli_checkfp_virus((*ctx->fmap)->maphash, (*ctx->fmap)->len, ctx, virname))
+        return CL_CLEAN;
+    if (!SCAN_ALL && ctx->num_viruses != 0)
+        if (ctx->options & CL_SCAN_HEURISTIC_PRECEDENCE)
+            return CL_CLEAN;
+    if (ctx->limit_exceeded == 0 || SCAN_ALL) { 
+        ctx->num_viruses++;
+        *ctx->virname = virname;
+        cli_virus_found_cb(ctx);
+    }
 #if HAVE_JSON
     if (SCAN_PROPERTIES && ctx->wrkproperty) {
         json_object *arrobj, *virobj;
@@ -1089,18 +1129,19 @@ void cli_append_virus(cli_ctx * ctx, const char * virname)
             arrobj = json_object_new_array();
             if (NULL == arrobj) {
                 cli_errmsg("cli_append_virus: no memory for json virus array\n");
-                return;
+                return CL_EMEM;
             }
             json_object_object_add(ctx->wrkproperty, "Viruses", arrobj);
         }
         virobj = json_object_new_string(virname);
         if (NULL == virobj) {
             cli_errmsg("cli_append_virus: no memory for json virus name object\n");
-            return;
+            return CL_EMEM;
         }
         json_object_array_add(arrobj, virobj);
     }
 #endif
+    return CL_VIRUS;
 }
 
 const char * cli_get_last_virus(const cli_ctx * ctx)
@@ -1116,6 +1157,51 @@ const char * cli_get_last_virus_str(const cli_ctx * ctx)
     if ((ret = cli_get_last_virus(ctx)))
 	return ret;
     return "";
+}
+
+void cli_set_container(cli_ctx *ctx, cli_file_t type, size_t size)
+{
+    ctx->containers[ctx->recursion].type = type;
+    ctx->containers[ctx->recursion].size = size;
+    if (type >=  CL_TYPE_MSEXE && type != CL_TYPE_HTML && type != CL_TYPE_OTHER && type != CL_TYPE_IGNORED)
+        ctx->containers[ctx->recursion].flag = CONTAINER_FLAG_VALID;
+    else
+        ctx->containers[ctx->recursion].flag = 0;
+}
+
+cli_file_t cli_get_container(cli_ctx *ctx, int index)
+{
+	if (index < 0)
+		index = ctx->recursion + index + 1;
+	while (index >= 0 && index <= (int)ctx->recursion)
+	{
+		if (ctx->containers[index].flag & CONTAINER_FLAG_VALID)
+			return ctx->containers[index].type;
+		index--;
+	}
+	return CL_TYPE_ANY;
+}
+
+cli_file_t cli_get_container_intermediate(cli_ctx *ctx, int index)
+{
+	if (index < 0)
+		index = ctx->recursion + index + 1;
+	if (index >= 0 && index <= (int)ctx->recursion)
+		return ctx->containers[index].type;
+	return CL_TYPE_ANY;
+}
+
+size_t cli_get_container_size(cli_ctx *ctx, int index)
+{
+	if (index < 0)
+		index = ctx->recursion + index + 1;
+	while (index >= 0 && index <= (int)ctx->recursion)
+	{
+		if (ctx->containers[index].flag & CONTAINER_FLAG_VALID)
+			return ctx->containers[index].size;
+		index--;
+	}
+	return ctx->containers[0].size;
 }
 
 

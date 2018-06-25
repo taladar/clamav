@@ -462,8 +462,9 @@ Subsig1;Subsig2;...
     where:
     \begin{itemize}
 	\item \verb+TargetDescriptionBlock+ provides information about the
-	engine and target file with comma separated \verb+Arg:Val+ pairs,
-	requires a minimum and maximum value expressed as \verb+min-max+.
+	engine and target file with comma separated \verb+Arg:Val+ pairs.
+	For args where \verb+Val+ is a range, the minimum and maximum values
+	should be expressed as \verb+min-max+.
 	\item \verb+LogicalExpression+ specifies the logical expression
 	describing the relationship between \verb+Subsig0...SubsigN+.\\
 	\textbf{Basis clause:} 0,1,...,N decimal indexes are SUB-EXPRESSIONS
@@ -478,11 +479,18 @@ Subsig1;Subsig2;...
     Keywords used in \verb+TargetDescriptionBlock+:
     \begin{itemize}
 	\item \verb+Target:X+: Target file type
-	\item \verb+Engine:X-Y+: Required engine functionality (range; 0.96)
+	\item \verb+Engine:X-Y+: Required engine functionality (range; 0.96).
+	Note that if the \verb+Engine+ keyword is used, it must be the first
+	one in the \verb+TargetDescriptionBlock+ for backwards compatibility
 	\item \verb+FileSize:X-Y+: Required file size (range in bytes; 0.96)
 	\item \verb+EntryPoint+: Entry point offset (range in bytes; 0.96)
 	\item \verb+NumberOfSections+: Required number of sections in executable (range; 0.96)
-	\item \verb+Container:CL_TYPE_*+: File type of the container which stores the scanned file
+	\item \verb+Container:CL_TYPE_*+: File type of the container which stores the scanned file.
+	  Specifying \verb+CL_TYPE_ANY+ matches on root objects only.
+	\item \verb+Intermediates:CL_TYPE_*>CL_TYPE_*+: File types of intermediate containers which stores the scanned file.
+	  Specify 1-16 file types separated by '\verb+>+' in top-down order ('\verb+>+' separator not needed for single file type),
+	  last type should be the immediate container for the malicious content. \verb+CL_TYPE_ANY+ can be used as a wildcard
+	  file type. (expr; 0.100.0)
 	\item \verb+IconGroup1+: Icon group name 1 from .idb signature Required engine functionality (range; 0.96)
 	\item \verb+IconGroup2+: Icon group name 2 from .idb signature Required engine functionality (range; 0.96)
     \end{itemize}
@@ -520,7 +528,7 @@ Sig2;Target:0;((0|1|2)>5,2)&(3|1);6b6f74656b;616c61;7a6f6c77;737
 Sig3;Target:0;((0|1|2|3)=2)&(4|1);6b6f74656b;616c61;7a6f6c77;737
 46566616e;deadbeef
 
-Sig4;Target:1;Engine:18-20;((0|1)&(2|3))&4;EP+123:33c06834f04100
+Sig4;Engine:51-255,Target:1;((0|1)&(2|3))&4;EP+123:33c06834f04100
 f2aef7d14951684cf04100e8110a00;S2+78:22??232c2d252229{-15}6e6573
 (63|64)61706528;S3+50:68efa311c3b9963cb1ee8e586d32aeb9043e;f9c58
 dcf43987e4f519d629b103375;SL+550:6300680065005c0046006900
@@ -826,7 +834,7 @@ Res1:Res2[:MinFL[:MaxFL]]
 	\item \verb+VirusName:+ Virus name to be displayed when signature matches
 	\item \verb+ContainerType:+ one of \verb+CL_TYPE_ZIP+, \verb+CL_TYPE_RAR+,
 	\verb+CL_TYPE_ARJ+,\\
-	\verb+CL_TYPE_CAB+, \verb+CL_TYPE_7Z+, \verb+CL_TYPE_MAIL+, \verb+CL_TYPE_(POSIX|OLD)_TAR+,\\
+	\verb+CL_TYPE_MSCAB+, \verb+CL_TYPE_7Z+, \verb+CL_TYPE_MAIL+, \verb+CL_TYPE_(POSIX|OLD)_TAR+,\\
 	\verb+CL_TYPE_CPIO_(OLD|ODC|NEWC|CRC)+ or \verb+*+ to match
 	any of the container types listed here
 	\item \verb+ContainerSize:+ size of the container file itself (eg. size of
@@ -940,7 +948,34 @@ Eicar-Test-Signature:bc356bae4c42f19a3de16e333ba3569c
         \item YARA rules in ClamAV must contain at least one literal, hexadecimal, or
         regular expression string.
     \end{itemize}
-
+    In addition, there are a few more ClamAV processing modes that may affect the outcome of YARA rules.
+    \begin{itemize}
+        \item \emph{File decomposition and decompression} - Since ClamAV uses file decomposition and decompression
+               to find viruses within de-archived and uncompressed inner files, YARA rules executed by ClamAV
+               will match against these files as well.
+        \item \emph{Normalization} - By default, ClamAV normalizes HTML, JavaScript, and ASCII text files.
+              YARA rules in ClamAV will match against the normalized result. The effects of normalization
+              of these file types may be captured using \verb+clamscan --leave-temps --tempdir=mytempdir+. 
+              YARA rules may then be written using the normalized file(s) found in \verb+mytempdir+.
+              Alternatively, starting with ClamAV 0.100.0, \verb+clamscan --normalize=no+ will prevent
+              normalization and only scan the raw file. To obtain similar behavior prior to 0.99.2, use
+              \verb+clamscan --scan-html=no+. The corresponding parameters for clamd.conf are \verb+Normalize+
+              and \verb+ScanHTML+.
+        \item \emph{YARA conditions driven by string matches} - All YARA conditions are driven by string matches in
+              ClamAV. This saves from executing every YARA rule on every file. Any YARA condition may be augmented
+              with a string match clause which is always true, such as:
+        \begin{verbatim}
+          rule CheckFileSize
+          {
+            strings:
+              $abc = "abc"
+            condition:
+              ($abc or not $abc) and filesize < 200KB
+          }
+        \end{verbatim}
+        This will ensure that the YARA condition always performs the desired action (checking the file size in this example),
+    \end{itemize}
+    
     \subsection{Passwords for archive files [experimental]}
     ClamAV 0.99 allows for users to specify password attempts for certain password-compatible archives.
     Passwords will be attempted in order of appearance in the password signature file which use the extension
@@ -977,7 +1012,7 @@ SignatureName;TargetDescriptionBlock;PWStorageType;Password
     should generate the following files:
     \begin{itemize}
 	\item nocomment.html - the file is normalized, lower-case, with all
-	comments and superflous white space removed
+	comments and superfluous white space removed
 	\item notags.html - as above but with all HTML tags removed
     \end{itemize}
     The code automatically decodes JScript.encode parts and char ref's (e.g.
@@ -987,7 +1022,7 @@ SignatureName;TargetDescriptionBlock;PWStorageType;Password
 
     \subsection{Text files}
     Similarly to HTML all ASCII text files get normalized (converted
-    to lower-case, all superflous white space and control characters removed,
+    to lower-case, all superfluous white space and control characters removed,
     etc.) before scanning. Use \verb+clamscan --leave-temps+ to obtain
     a normalized file then create a signature with the target type 7.
 

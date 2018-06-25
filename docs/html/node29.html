@@ -7,8 +7,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Usage</TITLE>
-<META NAME="description" CONTENT="Usage">
+<TITLE>On-access Scanning</TITLE>
+<META NAME="description" CONTENT="On-access Scanning">
 <META NAME="keywords" CONTENT="clamdoc">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -18,78 +18,133 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <LINK REL="STYLESHEET" HREF="clamdoc.css">
 
-<LINK REL="next" HREF="node41.html">
-<LINK REL="previous" HREF="node21.html">
-<LINK REL="up" HREF="clamdoc.html">
+<LINK REL="next" HREF="node30.html">
+<LINK REL="previous" HREF="node28.html">
+<LINK REL="up" HREF="node26.html">
 <LINK REL="next" HREF="node30.html">
 </HEAD>
 
 <BODY >
 
 <DIV CLASS="navigation"><!--Navigation Panel-->
-<A NAME="tex2html587"
+<A NAME="tex2html491"
   HREF="node30.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html583"
-  HREF="clamdoc.html">
+<A NAME="tex2html487"
+  HREF="node26.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html577"
+<A NAME="tex2html481"
   HREF="node28.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html585"
+<A NAME="tex2html489"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
 <BR>
-<B> Next:</B> <A NAME="tex2html588"
-  HREF="node30.html">Clam daemon</A>
-<B> Up:</B> <A NAME="tex2html584"
-  HREF="clamdoc.html">clamdoc</A>
-<B> Previous:</B> <A NAME="tex2html578"
-  HREF="node28.html">ClamAV Active Malware Report</A>
- &nbsp; <B>  <A NAME="tex2html586"
+<B> Next:</B> <A NAME="tex2html492"
+  HREF="node30.html">Clamdtop</A>
+<B> Up:</B> <A NAME="tex2html488"
+  HREF="node26.html">Usage</A>
+<B> Previous:</B> <A NAME="tex2html482"
+  HREF="node28.html">Clamdscan</A>
+ &nbsp; <B>  <A NAME="tex2html490"
   HREF="node1.html">Contents</A></B> 
 <BR>
 <BR></DIV>
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00060000000000000000">
-Usage</A>
-</H1>
+<H2><A NAME="SECTION00063000000000000000"></A><A NAME="On-access"></A>
+<BR>
+On-access Scanning
+</H2>
+    There is a special thread in <code>clamd</code> that performs on-access
+    scanning under Linux and shares internal virus database
+    with the daemon. By default, this thread will only notify you when
+    potential threats are discovered. If you turn on prevention via
+    <code>clamd.conf</code> then <SPAN  CLASS="textbf">you must follow some important rules when
+    using it:</SPAN>
+    
+<UL>
+<LI>Always stop the daemon cleanly - using the SHUTDOWN command or
+	      the
+<BR>
+SIGTERM signal. In other case you can lose access
+	      to protected files until the system is restarted.
+</LI>
+<LI>Never protect the directory your mail-scanner software
+	      uses for attachment unpacking. Access to all infected
+	      files will be automatically blocked and the scanner (including
+	      <code>clamd</code>!) will not be able to detect any viruses. In the
+	      result <SPAN  CLASS="textbf">all infected mails may be delivered.</SPAN>
+</LI>
+<LI>Watch your entire filesystem only using the <code>clamd.conf</code>
+	      OnAccessMountPath option. While this will disable on-access prevention,
+	      it will avoid potential system lockups caused by fanotify's blocking
+	      functionality.
+</LI>
+<LI>Using the On-Access Scanner to watch a virtual filesystem will result
+	      in undefined behaviour.
+    
+</LI>
+</UL>
+    The default configuration utilizes inotify to recursively keep track of
+    directories. If you need to protect more than 8192 directories it will
+    be necessary to change inotify's <code>max_user_watches</code> value.
+    
+<BR>
+<BR>
+This can be done temporarily with:
+    <PRE>
+    $ sysctl fs.inotify.max_user_watches=&lt;n&gt;
+</PRE>
+    Where <code>&lt;n&gt;</code> is the new maximum desired.
+    
+<BR>
+<BR>
+To watch your entire filesystem add the following lines to
+    <code>clamd.conf</code>:
+    <PRE>
+	ScanOnAccess yes
+	OnAccessMountPath /
+</PRE>
+    Similarly, to protect your home directory add the following lines to
+    <code>clamd.conf</code>:
+    <PRE>
+	ScanOnAccess yes
+	OnAccessIncludePath /home
+	OnAccessExcludePath /home/user/temp/dir/of/your/mail/scanning/software
+	OnAccessPrevention yes
+</PRE>
+    For more configuration options, type 'man clamd.conf' or reference the
+    example clamd.conf.
 
 <P>
-<BR><HR>
-<!--Table of Child-Links-->
-<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
-<UL CLASS="ChildLinks">
-<LI><A NAME="tex2html589"
-  HREF="node30.html">Clam daemon</A>
-<LI><A NAME="tex2html590"
-  HREF="node31.html">Clam<SPAN  CLASS="textbf">d</SPAN>scan</A>
-<LI><A NAME="tex2html591"
-  HREF="node32.html">On-access Scanning</A>
-<LI><A NAME="tex2html592"
-  HREF="node33.html">Clamdtop</A>
-<LI><A NAME="tex2html593"
-  HREF="node34.html">Clamscan</A>
-<LI><A NAME="tex2html594"
-  HREF="node35.html">ClamBC</A>
-<LI><A NAME="tex2html595"
-  HREF="node36.html">Freshclam</A>
-<LI><A NAME="tex2html596"
-  HREF="node37.html">Clamconf</A>
-<LI><A NAME="tex2html597"
-  HREF="node38.html">Output format</A>
-<UL>
-<LI><A NAME="tex2html598"
-  HREF="node39.html">clamscan</A>
-<LI><A NAME="tex2html599"
-  HREF="node40.html">clamd</A>
-</UL></UL>
-<!--End of Table of Child-Links-->
-<BR><HR>
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html491"
+  HREF="node30.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html487"
+  HREF="node26.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html481"
+  HREF="node28.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html489"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html492"
+  HREF="node30.html">Clamdtop</A>
+<B> Up:</B> <A NAME="tex2html488"
+  HREF="node26.html">Usage</A>
+<B> Previous:</B> <A NAME="tex2html482"
+  HREF="node28.html">Clamdscan</A>
+ &nbsp; <B>  <A NAME="tex2html490"
+  HREF="node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
 <ADDRESS>
-Cisco 2016-04-21
+Cisco 2018-03-28
 </ADDRESS>
 </BODY>
 </HTML>

@@ -7,8 +7,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Data Loss Prevention</TITLE>
-<META NAME="description" CONTENT="Data Loss Prevention">
+<TITLE>Header file</TITLE>
+<META NAME="description" CONTENT="Header file">
 <META NAME="keywords" CONTENT="clamdoc">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -20,56 +20,50 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <LINK REL="next" HREF="node49.html">
 <LINK REL="previous" HREF="node47.html">
-<LINK REL="up" HREF="node43.html">
+<LINK REL="up" HREF="node47.html">
 <LINK REL="next" HREF="node49.html">
 </HEAD>
 
 <BODY >
 
 <DIV CLASS="navigation"><!--Navigation Panel-->
-<A NAME="tex2html856"
+<A NAME="tex2html755"
   HREF="node49.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html852"
-  HREF="node43.html">
+<A NAME="tex2html751"
+  HREF="node47.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html846"
+<A NAME="tex2html745"
   HREF="node47.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html854"
+<A NAME="tex2html753"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
 <BR>
-<B> Next:</B> <A NAME="tex2html857"
-  HREF="node49.html">Others</A>
-<B> Up:</B> <A NAME="tex2html853"
-  HREF="node43.html">Supported formats and features</A>
-<B> Previous:</B> <A NAME="tex2html847"
-  HREF="node47.html">Documents</A>
- &nbsp; <B>  <A NAME="tex2html855"
+<B> Next:</B> <A NAME="tex2html756"
+  HREF="node49.html">Initialization</A>
+<B> Up:</B> <A NAME="tex2html752"
+  HREF="node47.html">API</A>
+<B> Previous:</B> <A NAME="tex2html746"
+  HREF="node47.html">API</A>
+ &nbsp; <B>  <A NAME="tex2html754"
   HREF="node1.html">Contents</A></B> 
 <BR>
 <BR></DIV>
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION00072500000000000000">
-Data Loss Prevention</A>
+<H3><A NAME="SECTION00073100000000000000">
+Header file</A>
 </H3>
-    Libclamav includes a DLP module which can detect the following
-    credit card issuers: AMEX, VISA, MasterCard, Discover, Diner's Club,
-    and JCB and U.S. social security numbers inside text files.
-    
-<BR>
-<BR>
-Future versions of Libclamav may include additional features to
-    detect other credit cards and other forms of PII (Personally
-    Identifiable Information) which may be transmitted without the
-    benefit of being encrypted.
+    Every program using libclamav must include the header file <code>clamav.h</code>:
+    <PRE>
+	#include &lt;clamav.h&gt;
+</PRE>
 
 <P>
 <BR><HR>
 <ADDRESS>
-Cisco 2016-04-21
+Cisco 2018-03-28
 </ADDRESS>
 </BODY>
 </HTML>

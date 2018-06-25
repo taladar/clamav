@@ -32,7 +32,11 @@
 #include <openssl/err.h>
 
 /* Certain OSs already use 64bit variables in their stat struct */
-#define STAT64_BLACKLIST !defined(__FreeBSD__) && !defined(__APPLE__)
+#if ( !defined(__FreeBSD__) && !defined(__APPLE__) )
+#define STAT64_BLACKLIST 1
+#else
+#define STAT64_BLACKLIST 0
+#endif
 
 #if defined(HAVE_STAT64) && STAT64_BLACKLIST
 
@@ -151,7 +155,7 @@ typedef enum {
 #define CL_SCAN_PE			0x20
 #define CL_SCAN_BLOCKBROKEN		0x40
 #define CL_SCAN_MAILURL			0x80 /* ignored */
-#define CL_SCAN_BLOCKMAX		0x100 /* ignored */
+#define CL_SCAN_BLOCKMAX		0x100
 #define CL_SCAN_ALGORITHMIC		0x200
 #define CL_SCAN_PHISHING_BLOCKSSL	0x800 /* ssl mismatches, not ssl by itself*/
 #define CL_SCAN_PHISHING_BLOCKCLOAK	0x1000
@@ -300,7 +304,7 @@ extern int cli_cache_enable(struct cl_engine *engine);
 
 /* CALLBACKS */
 
-/* I certainly wish I could declare the callback protoes stable and
+/* I certainly wish I could declare the callback protos stable and
    move on to better things. But real life crossed my way enough times
    already and what looked perfect had to evolve somehow.
    So all I can say is I'll try my best not to break these things in the long run.
