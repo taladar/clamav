@@ -1,4 +1,4 @@
-From edef2ebae22e982a9747832d5d1ffc88e1204755 Mon Sep 17 00:00:00 2001
+From a405a21c7234558d5ba44de7b92590db7f6b005d Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Wed, 11 Mar 2015 20:03:15 +0100
 Subject: add support for system tomsfastmath
@@ -14,7 +14,7 @@ Patch-Name: add-support-for-system-tomsfastmath.patch
  create mode 100644 m4/reorganization/libs/tomsfastmath.m4
 
 diff --git a/configure.ac b/configure.ac
-index 85c4e71..851568e 100644
+index 43f0483..61c075f 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -82,6 +82,7 @@ m4_include([m4/reorganization/libs/xml.m4])
@@ -34,7 +34,7 @@ index 85c4e71..851568e 100644
  # Yep, downgrading the compiler avoids the bug too:
  # 4.0.x, and 4.1.0 are the known buggy versions
 diff --git a/libclamav/Makefile.am b/libclamav/Makefile.am
-index 0d365d4..dac5471 100644
+index 43b5154..02596b8 100644
 --- a/libclamav/Makefile.am
 +++ b/libclamav/Makefile.am
 @@ -496,8 +496,10 @@ libclamav_la_SOURCES += yara_arena.c \

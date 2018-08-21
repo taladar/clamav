@@ -32,7 +32,7 @@
   /var/lib/clamav/ r,
   /var/lib/clamav/** krw,
 
-  /var/log/clamav/* kw,
+  /var/log/clamav/* krw,
   /{,var/}run/clamav/freshclam.pid w,
   /{,var/}run/clamav/clamd.ctl rw,
 

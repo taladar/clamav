@@ -1,3 +1,28 @@
+clamav (0.100.1+dfsg-0+deb8u1) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team.
+  * Update to upstream release 0.100.1 (Closes: #903896).
+  * Fixes:
+    - CVE-2018-0360 (HWP integer overflow, infinite loop vulnerabi)
+    - CVE-2018-0361 (ClamAV PDF object length check, unreasonably long
+      time to
+      parse relatively small file)
+  * debian/clamav-daemon.config.in: fix infinite loop after SelfCheck
+    state (Closes: #905044).
+
+  * Upload based on the stretch package, thanks to:
+
+  [ Scott Kitterman ]
+  * Only create clamav user during clamav-base install if it does not
+    exist. Patch by Shane Williams.
+
+  [ Sebastian Andrzej Siewior ]
+  * Bump symbol version due to new version.
+  * Add read permission for freshclam on /var/log in the apparmor profile.
+    Thanks to Robie Basak (Closes: #902601).
+
+ -- Santiago Ruano Rincón <santiagorr@riseup.net>  Mon, 06 Aug 2018 16:59:51 +0200
+
 clamav (0.100.0+dfsg-0+deb8u1) jessie; urgency=medium
 
   [ Sebastian Andrzej Siewior ]

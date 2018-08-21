@@ -2,3 +2,4 @@ Change-paths-in-sample-conf-file-to-match-Debian.patch
 add-support-for-system-tomsfastmath.patch
 tfm-drop-__DATE__.patch
 tfm-fix-compile-errors.patch
+Deprecate-unused-options-instead-of-removing-it.patch

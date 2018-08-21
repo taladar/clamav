@@ -363,7 +363,7 @@ while [ "$STATE" != "End" ]; do
     StateGeneric low clamav-daemon/MaxZipTypeRcg SelfCheck MaxScriptNormalize
     ;;
     "SelfCheck")
-    StateGeneric low clamav-daemon/SelfCheck MaxZipTypeRcg
+    StateGeneric low clamav-daemon/SelfCheck User MaxZipTypeRcg
     ;;
     "User")
     StateUser
