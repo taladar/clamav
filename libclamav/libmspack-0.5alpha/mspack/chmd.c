@@ -1,5 +1,5 @@
 /* This file is part of libmspack.
- * (C) 2003-2011 Stuart Caie.
+ * (C) 2003-2018 Stuart Caie.
  *
  * libmspack is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License (LGPL) version 2.1
@@ -397,7 +397,7 @@ static int chmd_read_headers(struct mspack_system *sys, struct mspack_file *fh,
     D(("first pmgl chunk is after last pmgl chunk"))
     return MSPACK_ERR_DATAFORMAT;
   }
-  if (chm->index_root != 0xFFFFFFFF && chm->index_root > chm->num_chunks) {
+  if (chm->index_root != 0xFFFFFFFF && chm->index_root >= chm->num_chunks) {
     D(("index_root outside valid range"))
     return MSPACK_ERR_DATAFORMAT;
   }
@@ -447,7 +447,10 @@ static int chmd_read_headers(struct mspack_system *sys, struct mspack_file *fh,
     while (num_entries--) {
       READ_ENCINT(name_len);
       if (name_len > (unsigned int) (end - p)) goto chunk_end;
+      /* consider blank filenames to be an error */
+      if (name_len == 0) goto chunk_end;
       name = p; p += name_len;
+
       READ_ENCINT(section);
       READ_ENCINT(offset);
       READ_ENCINT(length);
@@ -622,11 +625,11 @@ static unsigned char *read_chunk(struct mschm_decompressor_p *self,
     unsigned char *buf;
 
     /* check arguments - most are already checked by chmd_fast_find */
-    if (chunk_num > chm->num_chunks) return NULL;
+    if (chunk_num >= chm->num_chunks) return NULL;
     
     /* ensure chunk cache is available */
     if (!chm->chunk_cache) {
-	size_t size = sizeof(unsigned char *) * (chm->num_chunks + 1);
+	size_t size = sizeof(unsigned char *) * chm->num_chunks;
 	if (!(chm->chunk_cache = (unsigned char **) sys->alloc(sys, size))) {
 	    self->error = MSPACK_ERR_NOMEMORY;
 	    return NULL;
@@ -831,7 +834,7 @@ static int search_chunk(struct mschmd_header *chm,
 # endif
 # define TOLOWER(x) tolower(x)
 #else
-# define TOLOWER(x) (((x)<0||(x)>256)?(x):mspack_tolower_map[(x)])
+# define TOLOWER(x) (((x)<0||(x)>255)?(x):mspack_tolower_map[(x)])
 /* Map of char -> lowercase char for the first 256 chars. Generated with:
  * LC_CTYPE=en_GB.utf-8 perl -Mlocale -le 'print map{ord(lc chr).","} 0..255'
  */
