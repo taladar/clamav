@@ -1,2 +1,4 @@
-debian/README.Debian
 debian/NEWS.Debian
+debian/README.Debian
+NEWS.md
+README.md

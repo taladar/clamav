@@ -1,3 +1,16 @@
+clamav (0.100.2+dfsg-0+deb8u1) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team.
+  * Upload based on the stretch package, thanks to:
+
+  [ Sebastian Andrzej Siewior ]
+  * Update to upstream release 0.100.2.
+    - Bump symbol version due to new version.
+    - CVE-2018-15378 (Closes: #910430).
+  * add NEWS.md and README.md from upstream
+
+ -- Santiago Ruano Rincón <santiagorr@riseup.net>  Tue, 23 Oct 2018 10:37:02 +0200
+
 clamav (0.100.1+dfsg-0+deb8u1) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Team.

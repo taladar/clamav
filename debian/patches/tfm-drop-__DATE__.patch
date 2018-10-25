@@ -1,4 +1,4 @@
-From 2b3f5c04f756bd1deb43cabbed0d9d3b617560f6 Mon Sep 17 00:00:00 2001
+From 256a038fed7553bb4aea4d8fda8ace362aaa7518 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Date: Wed, 22 Apr 2015 21:47:57 +0200
 Subject: tfm: drop __DATE__
