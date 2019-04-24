@@ -1,3 +1,28 @@
+clamav (0.100.3+dfsg-0+deb8u1) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team.
+  * Upload based on the stretch package, thanks to: Scott Kitterman.
+    The included parts from strech package are described below.
+  * New upstream security release
+    - Fixes for the following vulnerabilities:
+      - [CVE-2019-1787]:
+        An out-of-bounds heap read condition may occur when scanning PDF
+        documents. The defect is a failure to correctly keep track of the number
+        of bytes remaining in a buffer when indexing file data.
+      - [CVE-2019-1789]:
+        An out-of-bounds heap read condition may occur when scanning PE files
+        (i.e. Windows EXE and DLL files) that have been packed using Aspack as a
+        result of inadequate bound-checking.
+      - [CVE-2019-1788]:
+        An out-of-bounds heap write condition may occur when scanning OLE2 files
+        such as Microsoft Office 97-2003 documents. The invalid write happens when
+        an invalid pointer is mistakenly used to initialize a 32bit integer to
+        zero. This is likely to crash the application.
+  * Update debian/copyright to version from stretch.
+  * Update private symbols for new upstream release to version from stretch.
+
+ -- Ola Lundqvist <ola@inguza.com>  Fri, 29 Mar 2019 19:40:34 -0400
+
 clamav (0.100.2+dfsg-0+deb8u1) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Team.
