@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015, 2017-2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2014 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Nigel Horne, Török Edvin
  *
@@ -1646,8 +1646,10 @@ void pdf_parseobj(struct pdf_struct *pdf, struct pdf_obj *obj)
                 }
                 objid = objid << 8;
 
-                while (isdigit(*q2))
+                while ((dict_remaining > 0) && isdigit(*q2)) {
                     q2++;
+                    dict_remaining--;
+                }
 
                 q2_old = q2;
                 q2 = pdf_nextobject(q2, dict_remaining);
@@ -2727,6 +2729,11 @@ int cli_pdf(const char *dir, cli_ctx *ctx, off_t offset)
 static const char *
 pdf_nextlinestart(const char *ptr, size_t len)
 {
+    if (!ptr || (0 == len)) {
+        /* Invalid args */
+        return NULL;
+    }
+
     while(strchr("\r\n", *ptr) == NULL) {
         if(--len == 0L)
             return NULL;

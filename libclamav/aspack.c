@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Luciano Giuseppe 'Pnluck', Alberto Wu
  *
@@ -347,7 +347,9 @@ int unaspack212(uint8_t *image, unsigned int size, struct cli_exe_section *secti
 
   for (i = 0; i < 58; i++) {
     stream.init_array[i] = j;
-    j += ( 1 << image[ep+i+0x70e]); /* boundchecked in pe.c */
+    if (ep + i + 0x70e < size) {
+      j += (1 << image[ep+i+0x70e]);
+    }
   }
 
   memset(stream.array1,0,sizeof(stream.array1));

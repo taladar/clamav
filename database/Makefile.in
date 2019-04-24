@@ -15,7 +15,9 @@
 @SET_MAKE@
 
 #
-#  Copyright (C) 2002 - 2004 Tomasz Kojm <tkojm@clamav.net>
+#  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+#  Copyright (C) 2007-2013 Sourcefire, Inc.
+#  Copyright (C) 2002-2007 Tomasz Kojm <tkojm@clamav.net>
 #  Fixes by Arkadiusz Miskiewicz <misiek@pld.org.pl>
 #	    Masaki Ogawa <proc@mac.com>
 #
@@ -116,6 +118,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/c_options.m4 \
 	$(top_srcdir)/m4/reorganization/compiler_checks.m4 \
 	$(top_srcdir)/m4/reorganization/linker_checks.m4 \
+	$(top_srcdir)/m4/reorganization/code_checks/fuzz.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/functions.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/mpool.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/unit_tests.m4 \
@@ -243,6 +246,10 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CURSES_CPPFLAGS = @CURSES_CPPFLAGS@
 CURSES_LIBS = @CURSES_LIBS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBDIR = @DBDIR@
 DEFS = @DEFS@
@@ -368,6 +375,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@

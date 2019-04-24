@@ -1,5 +1,7 @@
 #
-#  Copyright (C) 2002 - 2004 Tomasz Kojm <tkojm@clamav.net>
+#  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+#  Copyright (C) 2007-2013 Sourcefire, Inc.
+#  Copyright (C) 2002-2007 Tomasz Kojm <tkojm@clamav.net>
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,7 +21,7 @@
 ACLOCAL_AMFLAGS=-I m4
 
 SUBDIRS = libltdl libclamav clamscan clamd clamdscan freshclam sigtool clamconf database docs etc clamav-milter test clamdtop clambc unit_tests
-EXTRA_DIST = examples shared libclamav.pc.in libclamunrar_iface/Makefile.am libclamunrar_iface/Makefile.in COPYING.bzip2 COPYING.lzma COPYING.unrar COPYING.LGPL COPYING.llvm COPYING.file COPYING.zlib COPYING.getopt COPYING.regex COPYING.YARA COPYING.pcre platform.h.in clamdscan/clamdscan.map libclamav/libmspack-0.5alpha/mspack/mspack.def ChangeLog.md INSTALL.md NEWS.md README.md
+EXTRA_DIST = examples shared libclamav.pc.in libclamunrar_iface/Makefile.am libclamunrar_iface/Makefile.in COPYING.bzip2 COPYING.lzma COPYING.unrar COPYING.LGPL COPYING.llvm COPYING.file COPYING.zlib COPYING.getopt COPYING.regex COPYING.YARA COPYING.pcre platform.h.in clamdscan/clamdscan.map win32 libclamav/libmspack-0.5alpha/mspack/mspack.def ChangeLog.md INSTALL.md NEWS.md README.md
 
 bin_SCRIPTS=clamav-config
 
@@ -29,6 +31,10 @@ endif
 
 if ENABLE_LIBFRESHCLAM
 SUBDIRS += libfreshclam
+endif
+
+if ENABLE_FUZZ
+SUBDIRS += fuzz
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -42,6 +48,10 @@ lcov:
 	($(MAKE); cd unit_tests; $(MAKE) lcov)
 quick-check:
 	($(MAKE); cd unit_tests; $(MAKE) quick-check)
+fuzz-all:
+	($(MAKE); cd fuzz; $(MAKE) all)
+fuzz-check:
+	($(MAKE); cd fuzz; $(MAKE) check)
 
 dist-hook:
 	rm -rf $(distdir)/win32/clamav-for-windows $(distdir)/win32/build

@@ -1,4 +1,6 @@
-dnl   Copyright (C) 2002 - 2006 Tomasz Kojm <tkojm@clamav.net>
+dnl   Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+dnl   Copyright (C) 2007-2013 Sourcefire, Inc.
+dnl   Copyright (C) 2002-2007 Tomasz Kojm <tkojm@clamav.net>
 dnl   readdir_r checks (c) COPYRIGHT MIT 1995
 dnl   socklen_t check (c) Alexander V. Lukyanov <lav@yars.free.net>
 dnl
@@ -20,7 +22,10 @@ dnl   MA 02110-1301, USA.
 AC_PREREQ([2.59])
 dnl For a release change [devel] to the real version [0.xy]
 dnl also change VERSION below
-AC_INIT([ClamAV], [0.100.2], [https://bugzilla.clamav.net/], [clamav], [https://www.clamav.net/])
+AC_INIT([ClamAV], [0.100.3], [https://bugzilla.clamav.net/], [clamav], [https://www.clamav.net/])
+
+dnl enable C++
+AC_PROG_CXX()
 
 AH_BOTTOM([#include "platform.h"])
 dnl put configure auxiliary into config
@@ -72,6 +77,7 @@ fi
 build_configure_args=`echo "$ac_configure_args" | sed -e 's/[\"]//g'`
 AC_SUBST([BUILD_CONFIGURE_FLAGS], [$build_configure_args])
 
+m4_include([m4/reorganization/code_checks/fuzz.m4])
 m4_include([m4/reorganization/code_checks/functions.m4])
 m4_include([m4/reorganization/code_checks/mpool.m4])
 m4_include([m4/reorganization/code_checks/unit_tests.m4])
@@ -162,6 +168,7 @@ clamconf/Makefile
 etc/Makefile
 test/Makefile
 unit_tests/Makefile
+fuzz/Makefile
 clamdtop/Makefile
 clambc/Makefile
 libfreshclam/Makefile
