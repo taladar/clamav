@@ -49,6 +49,13 @@ clamav (0.101.4+dfsg-0+deb8u1) jessie-security; urgency=medium
 
  -- Hugo Lefeuvre <hle@debian.org>  Tue, 01 Oct 2019 11:04:25 +0200
 
+clamav (0.100.3+dfsg-0+deb8u1.1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix systemd socket activation so it allows more than one TCP socket
+
+ -- Matthias Hörmann <mhoermann@saltation.de>  Wed, 24 Apr 2019 09:44:39 +0200
+
 clamav (0.100.3+dfsg-0+deb8u1) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Team.
