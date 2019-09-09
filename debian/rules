@@ -26,13 +26,12 @@ LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS) -Wl,--as-needed
 # To add new llvm/jit archs add it here and to the arch list for llvm-dev in
 # debian/control.
 # PowerPC is disabled until atleast llvm-3.8. As thing stand now MCJIT is
-# broken in llvm-3.6.
-# Currently LLVM is disabled because there is no support for llvm > 3.8
-#ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 kfreebsd-amd64 kfreebsd-i386))
+# broken in llvm-3.6. llvm v3.8 looks promissing but needs to be verified.
+ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 kfreebsd-amd64 kfreebsd-i386))
   export enable_llvm=no
-#else
-#    SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
-#endif
+else
+    SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
+endif
 
 # Set the configure options:
 #	* add the build flags
@@ -59,8 +58,17 @@ else
 	DEBUG_OPTS += --enable-debug
 endif
 
+# Don't use systemd on wheezy.
+ifeq ($(shell cut -c1 /etc/debian_version),7)
+  SYSTEMD =
+else
+  SYSTEMD = --with systemd
+endif
+
+# Use the default debhelper scripts, where possible.
+# Enable parallel building and conditionally autoreconf and systemd.
 %:
-	dh $@
+	dh $@ --parallel --with autoreconf $(SYSTEMD)
 
 override_dh_auto_configure:
 	$(info DEB_BUILD_OPTIONS = $(DEB_BUILD_OPTIONS))
@@ -141,6 +149,9 @@ ifneq (,$(filter ia64 sparc, $(DEB_HOST_ARCH)))
 else
 	T=900 dh_auto_test -- V=1 VERBOSE=1
 endif
+
+override_dh_strip:
+	dh_strip --dbgsym-migration=clamav-dbg
 
 override_dh_install:
 	dh_install

@@ -498,7 +498,7 @@ EOF
       echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTATEFILE
       echo "         systemctl -q is-active clamav-daemon && systemctl kill --signal=SIGHUP clamav-daemon || true" >> $DEBROTATEFILE
       echo "     else" >> $DEBROTATEFILE
-      echo "         invoke-rc.d clamav-daemon reload-log > /dev/null || true" >> $DEBROTATEFILE
+      echo "         /etc/init.d/clamav-daemon reload-log > /dev/null || true" >> $DEBROTATEFILE
       echo "     fi" >> $DEBROTATEFILE
       echo "     endscript" >> $DEBROTATEFILE
       echo "     }" >> $DEBROTATEFILE

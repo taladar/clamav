@@ -9,7 +9,9 @@ Uploaders: Michael Meskes <meskes@debian.org>,
            Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Build-Depends: automake,
                check,
-               debhelper (>= 11),
+               debhelper (>= 9),
+               dh-autoreconf,
+               dh-systemd,
                dh-apparmor,
                dh-strip-nondeterminism,
                libbz2-dev,
@@ -19,19 +21,18 @@ Build-Depends: automake,
                libmilter-dev,
                libmspack-dev,
                libncurses-dev,
-               libpcre2-dev,
+               libpcre3-dev,
                libssl-dev,
                libsystemd-dev [linux-any],
                libtfm-dev,
                libxml2-dev,
-#               llvm-dev [i386 amd64 kfreebsd-amd64 kfreebsd-i386],
+               llvm-dev [i386 amd64 kfreebsd-amd64 kfreebsd-i386],
                perl:native,
                pkg-config,
                po-debconf,
                python:native,
                zlib1g-dev
-Standards-Version: 4.3.0
-Rules-Requires-Root: no
+Standards-Version: 3.9.8
 Vcs-Git: https://salsa.debian.org/clamav-team/clamav.git
 Vcs-Browser: https://salsa.debian.org/clamav-team/clamav
 Homepage: https://www.clamav.net/
@@ -245,6 +246,7 @@ Description: anti-virus utility for Unix - virus database update utility
 Package: clamav-milter
 Architecture: any
 Suggests: clamav-docs, daemon [!hurd-any]
+Priority: extra
 Recommends: clamav-daemon
 Depends: adduser,
          clamav-base (>= ${source:Version}),

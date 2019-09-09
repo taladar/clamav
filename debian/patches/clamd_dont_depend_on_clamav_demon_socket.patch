@@ -1,4 +1,4 @@
-From 75151a065b91b322e1d7867c0658686e316b2972 Mon Sep 17 00:00:00 2001
+From 02a6bb9068e845ea0af8a8e486f7daee284b3720 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Date: Thu, 11 Aug 2016 21:54:10 +0200
 Subject: clamd: don't depend on clamav-demon.socket

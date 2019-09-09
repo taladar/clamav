@@ -1,4 +1,4 @@
-From d270e1b7719040d02da3674f913a229a27a95ef8 Mon Sep 17 00:00:00 2001
+From 60c1aceb751db52059111dea2a1a890cede29dfc Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:56 +0200
 Subject: Add support for LLVM 3.9

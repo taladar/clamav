@@ -1,4 +1,4 @@
-From dadb4b37352a7ffcd3b4bc070281c858b34f1381 Mon Sep 17 00:00:00 2001
+From 5a2272870a288a08a9f7d442708f5dced52828bb Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:48 +0200
 Subject: Add support for LLVM 3.8

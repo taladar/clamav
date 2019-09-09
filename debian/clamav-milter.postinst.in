@@ -243,7 +243,7 @@ EOF
       echo "     delaycompress" >> $DEBROTATEFILE
       echo "     create 640  $User adm" >> $DEBROTATEFILE
       echo "     postrotate" >> $DEBROTATEFILE
-      echo "     invoke-rc.d clamav-milter restart > /dev/null || true" >> $DEBROTATEFILE
+      echo "     /etc/init.d/clamav-milter restart > /dev/null || true" >> $DEBROTATEFILE
       echo "     endscript" >> $DEBROTATEFILE
       echo "     }" >> $DEBROTATEFILE
       touch "$LogFile"

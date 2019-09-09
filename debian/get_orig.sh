@@ -55,7 +55,7 @@ fi
 if [ ! -f clamav_${UPS_VER}.orig.tar.gz ]
 then
 	echo "repacking…"
-	mk-origtargz --copy --copyright $DEBIAN_DIR/copyright --package clamav --compression gzip -v ${UPS_VER} ${UPS_FILE}
+	mk-origtargz --copy --copyright $DEBIAN_DIR/copyright --package clamav -v ${UPS_VER} ${UPS_FILE}
 	if [ ! -f clamav_${UPS_VER}.orig.tar.gz ]
 	then
 		echo "Repacked and I am still missing"

@@ -1,4 +1,2 @@
 # This is intentionally shipped compressed and uncompressed to be able to test, if clamav detects also the compressed file.
 clamav-testfiles: duplicated-compressed-file usr/share/clamav-testfiles/clam.exe.bz2
-# These executable are test files for clamav (they are not executed otherwise).
-clamav-testfiles: portable-executable-missing-security-features usr/share/clamav-testfiles/*.exe *

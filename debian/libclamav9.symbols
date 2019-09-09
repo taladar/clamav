@@ -1,5 +1,4 @@
 libclamav.so.9 libclamav9 #MINVER#
-* Build-Depends-Package: libclamav-dev
  CLAMAV_PRIVATE@CLAMAV_PRIVATE 0.101.4
  CLAMAV_PUBLIC@CLAMAV_PUBLIC 0.101.0
  base64Flush@CLAMAV_PRIVATE 0.101.4

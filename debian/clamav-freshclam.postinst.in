@@ -145,7 +145,7 @@ case "$1" in
       echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTFILE
       echo "         systemctl -q is-active clamav-freshclam && systemctl kill --signal=SIGHUP clamav-freshclam || true" >> $DEBROTFILE
       echo "     else" >> $DEBROTFILE
-      echo "         invoke-rc.d clamav-freshclam reload-log > /dev/null || true" >> $DEBROTFILE
+      echo "         /etc/init.d/clamav-freshclam reload-log > /dev/null || true" >> $DEBROTFILE
       echo "     fi" >> $DEBROTFILE
       echo "     endscript" >> $DEBROTFILE
       echo "     }" >> $DEBROTFILE
@@ -351,19 +351,33 @@ esac
 if [ $DO_RUN_AS_EVALUATION -eq 1 ]
 then
   if [ "$runas" = 'daemon' ]; then
-    update-rc.d clamav-freshclam defaults >/dev/null
-    invoke-rc.d clamav-freshclam start
+    if [ -x "/etc/init.d/clamav-freshclam" ]; then
+      update-rc.d clamav-freshclam defaults >/dev/null
+    fi
+    if pathfind invoke-rc.d; then
+      invoke-rc.d clamav-freshclam start
+    else
+      /etc/init.d/clamav-freshclam start
+    fi
   elif [ "$runas" = 'ifup.d' ]; then
     for intrface in $iface; do
       if route | grep -q "$intrface"; then
-        IFACE="$intrface" invoke-rc.d clamav-freshclam start || true
+        if pathfind invoke-rc.d; then
+          IFACE="$intrface" invoke-rc.d clamav-freshclam start || true
+        else
+          IFACE="$intrface" /etc/init.d/clamav-freshclam start || true
+        fi
 	break
       fi
     done
     update-rc.d -f clamav-freshclam disable > /dev/null 2>&1 || true
   else
     echo "Starting database update: "
-    invoke-rc.d clamav-freshclam no-daemon || true
+    if pathfind invoke-rc.d; then
+      invoke-rc.d clamav-freshclam no-daemon || true
+    else
+      /etc/init.d/clamav-freshclam no-daemon || true
+    fi
     update-rc.d -f clamav-freshclam disable > /dev/null 2>&1 || true
   fi
 fi

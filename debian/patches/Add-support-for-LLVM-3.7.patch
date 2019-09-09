@@ -1,4 +1,4 @@
-From 35b9f66b69337557d4034f54d71e8ef61c32f295 Mon Sep 17 00:00:00 2001
+From 0649b19b8c25b855b889cc1058a3e011b3cc6d7f Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:39 +0200
 Subject: Add support for LLVM 3.7
