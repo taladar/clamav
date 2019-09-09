@@ -1,7 +1,9 @@
---- a/clamd/localserver.c
-+++ b/clamd/localserver.c
-@@ -63,12 +63,7 @@
- 	char *estr;
+Index: clamav/clamd/localserver.c
+===================================================================
+--- clamav.orig/clamd/localserver.c
++++ clamav/clamd/localserver.c
+@@ -68,12 +68,7 @@ int localserver(const struct optstruct *
+         int cnt;
  
      int num_fd = sd_listen_fds(0);
 -    if (num_fd > 2)
@@ -14,9 +16,11 @@
      {
          /* use socket passed by systemd */
          int i;
---- a/clamd/tcpserver.c
-+++ b/clamd/tcpserver.c
-@@ -58,19 +58,15 @@
+Index: clamav/clamd/tcpserver.c
+===================================================================
+--- clamav.orig/clamd/tcpserver.c
++++ clamav/clamd/tcpserver.c
+@@ -58,19 +58,15 @@ int tcpserver(int **lsockets, unsigned i
      int yes = 1;
      int res;
      unsigned int i=0;
@@ -39,7 +43,7 @@
          int i;
          for(i = 0; i < num_fd; i += 1)
          {
-@@ -79,34 +75,37 @@
+@@ -79,34 +75,37 @@ int tcpserver(int **lsockets, unsigned i
              {
                  /* correct socket */
                  logg("#TCP: Received AF_INET SOCK_STREAM socket from systemd.\n");
