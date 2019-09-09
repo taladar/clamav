@@ -51,6 +51,9 @@ Create temporary files in DIRECTORY. Directory must be writable for the '@CLAMAV
 \fB\-\-leave\-temps\fR
 Do not remove temporary files.
 .TP 
+\fB\-\-gen\-json\fR
+Generate JSON description of scanned file(s). JSON will be printed and also dropped to the temp directory if --leave-temps is enabled.
+.TP 
 \fB\-d FILE/DIR, \-\-database=FILE/DIR\fR
 Load virus database from FILE or load all virus database files from DIR.
 .TP 
@@ -100,7 +103,7 @@ With this option enabled ClamAV will load bytecode from the database. It is high
 Allow loading bytecode from outside digitally signed .c[lv]d files.
 .TP 
 \fB\-\-bytecode\-timeout=N\fR
-Set bytecode timeout in milliseconds (default: 60000 = 60s)
+Set bytecode timeout in milliseconds (default: 5000 = 5s)
 .TP 
 \fB\-\-statistics[=none(*)/bytecode/pcre]\fR
 Collect and print execution statistics.
@@ -109,10 +112,10 @@ Collect and print execution statistics.
 Detect Possibly Unwanted Applications.
 .TP 
 \fB\-\-exclude\-pua=CATEGORY\fR
-Exclude a specific PUA category. This option can be used multiple times. See http://www.clamav.net/doc/pua.html for the complete list of PUA
+Exclude a specific PUA category. This option can be used multiple times. See https://www.clamav.net/documents/potentially-unwanted-applications-pua for the complete list of PUA
 .TP 
 \fB\-\-include\-pua=CATEGORY\fR
-Only include a specific PUA category. This option can be used multiple times. See http://www.clamav.net/doc/pua.html for the complete list of PUA
+Only include a specific PUA category. This option can be used multiple times. See https://www.clamav.net/documents/potentially-unwanted-applications-pua for the complete list of PUA
 .TP 
 \fB\-\-detect\-structured[=yes/no(*)]\fR
 Use the DLP (Data Loss Prevention) module to detect SSN and Credit Card numbers inside documents/text files.
@@ -130,25 +133,19 @@ This option sets the lowest number of Credit Card numbers found in a file to gen
 Scan mail files. If you turn off this option, the original files will still be scanned, but without parsing individual messages/attachments.
 .TP 
 \fB\-\-phishing\-sigs[=yes(*)/no]\fR
-Use the signature-based phishing detection.
+Enable email signature-based phishing detection.
 .TP 
 \fB\-\-phishing\-scan\-urls[=yes(*)/no]\fR
-Use the url-based heuristic phishing detection (Phishing.Heuristics.Email.*)
+Enable URL signature-based phishing detection (Phishing.Heuristics.Email.*)
+.TP
+\fB\-\-heuristic\-alerts[=yes(*)/no]\fR
+In some cases (eg. complex malware, exploits in graphic files, and others), ClamAV uses special algorithms to provide accurate detection. This option can be used to control the algorithmic detection.
 .TP
 \fB\-\-heuristic\-scan\-precedence[=yes/no(*)]\fR
 Allow heuristic match to take precedence. When enabled, if a heuristic scan (such as phishingScan) detects a possible virus/phish it will stop scan immediately. Recommended, saves CPU scan-time. When disabled, virus/phish detected by heuristic scans will be reported only at the end of a scan. If an archive contains both a heuristically detected  virus/phish, and a real malware, the real malware will be reported Keep this disabled if you intend to handle "*.Heuristics.*" viruses  differently from "real" malware. If a non-heuristically-detected virus (signature-based) is found first,  the scan is interrupted immediately, regardless of this config option.
 .TP
-\fB\-\-phishing\-ssl[=yes/no(*)]\fR
-Block SSL mismatches in URLs (might lead to false positives!).
-.TP
-\fB\-\-phishing\-cloak[=yes/no(*)]\fR
-Block cloaked URLs (might lead to some false positives).
-.TP
-\fB\-\-partition\-intersection[=yes/no(*)]\fR
-Detect partition intersections in raw disk images using heuristics.
-.TP
-\fB\-\-algorithmic\-detection[=yes(*)/no]\fR
-In some cases (eg. complex malware, exploits in graphic files, and others), ClamAV uses special algorithms to provide accurate detection. This option can be used to control the algorithmic detection.
+\fB\-\-normalize[=yes(*)/no]\fR
+Normalize (compress whitespace, downcase, etc.) html, script, and text files. Use normalize=no for yara compatibility. 
 .TP 
 \fB\-\-scan\-pe[=yes(*)/no]\fR
 PE stands for Portable Executable \- it's an executable file format used in all 32\-bit versions of Windows operating systems. By default ClamAV performs deeper analysis of executable files and attempts to decompress popular executable packers such as UPX, Petite, and FSG. If you turn off this option, the original files will still be scanned but without additional processing.
@@ -177,14 +174,32 @@ Scan HWP3 files. If you turn off this option, the original files will still be s
 \fB\-\-scan\-archive[=yes(*)/no]\fR
 Scan archives supported by libclamav. If you turn off this option, the original files will still be scanned, but without unpacking and additional processing.
 .TP 
-\fB\-\-detect\-broken[=yes/no(*)]\fR
-Mark broken executables as viruses (Broken.Executable).
+\fB\-\-alert\-broken[=yes/no(*)]\fR
+Alert on broken executable files (PE & ELF).
 .TP 
-\fB\-\-block\-encrypted[=yes/no(*)]\fR
-Mark encrypted archives as viruses (Encrypted.Zip, Encrypted.RAR).
+\fB\-\-alert\-encrypted[=yes/no(*)]\fR
+Alert on encrypted archives and documents (encrypted .zip, .7zip, .rar, .pdf).
 .TP 
-\fB\-\-block\-macros[=yes/no(*)]\fR
-Mark OLE2 files containing VBA macros as viruses (Heuristics.OLE2.ContainsMacros).
+\fB\-\-alert\-encrypted-archive[=yes/no(*)]\fR
+Alert on encrypted archives (encrypted .zip, .7zip, .rar, .pdf).
+.TP 
+\fB\-\-alert\-encrypted-doc[=yes/no(*)]\fR
+Alert on encrypted documents (encrypted .zip, .7zip, .rar, .pdf).
+.TP 
+\fB\-\-alert\-macros[=yes/no(*)]\fR
+Alert on OLE2 files containing VBA macros (Heuristics.OLE2.ContainsMacros).
+.TP 
+\fB\-\-alert\-exceeds\-max[=yes/no(*)]\fR
+Alert on files that exceed max file size, max scan size, or max recursion limit (Heuristics.Limits.Exceeded).
+.TP 
+\fB\-\-alert\-phishing\-ssl[=yes/no(*)]\fR
+Alert on emails containing SSL mismatches in URLs (might lead to false positives!).
+.TP
+\fB\-\-alert\-phishing\-cloak[=yes/no(*)]\fR
+Alert on emails containing cloaked URLs (might lead to some false positives).
+.TP
+\fB\-\-alert\-partition\-intersection[=yes/no(*)]\fR
+Detect partition intersections in raw disk images using heuristics.
 .TP 
 \fB\-\-max\-filesize=#n\fR
 Extract and scan at most #n bytes from each archive. You may pass the value in kilobytes in format xK or xk, or megabytes in format xM or xm, where x is a number. This option protects your system against DoS attacks (default: 25 MB, max: <4 GB)
@@ -227,25 +242,13 @@ This option sets the maximum number of icons within a PE to be scanned. This mus
 This option sets the maximum recursive calls to HWP3 parsing function (default: 16).
 .TP
 \fB\-\-pcre-match-limit=#n\fR
-Maximum calls to the PCRE match function (default: 10000).
+Maximum calls to the PCRE match function (default: 100000).
 .TP
 \fB\-\-pcre-recmatch-limit=#n\fR
-Maximum recursive calls to the PCRE match function (default: 5000).
+Maximum recursive calls to the PCRE match function (default: 2000).
 .TP
 \fB\-\-pcre-max-filesize=#n\fR
 Maximum size file to perform PCRE subsig matching (default: 25 MB, max: <4 GB).
-.TP
-\fB\-\-enable\-stats\fR
-This option enables submission of statistical data. (Default: stats submissions disabled)
-.TP
-\fB\-\-stats\-host\-id\fR
-This option sets the HostID, in the form of an UUID, to use when submitting statistical information.
-.TP
-\fB\-\-disable\-pe\-stats\fR
-This option disables the submission of PE section data. (Default: submitting of PE section data enabled if stats submissions as a whole is enabled).
-.TP
-\fB\-\-stats\-timeout=#n\fR
-This option sets the timeout in seconds to wait for communication back from the stats server. (Default: 10).
 .TP
 \fB\-\-disable\-cache\fR
 Disable caching and cache checks for hash sums of scanned files.
@@ -281,7 +284,7 @@ Disable caching and cache checks for hash sums of scanned files.
 .TP 
 1 : Virus(es) found.
 .TP 
-2 : Some error(s) occured.
+2 : Some error(s) occurred.
 .SH "CREDITS"
 Please check the full documentation for credits.
 .SH "AUTHOR"

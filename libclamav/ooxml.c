@@ -1,7 +1,7 @@
 /*
  * OOXML JSON Internals
  * 
- * Copyright (C) 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (C) 2014-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  * 
  * Authors: Kevin Lin
  * 
@@ -24,7 +24,6 @@
 #endif
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "filetypes.h"
 #include "others.h"
 #include "unzip.h"
@@ -36,11 +35,6 @@
 #include "ooxml.h"
 
 #if HAVE_LIBXML2
-#ifdef _WIN32
-#ifndef LIBXML_WRITER_ENABLED
-#define LIBXML_WRITER_ENABLED 1
-#endif
-#endif
 #include <libxml/xmlreader.h>
 #endif
 
@@ -128,7 +122,7 @@ static int ooxml_parse_document(int fd, cli_ctx *ctx)
         return CL_SUCCESS; // internal error from libxml2
     }
 
-    ret = cli_msxml_parse_document(ctx, reader, ooxml_keys, num_ooxml_keys, 1, NULL);
+    ret = cli_msxml_parse_document(ctx, reader, ooxml_keys, num_ooxml_keys, MSXML_FLAG_JSON, NULL);
 
     if (ret != CL_SUCCESS && ret != CL_ETIMEOUT && ret != CL_BREAK)
         cli_warnmsg("ooxml_parse_document: encountered issue in parsing properties document\n");
@@ -138,7 +132,7 @@ static int ooxml_parse_document(int fd, cli_ctx *ctx)
     return ret;
 }
 
-static int ooxml_core_cb(int fd, cli_ctx *ctx)
+static int ooxml_core_cb(int fd, const char* filepath, cli_ctx *ctx)
 {
     int ret;
 
@@ -152,7 +146,7 @@ static int ooxml_core_cb(int fd, cli_ctx *ctx)
     return ret;
 }
 
-static int ooxml_extn_cb(int fd, cli_ctx *ctx)
+static int ooxml_extn_cb(int fd, const char* filepath, cli_ctx *ctx)
 {
     int ret;
 
@@ -166,7 +160,7 @@ static int ooxml_extn_cb(int fd, cli_ctx *ctx)
     return ret;
 }
 
-static int ooxml_content_cb(int fd, cli_ctx *ctx)
+static int ooxml_content_cb(int fd, const char* filepath, cli_ctx *ctx)
 {
     int ret = CL_SUCCESS, tmp, toval = 0, state;
     int core=0, extn=0, cust=0, dsig=0;
@@ -357,7 +351,7 @@ static const struct key_entry ooxml_hwp_keys[] = {
 };
 static size_t num_ooxml_hwp_keys = sizeof(ooxml_hwp_keys) / sizeof(struct key_entry);
 
-static int ooxml_hwp_cb(int fd, cli_ctx *ctx)
+static int ooxml_hwp_cb(int fd, const char* filepath, cli_ctx *ctx)
 {
     int ret = CL_SUCCESS;
     xmlTextReaderPtr reader = NULL;
@@ -375,7 +369,7 @@ static int ooxml_hwp_cb(int fd, cli_ctx *ctx)
         return CL_SUCCESS; // internal error from libxml2
     }
 
-    ret = cli_msxml_parse_document(ctx, reader, ooxml_hwp_keys, num_ooxml_hwp_keys, 1, NULL);
+    ret = cli_msxml_parse_document(ctx, reader, ooxml_hwp_keys, num_ooxml_hwp_keys, MSXML_FLAG_JSON, NULL);
 
     if (ret != CL_SUCCESS && ret != CL_ETIMEOUT && ret != CL_BREAK)
         cli_warnmsg("ooxml_hwp_cb: encountered issue in parsing properties document\n");

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Török Edvin
  *
@@ -82,7 +82,7 @@ typedef struct client_conn_tag {
     char *filename;
     int scanfd;
     int sd;
-    unsigned int options;
+    struct cl_scan_options *options;
     const struct optstruct *opts;
     struct cl_engine *engine;
     time_t engine_timestamp;

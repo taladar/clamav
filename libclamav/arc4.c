@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2011 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2011-2013 Sourcefire, Inc.
  *
  *  Author: Török Edvin
  *
@@ -23,7 +23,7 @@
 #include "clamav-config.h"
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "arc4.h"
 #include <string.h>
 
@@ -81,7 +81,7 @@ int main(void)
 {
     struct arc4_state a;
     uint8_t data[32];
-    unsigned i;
+    size_t i;
     struct timeval tv0, tv1;
 
     for (i=0;i<sizeof(testdata)/sizeof(testdata[0]);i++) {
@@ -91,7 +91,7 @@ int main(void)
 	memcpy(data, testdata[i].plaintext, len);
 	arc4_apply(&a, data, len);
 	if (memcmp(data, testdata[i].result, len)) {
-	    printf("Bad result at %d\n", i);
+	    printf("Bad result at %zu\n", i);
 	}
     }
     gettimeofday(&tv0, NULL);

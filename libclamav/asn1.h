@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2011 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2011-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB
  *
@@ -25,7 +25,12 @@
 #include "others.h"
 #include "fmap.h"
 
+struct cli_mapped_region {
+    unsigned int offset;
+    unsigned int size;
+};
+
 int asn1_load_mscat(fmap_t *map, struct cl_engine *engine);
-int asn1_check_mscat(struct cl_engine *engine, fmap_t *map, size_t offset, unsigned int size, uint8_t *computed_sha1);
+cl_error_t asn1_check_mscat(struct cl_engine *engine, fmap_t *map, size_t offset, unsigned int size, struct cli_mapped_region *regions, uint32_t nregions);
 
 #endif

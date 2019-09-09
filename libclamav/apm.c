@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Cisco Systems, Inc.
+ *  Copyright (C) 2014-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *
  *  Authors: Kevin Lin <kevlin2@cisco.com>
  *
@@ -30,7 +30,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "others.h"
 #include "apm.h"
 #include "prtn_intxn.h"
@@ -133,10 +133,10 @@ int cli_scanapm(cli_ctx *ctx)
     }
 
     /* check that the partition table fits in the space specified - HEURISTICS */
-    if ((ctx->options & CL_SCAN_PARTITION_INTXN) && (ctx->dconf->other & OTHER_CONF_PRTNINTXN)) {
+    if (SCAN_HEURISTIC_PARTITION_INTXN && (ctx->dconf->other & OTHER_CONF_PRTNINTXN)) {
         ret = apm_prtn_intxn(ctx, &aptable, sectorsize, old_school);
         if (ret != CL_CLEAN) {
-            if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+            if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                 detection = CL_VIRUS;
             else
                 return ret;
@@ -226,7 +226,7 @@ int cli_scanapm(cli_ctx *ctx)
         /* send the partition to cli_map_scan */
         ret = cli_map_scan(*ctx->fmap, partoff, partsize, ctx, CL_TYPE_PART_ANY);
         if (ret != CL_CLEAN) {
-            if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+            if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                 detection = CL_VIRUS;
             else
                 return ret;
@@ -248,6 +248,7 @@ static int apm_prtn_intxn(cli_ctx *ctx, struct apm_partition_info *aptable, size
     int ret = CL_CLEAN, tmp = CL_CLEAN;
     off_t pos;
     uint32_t max_prtns = 0;
+    int virus_found = 0;
 
     prtn_intxn_list_init(&prtncheck);
 
@@ -286,35 +287,30 @@ static int apm_prtn_intxn(cli_ctx *ctx, struct apm_partition_info *aptable, size
 
         tmp = prtn_intxn_list_check(&prtncheck, &pitxn, apentry.pBlockStart, apentry.pBlockCount);
         if (tmp != CL_CLEAN) {
-            if ((ctx->options & CL_SCAN_ALLMATCHES) && (tmp == CL_VIRUS)) {
+            if (tmp == CL_VIRUS) {
                 apm_parsemsg("Name: %s\n", (char*)aptable.name);
                 apm_parsemsg("Type: %s\n", (char*)aptable.type);
 
                 cli_dbgmsg("cli_scanapm: detected intersection with partitions "
                            "[%u, %u]\n", pitxn, i);
-                cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                ret = cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                if (ret == CL_VIRUS)
+                    virus_found = 1;
+                if (SCAN_ALLMATCHES || ret == CL_CLEAN)
+                    tmp = 0;
+                else
+                    goto leave;
+            } else {
                 ret = tmp;
-                tmp = 0;
-            }
-            else if (tmp == CL_VIRUS) {
-                apm_parsemsg("Name: %s\n", (char*)aptable.name);
-                apm_parsemsg("Type: %s\n", (char*)aptable.type);
-
-                cli_dbgmsg("cli_scanapm: detected intersection with partitions "
-                           "[%u, %u]\n", pitxn, i);
-                cli_append_virus(ctx, PRTN_INTXN_DETECTION);
-                prtn_intxn_list_free(&prtncheck);
-                return CL_VIRUS;
-            }
-            else {
-                prtn_intxn_list_free(&prtncheck);
-                return tmp;
+                goto leave;
             }
         }
-
         pos += sectorsize;
     }
 
+ leave:
     prtn_intxn_list_free(&prtncheck);
+    if (virus_found)
+        return CL_VIRUS;
     return ret;
 }

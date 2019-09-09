@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Nigel Horne
@@ -124,8 +124,10 @@ textDestroy(text *t_head)
 {
 	while(t_head) {
 		text *t_next = t_head->t_next;
-		if(t_head->t_line)
-			(void)lineUnlink(t_head->t_line);
+		if(t_head->t_line) {
+			lineUnlink(t_head->t_line);
+			t_head->t_line = NULL;
+		}
 		free(t_head);
 		t_head = t_next;
 	}
@@ -146,11 +148,13 @@ textCopy(const text *t_head)
 		}
 
 		if(last == NULL) {
-            cli_errmsg("textCopy: Unable to allocate memory to clone object\n");
+			cli_errmsg("textCopy: Unable to allocate memory to clone object\n");
 			if(first)
 				textDestroy(first);
 			return NULL;
 		}
+
+		last->t_next = NULL;
 
 		if(t_head->t_line)
 			last->t_line = lineLink(t_head->t_line);

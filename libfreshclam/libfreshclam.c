@@ -1,5 +1,7 @@
 /*
- *  Copyright (C) 2002 - 2006 Tomasz Kojm <tkojm@clamav.net>
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
+ *  Copyright (C) 2002-2007 Tomasz Kojm <tkojm@clamav.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -106,7 +108,7 @@ download (const struct optstruct *opts, const char *cfgfile)
                     opt = (struct optstruct *) opt->nextarg;
                     if (!opt)
                     {
-                        logg ("Update failed. Your network may be down or none of the mirrors listed in %s is working. Check http://www.clamav.net/support/mirror-problem for possible reasons.\n", cfgfile);
+                        logg ("Update failed. Your network may be down or none of the mirrors listed in %s is working. Check https://www.clamav.net/documents/official-mirror-faq for possible reasons.\n", cfgfile);
                     }
                 }
                 
@@ -152,20 +154,14 @@ int download_with_opts(struct optstruct *opts, const char* db_path, const char* 
             return FCE_USERINFO;
         }
         
-        if (optget (opts, "AllowSupplementaryGroups")->enabled)
-        {
 #ifdef HAVE_INITGROUPS
-            if (initgroups (dbowner, user->pw_gid))
-            {
-                logg ("^initgroups() failed.\n");
-                optfree (opts);
-                return FCE_USERORGROUP;
-            }
+	if (initgroups (dbowner, user->pw_gid))
+	{
+		logg ("^initgroups() failed.\n");
+		optfree (opts);
+		return FCE_USERORGROUP;
+	}
 #endif
-        }
-        else
-        {
-        }
     }
 #endif /* HAVE_PWD_H */
     

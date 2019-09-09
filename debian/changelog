@@ -1,9 +1,230 @@
-clamav (0.99.2+dfsg-6.1) UNRELEASED; urgency=medium
+clamav (0.101.4+dfsg-0+deb10u1) buster; urgency=medium
 
-  * Non-maintainer upload.
-  * Fix systemd socket activation so it allows more than one TCP socket
+  * Import 0.101.4
+   - CVE-2019-12625 (Add scan time limit to limit the processing zip-bombs)
+     (Closes:934359)
+   - CVE-2019-12900 (An out of bounds write was possible within ClamAV's
+     NSIS bzip)
+   - update symbols file (bump to 101.4 and drop unused cli_strnstr).
 
- -- Matthias Hörmann <mhoermann@saltation.de>  Tue, 27 Feb 2018 16:32:21 +0100
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sun, 25 Aug 2019 12:53:19 +0200
+
+clamav (0.101.2+dfsg-1+deb10u1) buster; urgency=medium
+
+  * Cherry-pick a fix from 0.101.3 to address a vulnerability to
+    non-recursive zip bombs.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Tue, 06 Aug 2019 22:07:01 +0200
+
+clamav (0.101.2+dfsg-1) unstable; urgency=high
+
+  * Import 0.101.2
+   - CVE-2019-1787 (An out-of-bounds heap read condition may occur when
+     scanning PDF documents)
+   - CVE-2019-1789 (An out-of-bounds heap read condition may occur when
+     scanning PE files)
+   - CVE-2019-1788 (An out-of-bounds heap write condition may occur when
+     scanning OLE2 files)
+   - CVE-2019-1786 (An out-of-bounds heap read condition may occur when
+     scanning malformed PDF documents)
+   - CVE-2019-1785 (A path-traversal write condition may occur as a result of
+     improper input validation when scanning RAR archives)
+   - CVE-2019-1798 (A use-after-free condition may occur as a result of
+     improper error handling when scanning nested RAR archives)
+   - update symbols file
+   - Remove DetectBrokenExecutables option from clamd template, it is
+     deprecated.
+  * Drop the dbgsym migration line.
+  * Bump standards-version to 4.3.0 without further change
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 30 Mar 2019 16:25:48 +0100
+
+clamav (0.101.1+dfsg-3) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Thu, 28 Feb 2019 23:36:02 +0100
+
+clamav (0.101.1+dfsg-2) experimental; urgency=medium
+
+  [ Scott Kitterman ]
+  * Add information to README.Debian on configuring clamav-milter's socket to
+    work with postfix
+
+  [ Sebastian Andrzej Siewior ]
+  * debian/libclamav-dev.install: also install clamav-types.h
+
+ -- Scott Kitterman <scott@kitterman.com>  Mon, 04 Feb 2019 10:12:57 -0500
+
+clamav (0.101.1+dfsg-1) experimental; urgency=medium
+
+  [ Scott Kitterman ]
+  * Update debian/copyright
+  * Add Build-Depends-Package to libclamav9.symbols
+  * Update clamav-docs.doc-base for re-organized documentation
+  * Add lintian override for source-is-missing on test file that happens
+    to have long line length
+  * Drop build-depends on electric-fence, upstream no longer ships the
+    relevant tests that used it
+
+  [ Sebastian Andrzej Siewior ]
+  * Import 0.101.1
+    - update symbol file
+    - add back the json/curl configure options (don't rely on autodetect).
+  * Add abstractions/openssl to apparmor's profile. Thanks to intrigeri for
+    the help (Closes: #913020).
+  * Load the apparmor profile before starting the daemon. Thanks to intrigeri
+    for the help (Closes: #903834).
+  * Add attach_disconnected to freshclam's apparmor profile to hopefully get
+    it properly working in overlayfs enviroment. Thanks to Vincas Dargis
+    (Closes: #917648).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Fri, 11 Jan 2019 23:00:17 +0100
+
+clamav (0.101.0+dfsg-1) experimental; urgency=medium
+
+  [ Scott Kitterman ]
+  * Increase clamd socket command read timeout to 30 seconds (Closes: #915098)
+
+  [ Sebastian Andrzej Siewior ]
+  * Import new upstream release.
+   - update symbol file.
+   - add new options to the config file.
+   - package libclamav9
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 19 Dec 2018 21:22:53 +0100
+
+clamav (0.100.2+dfsg-1) unstable; urgency=medium
+
+  * Import new upstream
+    - Bump symbol version due to new version.
+    - CVE-2018-15378 (Closes: #910430).
+  * add NEWS.md and README.md from upstream
+  * Fix infinite loop in dpkg-reconfigure, Patch by Santiago Ruano Rincón
+    (Closes: #905044).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 10 Oct 2018 00:15:02 +0200
+
+clamav (0.100.1+dfsg-1) unstable; urgency=medium
+
+  [ Scott Kitterman ]
+  * Only create clamav user during clamav-base install if it does not exist
+    (LP: #121872)
+    - Thanks to Shane Williams for the patch
+  * Remove spurious debian/changelog entry for the above change from the
+    0.100.0~beta+dfsg-1 entry since the change was not actually included
+
+  [ Sebastian Andrzej Siewior ]
+  * Import new upstream.
+  * Bump symbol version due to new version.
+  * Add read permission for freshclam on /var/log in the apparmor profile.
+    Thanks to Robie Basak (Closes: #902601).
+  * Bump standards-version to 4.1.5 without further change
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 11 Jul 2018 21:44:30 +0200
+
+clamav (0.100.0+dfsg-1) unstable; urgency=medium
+
+  * New upstream release.
+    - remove various documentation files including Changelog from the file
+      list because they are no longer included in upstream archive.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 11 Apr 2018 23:49:43 +0200
+
+clamav (0.100.0~beta+dfsg-2) unstable; urgency=medium
+
+  * Switch to pcre2 which is newer (Closes: #891195).
+  * Cherry pick patches referenced in bb#11973 and bb#11980 to fix
+    CVE-2018-0202.
+  * Use compat level 11.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 10 Mar 2018 14:43:43 +0100
+
+clamav (0.100.0~beta+dfsg-1) unstable; urgency=medium
+
+  [ Scott Kitterman ]
+  * Add lintian override for clamav-freshclam: duplicate-updaterc.d-calls-in-
+    postinst clamav-freshclam
+  * New upstream beta release
+  * Bump standards-version to 4.1.3 without further change
+  * Update README.Debian to describe how to disable apparmor for clamav-daemon
+    and clamav-freshclam (Closes: #884707)
+
+  [ Sebastian Andrzej Siewior ]
+  * Point Vcs-* tags to salsa.
+
+ -- Scott Kitterman <scott@kitterman.com>  Fri, 09 Feb 2018 18:23:25 -0500
+
+clamav (0.99.3~beta2+dfsg-1) unstable; urgency=medium
+
+  * Update upstream's signing gpg key
+  * Update to beta2:
+    - freshclam does not complain that clamav is outdated (Closes: #876429).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 08 Jan 2018 23:13:06 +0100
+
+clamav (0.99.3~beta1+dfsg-4) unstable; urgency=medium
+
+  * Ignore errors from update-rc.d in freshclam postins (Closes: #882323).
+  * Drop dh-systemd & autoreconf from B-D.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Wed, 22 Nov 2017 00:00:17 +0100
+
+clamav (0.99.3~beta1+dfsg-3) unstable; urgency=medium
+
+  * Drop "demime = *" from Debian.README for clamav, this option is gone from
+    exim (Closes: #881634).
+  * Use "ucf" instead "ucp" in clamav-milter's postinst.
+  * Disable LLVM support due to 3.8 removal (Closes: #873401).
+  * Disable the freshclam service if changed to `manual' mode so it does not start
+    again after system reboot with systemd (Closes: #881780).
+  * Bump standards version to 4.1.1 without further change.
+  * Allow to build as non root user.
+  * Update dh compat level 10
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 20 Nov 2017 21:52:34 +0100
+
+clamav (0.99.3~beta1+dfsg-2) unstable; urgency=medium
+
+  * Build again against system's libmspack (dropped by accident)
+    (Closes: #872594).
+  * Don't replace config file with sample config after debconf gets disabled
+    (in milter and daemon (Closes: #870253).
+  * Update standards to 4.0.1
+    - use invoke-rc.d instead of /etc/init.d.
+    - drop priority extra from clamav-milter.
+  * Add bytecode.c(l|v)d to log clamav-freshclam.logcheck.ignore.server. Patch
+    by Václav Ovsík <vaclav.ovsik@gmail.com> (Closes: #868766).
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sat, 02 Sep 2017 21:26:33 +0200
+
+clamav (0.99.3~beta1+dfsg-1) unstable; urgency=medium
+
+  * Upload to unstable
+  * update to official beta1 release:
+    - drop fts-no-use-AC_TRY_RUN.patch, applied upstream.
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Sun, 06 Aug 2017 22:13:23 +0200
+
+clamav (0.99.3~snapshot20170704+dfsg-1) experimental; urgency=medium
+
+  * Update to upstream snapshot (commit
+    144ef69462427b63a650294257c892b047601aac):
+    - add config options
+    - boost symbol file
+    - drop applied patches:
+      - Allow-M-suffix-for-PCREMaxFileSize.patch
+      - bb11549-fix-temp-file-cleanup-issue.patch
+      - clamav_add_private_fts_implementation.patch
+      - drop-AllowSupplementaryGroups-option-and-make-it-def.patch
+      - fix-ssize_t-size_t-off_t-printf-modifier.patch
+      - libclamav-use-libmspack.patch
+      - make_it_compile_against_openssl_1_1_0.patch
+    - add new ones:
+      - fts-no-use-AC_TRY_RUN.patch
+      - clamsubmit-add-JSON-libs-to-clamsubmit.patch
+
+ -- Sebastian Andrzej Siewior <sebastian@breakpoint.cc>  Mon, 10 Jul 2017 00:06:32 +0200
 
 clamav (0.99.2+dfsg-6) unstable; urgency=medium
 
@@ -707,7 +928,7 @@ clamav (0.98.1+dfsg-6) experimental; urgency=medium
   [ Tyler Hicks ]
   * debian/usr.bin.freshclam: Grant freshclam permission to read and write the
     clamd socket. AppArmor requires both permissions when applications connect
-    to path-based UNIX domain sockets. (LP: #1313282) 
+    to path-based UNIX domain sockets. (LP: #1313282)
 
   [ Scott Kitterman ]
   * Add apport hook to clamav-base for apport in Experimental/Ubuntu
@@ -771,11 +992,11 @@ clamav (0.98.1+dfsg-3) unstable; urgency=medium
   * Switch to format 3.0 (quilt) to enable use of git-dpm
   * Extract existing inline changes into new commits/dpm patches
     - Change paths in sample conf file to match Debian
-    - Add patch so that RAR tests are not expected to pass with RAR disabled 
-    - Add 0003-configure-use-pkg-config-for-check-so-test-is-detect.patch 
+    - Add patch so that RAR tests are not expected to pass with RAR disabled
+    - Add 0003-configure-use-pkg-config-for-check-so-test-is-detect.patch
     - Add 0004-Stop-using-a-cargo-culted-syscall-table-and-trust-th.patch
     - Add 0005-configure.ac-patches-to-got-with-autoreconf-and-auto.patch
-    - Add 0006-Fix-STAT64-definition-and-add-missing-includes.patch 
+    - Add 0006-Fix-STAT64-definition-and-add-missing-includes.patch
   * Fix vcs-field-not-canonical for both git and web access
   * Add libxml2-dev to build-depends for dmg and xar support
   * Add options in debian/clamav-base.postinst.in, clamav-daemon.postinst.in,
@@ -940,7 +1161,7 @@ clamav (0.97.5+dfsg-1) unstable; urgency=medium
     - Add contrib/split-tarball.sh and docs/man/clambc.1 in the diff.gz
       (these used to be added to the Debian specific upstream tarball, but
       aren't upstream so are better in the diff)
-    - Change etc/clamav-milter.conf to Debian defaults 
+    - Change etc/clamav-milter.conf to Debian defaults
   * Enabled hardened build flags (Closes: #653958)
     - Thanks to Moritz Muehlenhoff for the patch
   * Remove var/lib/clamav/daily.cvd and main.cvd from clamav-base.examples
@@ -1061,10 +1282,10 @@ clamav (0.97+dfsg-1) UNRELEASED; urgency=low
  -- Stephen Gran <sgran@debian.org>  Fri, 18 Feb 2011 20:52:08 +0000
 
 clamav (0.96.5+dfsg-2) UNRELEASED; urgency=low
-  
+
   [ Stephen Gran ]
   * Remove ucf backup files in cron.d directory (closes: #607053).
-  
+
   [ Michael Tautschnig ]
   * Acknowledge NMU - thanks Christian for fixing my earlier broken upload
     (probably 0.96.3+dfsg-1) (closes: #610058).
@@ -1075,7 +1296,7 @@ clamav (0.96.5+dfsg-2) UNRELEASED; urgency=low
     paranoid mode (closes: #606308).
   * Cherry-pick ee50848a509662aa21c6c6a41b72c4053b1eedf3 to improve scanning
     of mbox files (closes: #589767).
-  
+
  -- Michael Tautschnig <mt@debian.org>  Tue, 18 Jan 2011 23:21:34 +0000
 
 clamav (0.96.5+dfsg-1.1) unstable; urgency=low
@@ -1086,7 +1307,7 @@ clamav (0.96.5+dfsg-1.1) unstable; urgency=low
  -- Christian Perrier <bubulle@debian.org>  Wed, 12 Jan 2011 19:51:36 +0100
 
 clamav (0.96.5+dfsg-1) unstable; urgency=low
-  
+
   [ Alberto WU ]
   * New upstream release
     - Fix JIT-related crashes on VIA (closes: #604621).
@@ -1098,11 +1319,11 @@ clamav (0.96.5+dfsg-1) unstable; urgency=low
     thanks piuparts.
   * Change StreamMaxLength default to 25Mb, also update user configurations
     still using 0 as value (closes: #602840).
-  
+
  -- Michael Tautschnig <mt@debian.org>  Wed, 01 Dec 2010 16:46:37 +0100
 
 clamav (0.96.4+dfsg-1) unstable; urgency=low
-  
+
   [ Alberto WU ]
   * New upstream release
     - Fix 'Unknown error code ERROR' (closes: #599372).
@@ -1115,14 +1336,14 @@ clamav (0.96.4+dfsg-1) unstable; urgency=low
     - Vietnamese (closes: #601538)
   * Add additional check for milter socket in status command of milter init
     script (thanks Chris Moules for proposing a patch, closes: #600908).
-  
+
  -- Michael Tautschnig <mt@debian.org>  Fri, 29 Oct 2010 12:38:52 +0200
 
 clamav (0.96.3+dfsg-2) unstable; urgency=low
 
   [ Stephen Gran ]
   * Add NotifyClamd only if set to nonempty value.
-  
+
   [ Michael Tautschnig ]
   * Cherry-pick from upstream: Only enable RLIMIT_DATA warning on *BSD
     (already included in Ubuntu's 1ubuntu3) (closes: #598083).
@@ -1131,20 +1352,20 @@ clamav (0.96.3+dfsg-2) unstable; urgency=low
     (thanks piuparts).
   * Remove trailing / in freshclam's DatabaseDirectory default value
     (closes: #598084).
-  
+
  -- Michael Tautschnig <mt@debian.org>  Sun, 26 Sep 2010 11:18:22 +0200
 
 clamav (0.96.3+dfsg-1) unstable; urgency=high
 
   [ Stephen Gran ]
   * Fixed NotifyClamd config options handling.
-  
+
   [ Alberto WU ]
   * New upstream release
     - urgency=high as this addresses CVE-2010-0405
     - Reset MaxFileSize to default value if set to 0 (closes: #585479)
     - New config option ExtendedDetectionInfo (clamd.conf)
-  
+
   [ Michael Tautschnig ]
   * Set data segment limit in tests to 524288 to make kfreebsd-i386 systems
     happy (closes: #591245).
@@ -1186,13 +1407,13 @@ clamav (0.96.1+dfsg-1) unstable; urgency=medium
   * Only manipulate /etc/aliases on fresh install (closes: #580020)
   * Handle RejectMsg with special care when upgrading (closes: #581410)
   * 0 is a valid value for StreamMaxLength, handle it properly (closes: #581408)
-  
+
   [ Alberto WU ]
   * New upstream release
     - Includes PowerPC workaround (closes: #579960)
     - Ships clamav-milter.conf man page (closes: #565208)
     - Fixes CVE-2010-1639, CVE-2010-1640 (closes: #584183)
-  
+
   [ Scott Kitterman ]
   * Add support for new TestDatabases option in
     debian/clamav-freshclam.postinst.in (match upstream default of yes)
@@ -1210,7 +1431,7 @@ clamav (0.96+dfsg-4) unstable; urgency=low
 
   [ Stephen Gran ]
   * Fixed typo in clamav-milter's postinst
-  
+
   [ Michael Tautschnig ]
   * Fixed typo in clamav-freshclam's postinst (closes: #579271)
   * Debconf translation updates
@@ -1233,7 +1454,7 @@ clamav (0.96+dfsg-2) unstable; urgency=low
   * Added debconf handling of new config options (closes: #577611, #577920)
   * Update debian/copyright (thanks Török Edwin <edwintorok@gmail.com>)
     (closes: #578306)
-  
+
   [ Michael Tautschnig ]
   * Create and maintain freshclam's logrotate file (closes: #577041)
   * Set milter's LogFile debconf option to a non-blank value; LogFile was
@@ -1261,7 +1482,7 @@ clamav (0.96+dfsg-1) unstable; urgency=low
   * Update clamav-milter.logcheck.ignore.server (closes: #541008)
     - Thanks to Martin Krafft for the patch
   * Correct options in clamav-milter.init.in (closes: #576955)
-    - Thanks to Marco d'Itri for the patch 
+    - Thanks to Marco d'Itri for the patch
 
   [ Alberto WU ]
   * New upstream release (closes: #576908)
@@ -1298,7 +1519,7 @@ clamav (0.95.3+dfsg-1) unstable; urgency=low
   * Should fix clamd segfault on startup (closes: #537629)
   * Updated info in clamd.conf man page (closes: #534443)
   * Proper socket ownership setup, no chgrp in make_dir (closes: #553333)
-  
+
  -- Michael Tautschnig <mt@debian.org>  Mon, 02 Nov 2009 10:24:35 +0100
 
 clamav (0.95.2+dfsg-5) unstable; urgency=low
@@ -1306,18 +1527,18 @@ clamav (0.95.2+dfsg-5) unstable; urgency=low
   [ Michael Meskes ]
   * Debconf translation updates
     - Czech (closes: #535672)
-    - Italian (closes: #537471) 
+    - Italian (closes: #537471)
     - Dutch (closes: #545061)
     - German (closes: #545753)
     - Vietnamese (closes: #548050)
   * Fixed LSB header information. (Closes: #546450) - thanks to Petter
     Reinholdtsen <pere@hungry.com>
   * Bumped Standards-Version to 3.8.3, no changes needed.
-  
+
   [ Stephen Gran ]
   * Remove clamav-milter logrotate file on purge (closes: #536669)
   * Always use clamav-milter.ctl as local socket (closes: #543309)
-  
+
   [ Michael Tautschnig ]
   * Remove all remaining files during purge
 
@@ -1371,13 +1592,13 @@ clamav (0.95.2+dfsg-1) unstable; urgency=low
     - Galician. Closes: #527320
   * Define status_of_proc in the event that it's not in lsb/init-functions
     (closes: #527903)
-  * Stop referencing /etc/default/clamav-milter and drop command line 
+  * Stop referencing /etc/default/clamav-milter and drop command line
     arguments in milter init script (closes: #526123)
 
  -- Stephen Gran <sgran@debian.org>  Fri, 12 Jun 2009 21:42:59 +0100
 
 clamav (0.95.1+dfsg-3) unstable; urgency=low
-  
+
   [ Michael Tautschnig ]
   * Unignored make check results on ia64, sparc (alpha still broken): tell
     electric-fence that the alignment is at least 8 bytes (thanks Aurelien
@@ -1409,8 +1630,8 @@ clamav (0.95.1+dfsg-3) unstable; urgency=low
 clamav (0.95.1+dfsg-2) unstable; urgency=low
 
   [ Michael Tautschnig ]
-  * Fixed LogFile handling in clamav-milter.postinst (logrotation was broken) 
-  
+  * Fixed LogFile handling in clamav-milter.postinst (logrotation was broken)
+
   [ Stephen Gran ]
   * More work on clamav-milter's init script
 
@@ -1470,7 +1691,7 @@ clamav (0.95+dfsg-1) unstable; urgency=low
     - memory footprint skyrockets (closes: #420391)
     - Virus not detected in RAR-archive inside email (closes: #484642)
     - clamav-milter ignores whitelist file (closes: #520353)
-    - clamav-milter won't start when both local and tcp socket are in use 
+    - clamav-milter won't start when both local and tcp socket are in use
       (closes: #505852)
     - ERROR: Can't find any clamd server (closes: #435007)
     - clamd: random SIGABRT (closes: #512720)
@@ -1506,7 +1727,7 @@ clamav (0.94.dfsg.2-1) unstable; urgency=low
 
   [ Michael Meskes ]
   * Removed unused debconf templates and unfuzzied all translations.
-  
+
   [ Michael Tautschnig ]
   * Removed --unzip from clampipe script (closes: #506055)
   * Moved clamav-milter specific stuff from its specific README.Debian to
@@ -1544,7 +1765,7 @@ clamav (0.94.dfsg.1-1) unstable; urgency=low
   * Don't trust the multilib guessing stuff, always use libdir=$prefix/lib
   * Removed nowadays unused lintian overrides
   * Create md5sums control file for clamav-dbg as well (thanks, lintian)
-  
+
  -- Michael Tautschnig <mt@debian.org>  Wed, 12 Nov 2008 01:57:58 +0100
 
 clamav (0.94.dfsg-1) unstable; urgency=low
@@ -1613,7 +1834,7 @@ clamav (0.93~dfsg-2) unstable; urgency=low
 clamav (0.93~dfsg-1) unstable; urgency=low
 
   * New upstream release (closes: #476450, #477278)
-    - Fixes failure to lock database directory 
+    - Fixes failure to lock database directory
       (closes: #467298, #471643, #426503)
   * Fix logrotation when supervised (closes: #469196)
   * Run adduser on every new install - this should work around the
@@ -1668,7 +1889,7 @@ clamav (0.92.1~dfsg-1) unstable; urgency=low
 
 clamav (0.92~dfsg-3) unstable; urgency=low
 
-  * Copyright clarifications (closes: #456770) (thanks 
+  * Copyright clarifications (closes: #456770) (thanks
     Scott Kitterman <scott@kitterman.com>)
 
  -- Stephen Gran <sgran@debian.org>  Thu, 20 Dec 2007 15:28:12 +0000
@@ -1738,7 +1959,7 @@ clamav (0.91.2-4) unstable; urgency=low
 
 clamav (0.91.2-3) unstable; urgency=low
 
-  * Remove spurious dependency on libcurl3-dev from libclamav-dev 
+  * Remove spurious dependency on libcurl3-dev from libclamav-dev
     (closes: #440771)
 
  -- Stephen Gran <sgran@debian.org>  Tue, 04 Sep 2007 12:29:13 +0100
@@ -1861,7 +2082,7 @@ clamav (0.90.2-1) unstable; urgency=low
   * Update description to reflect new features in 0.9x (closes: #414884)
   * Translation:
     - Ru (thanks Yuriy Talakan <yt@drsk.ru>)(closes: #416342)
-  * Logcheck rule update for freshclam 
+  * Logcheck rule update for freshclam
     (thanks Jefferson Cowart <jeff@cowart.net>) (closes: #415073)
 
  -- Stephen Gran <sgran@debian.org>  Fri, 13 Apr 2007 11:44:17 +0100
@@ -2267,7 +2488,7 @@ clamav (0.86-1) unstable; urgency=low
 
 clamav (0.85.2-0.86rc1-1) unstable; urgency=low
 
-  * New Upstream Version 
+  * New Upstream Version
     (complete with hideous version number to allow upgrades) *sigh*
   * Allow for entry 'none' in LogFile debconf entry, disabling LogFile
     directive (closes: #309444)
@@ -2523,9 +2744,9 @@ clamav (0.80-6) unstable; urgency=low
   * Maintaining versioning even thoug -5 never got uploaded.  Thanks to all
     who run debs from p.d.o for extra testing of new init scripts.
   * Rewrite clamav init script to actually be portable - thanks to
-    squid maintainers, from which I borrowed liberally.  Thanks especially 
+    squid maintainers, from which I borrowed liberally.  Thanks especially
     to Elrond <elrond+bugs.debian.org@samba-tng.org> and Robert Schmidli
-    <robert_s@emailme.net.au> for assistance in debugging and testing.                    
+    <robert_s@emailme.net.au> for assistance in debugging and testing.
   * freshclam init script no longer produces spurious error message
     (closes: #281514)
   * Again with parser fixups (freshclam, clamd)
@@ -2748,8 +2969,8 @@ clamav (0.73-2) unstable; urgency=low
     job cleaning up after themselves now.  The milter leaves behind a pidfile,
     which is sloppy, but doesn't seem to harm anything.  This should fix the
     problems on upgrade. (closes: #255437, #255436)
-  * Remove unnecessary depends/recommends from clamav-testfiles - these 
-    testfiles could be used for any A/V suite, and have nothing specific to 
+  * Remove unnecessary depends/recommends from clamav-testfiles - these
+    testfiles could be used for any A/V suite, and have nothing specific to
     do with clamav. (closes: #255370)
 
  -- Stephen Gran <sgran@debian.org>  Mon, 21 Jun 2004 22:26:45 -0400
@@ -3121,7 +3342,7 @@ clamav (0.67-3) unstable; urgency=low
       delimiters (closes: #232244)
     - handles SIGHUP by reopening it's log file, allowing more graceful
       reloads after logrotate.
-  * 
+  *
 
  -- Stephen Gran <sgran@debian.org>  Fri, 27 Feb 2004 00:55:12 -0500
 
@@ -3166,7 +3387,7 @@ clamav (0.65-3) unstable; urgency=low
   * Fix endianness problem breaking md5sum verification for freshclam
     (closes: #23186, #231772, #231778)
   * Build-Depend on correct version of autoconf (closes: #231931)
-  * cut-n-paste error fixed in clamav-milter.init (closes: #231878) 
+  * cut-n-paste error fixed in clamav-milter.init (closes: #231878)
 
  -- Stephen Gran <sgran@debian.org>  Mon,  9 Feb 2004 14:08:09 -0500
 
@@ -3212,7 +3433,7 @@ clamav (0.65-1) unstable; urgency=low
   sgran:
   * Make clamav-freshclam-handledaemon a properly named init script and not a
     symlink(closes: #212648)
-  * clamav-freshclam logrotate output sent to /dev/null 
+  * clamav-freshclam logrotate output sent to /dev/null
     (closes: #222565, #230658)
   * Fixed clamav-freshclam.postinst error (closes: #223018, #212052)
   * Removed extra call to dh_install (closes: #217746)
@@ -3233,7 +3454,7 @@ clamav (0.60-10) unstable; urgency=high
   * Fixes at least some mbox problems (closes:Bug#211442)
   * Updated french translation patch from Christian Perrier
   * README.Debian
-     Clarified how debconf handles mixing dpkg-reconfigure and 
+     Clarified how debconf handles mixing dpkg-reconfigure and
        manual editing (closes:Bug#210908)
      Warnings about unstable mbox code in (also in debconf
        templates and manpages)
@@ -3264,7 +3485,7 @@ clamav (0.60-9) unstable; urgency=high
 
 clamav (0.60-8) unstable; urgency=medium
 
-  * Patch from Adam D. Barratt Fixing incorrect references 
+  * Patch from Adam D. Barratt Fixing incorrect references
     (closes:Bug#208517) (closes:Bug#208519) (closes:Bug#208520)
   * Corrected a souring bug in clamav-freshclam-handledaemon
 
@@ -3405,10 +3626,10 @@ clamav (0.54-9) unstable; urgency=low
 
 clamav (0.54-8) unstable; urgency=high
 
-  * pulled enough *printf and daemonize() changes from upstream snapshot to 
+  * pulled enough *printf and daemonize() changes from upstream snapshot to
     avoid printing to closed stderr (closes:Bug#190143)
   * delayed writing to pidfile until after fork (daemon).
- 
+
  -- Magnus Ekdahl <magnus@debian.org>  Thu, 24 Apr 2003 20:27:45 +0200
 
 clamav (0.54-7) unstable; urgency=low
@@ -3599,9 +3820,9 @@ clamav (0.15-1.mag.2) unstable; urgency=low
 
   * Removed cruft from package diff by going back to original tarball.
     Checked files that had been changed with "zcat *.diff.gz | fgrep '+++' ".
-    None found apart from unneeded business in clamscan/Makefile.am and 
-    freshclam/Makefile.am and running automake to change where viruses.db 
-    lives.  This is now set up by defining pkgdatadir when making clamscan 
+    None found apart from unneeded business in clamscan/Makefile.am and
+    freshclam/Makefile.am and running automake to change where viruses.db
+    lives.  This is now set up by defining pkgdatadir when making clamscan
     in debian/rules.
 
  -- Matthew Grant <grantma@anathoth.gen.nz>  Mon, 24 Jun 2002 22:28:52 +1200
@@ -3610,22 +3831,22 @@ clamav (0.15-1.mag.1) unstable; urgency=low
 
   * Removed freshclam and associated files, and cron support
   * Changed viruses.db path to /var/lib/oav-virussignatures/viruses.db
-  * Cleaned up debian directory - there was a lot of unnecessary cruft - 
+  * Cleaned up debian directory - there was a lot of unnecessary cruft -
     extra dir files etc.
   * Moved DMS documentation copying from rules into docs file
   * Added missing prerm script for debhelper documentation symlink removal
     as given in manpage for dh_installdocs
   * Removed preinst script as user is preferred to be added in postinst
     as per Policy Manual Section 11.9
-  * Replaced most of the maintainer scripts as they tended to ignore all 
+  * Replaced most of the maintainer scripts as they tended to ignore all
     arguments
-  * Made deluser happen on purge and not remove in postrm as in gdm and pidentd 
+  * Made deluser happen on purge and not remove in postrm as in gdm and pidentd
     packages. Of course first tested for existence in passwd and group files.
-    This is OK as by default no data is left behind when the package is 
+    This is OK as by default no data is left behind when the package is
     purged (consider when you purge a Web server - you want the pages probably).
   * Fixed addition of clamav user so that in 'postinst configure' it tests
     before adding the user, and take care that all the /etc/passwd fields
-    are set securely.  
+    are set securely.
   * Made postinst script re-add clamav group just in case it is removed.
   * Removed dependency on cron.
   * Added dependency on oav-virussignatures pseudo-package.
@@ -3680,4 +3901,3 @@ clamav (0.11-1) unstable; urgency=low
   * Initial Release. Closes: #146283
 
  -- Magnus Ekdahl <magnus@debian.org>  Thu,  9 May 2002 11:06:00 +0200
-

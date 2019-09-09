@@ -42,7 +42,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav 0.96+dfsg-4\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2017-12-25 22:20+0100\n"
 "PO-Revision-Date: 2014-12-05 18:25+0100\n"
 "Last-Translator: Javier Fernández-Sanguino Peña <jfs@debian.org>\n"
 "Language-Team: Debian Spanish <debian-l10n-spanish@lists.debian.org>\n"
@@ -303,7 +303,17 @@ msgid ""
 "option, it's mandatory to run freshclam at least every 30 minutes. Freshclam "
 "uses the ClamAV's mirror infrastructure to distribute the database and its "
 "updates but all the contents are provided under Google's terms of use."
-msgstr "Cuando se activa por primera vez, freshclam descargará un nuevo archivo de base de datos (safebrowsing.cvd) que se cargará automáticamente por clamd y clamscan en el siguiente reinicio. Esto se realizará siempre que la detección heurística de phishing esté activa. Esta base de datos incluye información de sitios web que pueden ser sitios de robo de credenciales («phishing») o posibles fuentes de programas maliciosos. Es obligatorio ejecutar freshclam al menos cada 30 minutos si se utiliza esta opción. Freshclam utiliza la infraestructura de réplicas de ClamAV para distribuir la base de datos y sus actualizaciones, pero todos los contenidos se ofrecen bajo los términos de uso de Google."
+msgstr ""
+"Cuando se activa por primera vez, freshclam descargará un nuevo archivo de "
+"base de datos (safebrowsing.cvd) que se cargará automáticamente por clamd y "
+"clamscan en el siguiente reinicio. Esto se realizará siempre que la "
+"detección heurística de phishing esté activa. Esta base de datos incluye "
+"información de sitios web que pueden ser sitios de robo de credenciales "
+"(«phishing») o posibles fuentes de programas maliciosos. Es obligatorio "
+"ejecutar freshclam al menos cada 30 minutos si se utiliza esta opción. "
+"Freshclam utiliza la infraestructura de réplicas de ClamAV para distribuir "
+"la base de datos y sus actualizaciones, pero todos los contenidos se ofrecen "
+"bajo los términos de uso de Google."
 
 #. Type: boolean
 #. Description
@@ -329,7 +339,17 @@ msgid ""
 "that fails, it tries to download the CVD file. This option overrides "
 "DatabaseMirror, DNSDatabaseInfo and ScriptedUpdates. It can be used multiple "
 "times to provide fall-back mirrors."
-msgstr "Esta opción le permite configurar de forma sencilla una réplica privada que freshclam utilizará. Si el valor «PrivateMirror» está configurado, freshclam no intentará utilizar el DNS para determinar si sus bases de datos están al día. En lugar de éste, utilizará la petición «If-Modified-Since» o comprobará directamente las cabeceras de los archivos de base de datos remotos. Freshclam intentará primero descargar el archivo CLD para cada base de datos. Si ésto falla, intentará descargar el archivo CVD. Esta opción toma precedencia sobre los valores «DatabaseMirror», «DNSDatabaseInfo» y «ScriptedUpdates». Puede definirse múltiples veces para definir réplicas alternativas en caso de fallo."
+msgstr ""
+"Esta opción le permite configurar de forma sencilla una réplica privada que "
+"freshclam utilizará. Si el valor «PrivateMirror» está configurado, freshclam "
+"no intentará utilizar el DNS para determinar si sus bases de datos están al "
+"día. En lugar de éste, utilizará la petición «If-Modified-Since» o "
+"comprobará directamente las cabeceras de los archivos de base de datos "
+"remotos. Freshclam intentará primero descargar el archivo CLD para cada base "
+"de datos. Si ésto falla, intentará descargar el archivo CVD. Esta opción "
+"toma precedencia sobre los valores «DatabaseMirror», «DNSDatabaseInfo» y "
+"«ScriptedUpdates». Puede definirse múltiples veces para definir réplicas "
+"alternativas en caso de fallo."
 
 #. Type: boolean
 #. Description
@@ -625,13 +645,17 @@ msgstr "¿Desea permitir el uso de la orden «ALLMATCHSCAN»?"
 #. Description
 #: ../clamav-daemon.templates:25001
 msgid "If set to no, clamd will reject any ALLMATCHSCAN command as invalid."
-msgstr "Clamd rechazará cualquier orden «ALLMATCHSCAN» como inválido si responde que no aquí."
+msgstr ""
+"Clamd rechazará cualquier orden «ALLMATCHSCAN» como inválido si responde que "
+"no aquí."
 
 #. Type: boolean
 #. Description
 #: ../clamav-daemon.templates:26001
 msgid "Do you want memory or nested map scans to dump the content to disk?"
-msgstr "¿Desea que los análisis en memoria o anidados vuelquen los contenidos al disco?"
+msgstr ""
+"¿Desea que los análisis en memoria o anidados vuelquen los contenidos al "
+"disco?"
 
 #. Type: boolean
 #. Description
@@ -639,7 +663,10 @@ msgstr "¿Desea que los análisis en memoria o anidados vuelquen los contenidos 
 msgid ""
 "If you turn on this option, more data is written to disk and is available "
 "when the LeaveTemporaryFiles option is enabled."
-msgstr "Si activa esta opción se escribirán más datos en el disco. Estos datos estarán también disponibles cuando se habilite la opción «LeaveTemporaryFiles» (\"Dejar los ficheros temporales\", N. del T.)."
+msgstr ""
+"Si activa esta opción se escribirán más datos en el disco. Estos datos "
+"estarán también disponibles cuando se habilite la opción "
+"«LeaveTemporaryFiles» (\"Dejar los ficheros temporales\", N. del T.)."
 
 #. Type: boolean
 #. Description
@@ -657,7 +684,15 @@ msgid ""
 "certificate in the chain validates against any trusted root, but does not "
 "match any revoked certificate, the file is marked as whitelisted. If the "
 "file does match a revoked certificate, the file is marked as virus."
-msgstr "Algunos archivos PE contienen firmas autenticode. Por omisión, la cadena de firmas en un archivo PE se compara con una base de datos de certificados conocidos y revocados si el archivo se está analizado y se ha marcado como virus. El archivo se marca como válido, introduciéndose en una lista blanca, si cualquiera de los certificados en la cadena son válidos con respecto a cualquier raíz válida, siempre que no coincida con ningún certificado revocado. Si el fichero coincide con un certificado revocado, se marca el fichero como virus."
+msgstr ""
+"Algunos archivos PE contienen firmas autenticode. Por omisión, la cadena de "
+"firmas en un archivo PE se compara con una base de datos de certificados "
+"conocidos y revocados si el archivo se está analizado y se ha marcado como "
+"virus. El archivo se marca como válido, introduciéndose en una lista blanca, "
+"si cualquiera de los certificados en la cadena son válidos con respecto a "
+"cualquier raíz válida, siempre que no coincida con ningún certificado "
+"revocado. Si el fichero coincide con un certificado revocado, se marca el "
+"fichero como virus."
 
 #. Type: boolean
 #. Description
@@ -671,7 +706,9 @@ msgstr "¿Desea activar el análisis dentro de archivos SWF?"
 msgid ""
 "If you turn off this option, the original files will still be scanned, but "
 "without decoding and additional processing."
-msgstr "Si deshabilita esta opción se seguirá analizando los ficheros originales, pero sin decodificarlos ni hacer ningún tipo de procesado adicional."
+msgstr ""
+"Si deshabilita esta opción se seguirá analizando los ficheros originales, "
+"pero sin decodificarlos ni hacer ningún tipo de procesado adicional."
 
 #. Type: string
 #. Description
@@ -686,7 +723,10 @@ msgid ""
 "Files larger than this value will skip the additional analysis step. Note: "
 "disabling this limit or setting it too high may result in severe damage to "
 "the system."
-msgstr "Se saltará el paso adicional del análisis para los ficheros que superen este tamaño. Nota: si deshabilita el límite o lo fija en un valor muy elevado puede provocar daños graves en el sistema."
+msgstr ""
+"Se saltará el paso adicional del análisis para los ficheros que superen este "
+"tamaño. Nota: si deshabilita el límite o lo fija en un valor muy elevado "
+"puede provocar daños graves en el sistema."
 
 #. Type: string
 #. Description
@@ -701,7 +741,10 @@ msgid ""
 "HTML files larger than this value will not be normalized or scanned. Note: "
 "disabling this limit or setting it too high may result in severe damage to "
 "the system."
-msgstr "Los ficheros HTML cuyo tamaño supere este valor no serán normalizados ni analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado puede provocar daños graves en el sistema."
+msgstr ""
+"Los ficheros HTML cuyo tamaño supere este valor no serán normalizados ni "
+"analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado "
+"puede provocar daños graves en el sistema."
 
 #. Type: string
 #. Description
@@ -716,7 +759,10 @@ msgid ""
 "HTML files larger than this value after normalization will not be scanned. "
 "Note: disabling this limit or setting it too high may result in severe "
 "damage to the system."
-msgstr "Los ficheros HTML cuyo tamaño supere este valor tras normalizarlos no serán analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado puede provocar daños graves en el sistema."
+msgstr ""
+"Los ficheros HTML cuyo tamaño supere este valor tras normalizarlos no serán "
+"analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado "
+"puede provocar daños graves en el sistema."
 
 #. Type: string
 #. Description
@@ -731,13 +777,18 @@ msgid ""
 "Script content larger than this value will not be normalized or scanned. "
 "Note: disabling this limit or setting it too high may result in severe "
 "damage to the system."
-msgstr "Los ficheros script cuyo tamaño supere este valor no serán normalizados ni analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado puede provocar daños graves en el sistema."
+msgstr ""
+"Los ficheros script cuyo tamaño supere este valor no serán normalizados ni "
+"analizados. Nota: si deshabilita el límite o lo fija en un valor muy elevado "
+"puede provocar daños graves en el sistema."
 
 #. Type: string
 #. Description
 #: ../clamav-daemon.templates:33001
 msgid "Maximum size of a ZIP file to reanalyze type recognition:"
-msgstr "Tamaño máximo de los archivos ZIP que se reanalizar para reconocer otros tipos:"
+msgstr ""
+"Tamaño máximo de los archivos ZIP que se reanalizar para reconocer otros "
+"tipos:"
 
 #. Type: string
 #. Description
@@ -746,7 +797,10 @@ msgid ""
 "ZIP files larger than this value will skip the step to potentially reanalyze "
 "as PE. Note: disabling this limit or setting it too high may result in "
 "severe damage to the system."
-msgstr "Se omitirÃ¡ el paso para reanalizar los ficheros ZIP como ficheros PE si su tamaño supera este valor. Nota: si deshabilita el límite o lo fija en un valor muy elevado puede provocar daños graves en el sistema."
+msgstr ""
+"Se omitirÃ¡ el paso para reanalizar los ficheros ZIP como ficheros PE si su "
+"tamaño supera este valor. Nota: si deshabilita el límite o lo fija en un "
+"valor muy elevado puede provocar daños graves en el sistema."
 
 #. Type: string
 #. Description
@@ -863,39 +917,6 @@ msgstr ""
 #: ../clamav-daemon.templates:39001
 msgid "Bytecode execution timeout in milliseconds:"
 msgstr "Intervalo de ejecución del bytecode en milisegundos:"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:40001
-msgid "Do you want to submit statistical information?"
-msgstr "¿Desea enviar información estadística?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr "¿Desea deshabilitar el envío de archivos que se han marcado como maliciosos?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr "Si se habilita esta opción se enviarán las secciones PE de los ficheros que se hayan marcado como código malicioso."
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr "Hostid, el UUID a utilizar cuando se envíe información estadística:"
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr "Tiempo (en segundos) a esperar para que el servidor de estadísticas devuelva una respuesta:"
 
 #. Type: boolean
 #. Description
@@ -1583,7 +1604,17 @@ msgid ""
 "both cases only the last recipient is reported. If SupportMultipleRecipients "
 "is on: then one line is logged for each recipient and the command indicated "
 "by VirusAction is also executed once for each recipient."
-msgstr "Esta opción afecta al comportamiento de las opciones «LogInfected», «LogClean» y «VirusAction» cuando se analice un mensaje que tenga múltiples destinatarios. Si el valor de «SupportMultipleRecipients» está desactivado (valor «off») entonces sólo se generará una entrada en el registro de actividad por cada mensaje. Además, si se detecta que el mensaje es malicioso, sólo se ejecuta una vez la orden indicada en «VirusAction». En ambos casos sólo se envía un informe al último destinatario del mensaje. Si se habilita la opción «SupportMultipleRecipients» (valor: «on») entonces sólo se registra una línea por cada destinatario y la orden indicada en «VirusAction» se ejecuta también una sola vez por cada destinatario."
+msgstr ""
+"Esta opción afecta al comportamiento de las opciones «LogInfected», "
+"«LogClean» y «VirusAction» cuando se analice un mensaje que tenga múltiples "
+"destinatarios. Si el valor de «SupportMultipleRecipients» está desactivado "
+"(valor «off») entonces sólo se generará una entrada en el registro de "
+"actividad por cada mensaje. Además, si se detecta que el mensaje es "
+"malicioso, sólo se ejecuta una vez la orden indicada en «VirusAction». En "
+"ambos casos sólo se envía un informe al último destinatario del mensaje. Si "
+"se habilita la opción «SupportMultipleRecipients» (valor: «on») entonces "
+"sólo se registra una línea por cada destinatario y la orden indicada en "
+"«VirusAction» se ejecuta también una sola vez por cada destinatario."
 
 #. Type: boolean
 #. Description
@@ -1591,7 +1622,33 @@ msgstr "Esta opción afecta al comportamiento de las opciones «LogInfected», �
 msgid ""
 "Note: although it's probably a good idea to enable this option, the default "
 "value is currently set to off for legacy reasons."
-msgstr "Nota: Aunque habitualmente sea una buena idea habilitar esta opción, por omisión se deshabilita por motivos históricos."
+msgstr ""
+"Nota: Aunque habitualmente sea una buena idea habilitar esta opción, por "
+"omisión se deshabilita por motivos históricos."
+
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "¿Desea enviar información estadística?"
+
+#~ msgid "Do you want to disable submitting files flagged as malware?"
+#~ msgstr ""
+#~ "¿Desea deshabilitar el envío de archivos que se han marcado como "
+#~ "maliciosos?"
+
+#~ msgid ""
+#~ "If this is enabled, individual PE sections of files flagged as malware "
+#~ "will be submitted."
+#~ msgstr ""
+#~ "Si se habilita esta opción se enviarán las secciones PE de los ficheros "
+#~ "que se hayan marcado como código malicioso."
+
+#~ msgid "HostID, a UUID to use when submitting statistical information:"
+#~ msgstr "Hostid, el UUID a utilizar cuando se envíe información estadística:"
+
+#~ msgid ""
+#~ "Time in seconds to wait for the stats server to come back with a response:"
+#~ msgstr ""
+#~ "Tiempo (en segundos) a esperar para que el servidor de estadísticas "
+#~ "devuelva una respuesta:"
 
 #~ msgid "Set to a value of '0' to disable the timeout."
 #~ msgstr "Si se define el valor a '0' se deshabilita el límite de tiempo."

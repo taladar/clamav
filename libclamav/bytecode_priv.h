@@ -1,8 +1,8 @@
 /*
  *  Load, verify and execute ClamAV bytecode.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009-2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -184,7 +184,7 @@ struct cli_bc_ctx {
     uint32_t lsigcnt[64];
     uint32_t lsigoff[64];
     uint32_t pdf_nobjs;
-    struct pdf_obj *pdf_objs;
+    struct pdf_obj **pdf_objs;
     uint32_t* pdf_flags;
     uint32_t pdf_size;
     uint32_t pdf_startoff;

@@ -1,8 +1,8 @@
 /*
  *  Unit tests for regular expression processing.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2008-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -367,11 +367,14 @@ static void do_phishing_test(const struct rtest *rtest)
 {
 	char *realurl;
 	cli_ctx ctx;
+	struct cl_scan_options options;
 	const char *virname = NULL;
 	tag_arguments_t hrefs;
 	int rc;
 
 	memset(&ctx, 0, sizeof(ctx));
+	memset(&options, 0, sizeof(struct cl_scan_options));
+	ctx.options = &options;
 
 	realurl = cli_strdup(rtest->realurl);
 	fail_unless(!!realurl, "cli_strdup");
@@ -434,8 +437,11 @@ static void do_phishing_test_allscan(const struct rtest *rtest)
 	const char *virname = NULL;
 	tag_arguments_t hrefs;
 	int rc;
+    struct cl_scan_options options;
 
 	memset(&ctx, 0, sizeof(ctx));
+    memset(&options, 0, sizeof(struct cl_scan_options));
+    ctx.options = &options;
 
 	realurl = cli_strdup(rtest->realurl);
 	fail_unless(!!realurl, "cli_strdup");
@@ -453,7 +459,7 @@ static void do_phishing_test_allscan(const struct rtest *rtest)
 
 	ctx.engine = engine;
 	ctx.virname = &virname;
-	ctx.options |= CL_SCAN_ALLMATCHES;
+	ctx.options->general |= CL_SCAN_GENERAL_ALLMATCHES;
 
 	rc = phishingScan(&ctx, &hrefs);
 
@@ -461,27 +467,27 @@ static void do_phishing_test_allscan(const struct rtest *rtest)
 	fail_unless(rc == CL_CLEAN,"phishingScan");
 	switch(rtest->result) {
 		case 0:
-			fail_unless_fmt(ctx.found_possibly_unwanted,
+			fail_unless_fmt(ctx.num_viruses,
 					"this should be phishing, realURL: %s, displayURL: %s",
 					rtest->realurl, rtest->displayurl);
 			break;
 		case 1:
-			fail_unless_fmt(!ctx.found_possibly_unwanted,
+			fail_unless_fmt(!ctx.num_viruses,
 					"this should be whitelisted, realURL: %s, displayURL: %s",
 					rtest->realurl, rtest->displayurl);
 			break;
 		case 2:
-			fail_unless_fmt(!ctx.found_possibly_unwanted,
+			fail_unless_fmt(!ctx.num_viruses,
 					"this should be clean, realURL: %s, displayURL: %s",
 					rtest->realurl, rtest->displayurl);
 			break;
 		case 3:
 			if(!loaded_2)
-				fail_unless_fmt(!ctx.found_possibly_unwanted,
+				fail_unless_fmt(!ctx.num_viruses,
 					"this should be clean, realURL: %s, displayURL: %s",
 					rtest->realurl, rtest->displayurl);
 			else {
-				fail_unless_fmt(ctx.found_possibly_unwanted,
+				fail_unless_fmt(ctx.num_viruses,
 					"this should be blacklisted, realURL: %s, displayURL: %s",
 					rtest->realurl, rtest->displayurl);
 				if (*ctx.virname)

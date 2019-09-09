@@ -1,8 +1,8 @@
 /*
  *  Parse a regular expression, and extract a static suffix.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -358,7 +358,7 @@ static int build_suffixtree_ascend(struct node *n, struct text_buffer *buf, stru
 					if(BITMAP_HASSET(n->u.leaf_class_bitmap, i)) {
 						size_t pos;
 						pos = buf->pos;
-						textbuffer_putc(buf, i);
+						textbuffer_putc(buf, (char)i);
 						if(build_suffixtree_ascend(n->parent, buf, n, cb, cbdata, regex) < 0)
 							return CL_EMEM;
 						buf->pos = pos;

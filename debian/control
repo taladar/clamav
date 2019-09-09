@@ -9,32 +9,31 @@ Uploaders: Michael Meskes <meskes@debian.org>,
            Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Build-Depends: automake,
                check,
-               debhelper (>= 9),
-               dh-autoreconf,
-               dh-systemd,
+               debhelper (>= 11),
+               dh-apparmor,
                dh-strip-nondeterminism,
-               electric-fence,
                libbz2-dev,
                libcurl4-openssl-dev,
                libjson-c-dev | libjson0-dev,
                libltdl-dev,
                libmilter-dev,
                libmspack-dev,
-               libncurses5-dev,
-               libpcre3-dev,
+               libncurses-dev,
+               libpcre2-dev,
                libssl-dev,
                libsystemd-dev [linux-any],
                libtfm-dev,
                libxml2-dev,
-               llvm-dev [i386 amd64 kfreebsd-amd64 kfreebsd-i386],
+#               llvm-dev [i386 amd64 kfreebsd-amd64 kfreebsd-i386],
                perl:native,
                pkg-config,
                po-debconf,
                python:native,
                zlib1g-dev
-Standards-Version: 3.9.8
-Vcs-Git: https://anonscm.debian.org/git/pkg-clamav/clamav.git
-Vcs-Browser: https://anonscm.debian.org/cgit/pkg-clamav/clamav.git
+Standards-Version: 4.3.0
+Rules-Requires-Root: no
+Vcs-Git: https://salsa.debian.org/clamav-team/clamav.git
+Vcs-Browser: https://salsa.debian.org/clamav-team/clamav
 Homepage: https://www.clamav.net/
 
 Package: clamav-base
@@ -109,7 +108,7 @@ Section: libdevel
 Architecture: any
 Depends: libbz2-dev,
          libc6-dev | libc-dev,
-         libclamav7 (= ${binary:Version}),
+         libclamav9 (= ${binary:Version}),
          libidn11-dev,
          libssl-dev,
          libtommath-dev,
@@ -129,12 +128,12 @@ Description: anti-virus utility for Unix - development files
  .
  This library can be used to develop virus scanner applications.
 
-Package: libclamav7
+Package: libclamav9
 Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Suggests: libclamunrar7
+Suggests: libclamunrar9
 Description: anti-virus utility for Unix - library
  Clam AntiVirus is an anti-virus toolkit for Unix. The main purpose of
  this software is the integration with mail servers (attachment
@@ -246,7 +245,6 @@ Description: anti-virus utility for Unix - virus database update utility
 Package: clamav-milter
 Architecture: any
 Suggests: clamav-docs, daemon [!hurd-any]
-Priority: extra
 Recommends: clamav-daemon
 Depends: adduser,
          clamav-base (>= ${source:Version}),

@@ -1,4 +1,4 @@
-From 3bdb184f87270d6f5053b1382e1ab0637e9fd74c Mon Sep 17 00:00:00 2001
+From 75151a065b91b322e1d7867c0658686e316b2972 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Date: Thu, 11 Aug 2016 21:54:10 +0200
 Subject: clamd: don't depend on clamav-demon.socket
@@ -17,13 +17,13 @@ Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
  1 file changed, 2 deletions(-)
 
 diff --git a/clamd/clamav-daemon.service.in b/clamd/clamav-daemon.service.in
-index 0a5d456..98e1c80 100644
+index 0d12d8b..3943ce8 100644
 --- a/clamd/clamav-daemon.service.in
 +++ b/clamd/clamav-daemon.service.in
 @@ -1,7 +1,6 @@
  [Unit]
  Description=Clam AntiVirus userspace daemon
- Documentation=man:clamd(8) man:clamd.conf(5) http://www.clamav.net/lang/en/doc/
+ Documentation=man:clamd(8) man:clamd.conf(5) https://www.clamav.net/documents/
 -Requires=clamav-daemon.socket
  # Check for database existence
  ConditionPathExistsGlob=@DBDIR@/main.{c[vl]d,inc}

@@ -1,6 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2014 Sourcefire, Inc.
+ *  Copyright (C) 2014-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *
  *  Authors: Kevin Lin <klin@sourcefire.com>
  *
@@ -33,7 +32,6 @@
 #include <zlib.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "mbr.h"
 #include "prtn_intxn.h"
@@ -134,7 +132,7 @@ int cli_mbr_check2(cli_ctx *ctx, size_t sectorsize) {
     return mbr_check_mbr(&mbr, maplen, sectorsize);
 }
 
-/* sets sectorsize to default value if specfied to be 0 */
+/* sets sectorsize to default value if specified to be 0 */
 int cli_scanmbr(cli_ctx *ctx, size_t sectorsize)
 {
     struct mbr_boot_record mbr;
@@ -186,17 +184,17 @@ int cli_scanmbr(cli_ctx *ctx, size_t sectorsize)
     /* MBR is valid, examine bootstrap code */
     ret = cli_map_scan(*ctx->fmap, 0, sectorsize, ctx, CL_TYPE_ANY);
     if (ret != CL_CLEAN) {
-        if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+        if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
             detection = CL_VIRUS;
         else
             return ret;
     }
 
     /* check that the partition table has no intersections - HEURISTICS */
-    if ((ctx->options & CL_SCAN_PARTITION_INTXN) && (ctx->dconf->other & OTHER_CONF_PRTNINTXN)) {
+    if (SCAN_HEURISTIC_PARTITION_INTXN && (ctx->dconf->other & OTHER_CONF_PRTNINTXN)) {
         ret = mbr_primary_prtn_intxn(ctx, mbr, sectorsize);
         if (ret != CL_CLEAN) {
-            if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+            if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                 detection = CL_VIRUS;
             else
                 return ret;
@@ -217,7 +215,7 @@ int cli_scanmbr(cli_ctx *ctx, size_t sectorsize)
 
         /* Handle MBR entry based on type */
         if (mbr.entries[i].type == MBR_EMPTY) {
-            /* empty partiton entry */
+            /* empty partition entry */
             prtncount++;
         }
         else if (mbr.entries[i].type == MBR_EXTENDED) {
@@ -225,12 +223,12 @@ int cli_scanmbr(cli_ctx *ctx, size_t sectorsize)
                 cli_dbgmsg("cli_scanmbr: detected a master boot record "
                            "with multiple extended partitions\n");
             }
-            state = SEEN_EXTENDED; /* used only to detect mutiple extended partitions */
+            state = SEEN_EXTENDED; /* used only to detect multiple extended partitions */
 
             ret = mbr_scanextprtn(ctx, &prtncount, mbr.entries[i].firstLBA, 
                                   mbr.entries[i].numLBA, sectorsize);
             if (ret != CL_CLEAN) {
-                if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+                if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                     detection = CL_VIRUS;
                 else
                     return ret;
@@ -244,7 +242,7 @@ int cli_scanmbr(cli_ctx *ctx, size_t sectorsize)
             mbr_parsemsg("cli_map_scan: [%u, +%u)\n", partoff, partsize);
             ret = cli_map_scan(*ctx->fmap, partoff, partsize, ctx, CL_TYPE_PART_ANY);
             if (ret != CL_CLEAN) {
-                if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+                if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                     detection = CL_VIRUS;
                 else
                     return ret;
@@ -312,7 +310,7 @@ static int mbr_scanextprtn(cli_ctx *ctx, unsigned *prtncount, off_t extlba, size
                            (unsigned long)(ebr.entries[j].numLBA * sectorsize));
 
                 if (ebr.entries[j].type == MBR_EMPTY) {
-                    /* empty partiton entry */
+                    /* empty partition entry */
                     switch(state) {
                     case SEEN_NOTHING:
                         state = SEEN_EMPTY;
@@ -387,7 +385,7 @@ static int mbr_scanextprtn(cli_ctx *ctx, unsigned *prtncount, off_t extlba, size
 
                     ret = cli_map_scan(*ctx->fmap, partoff, partsize, ctx, CL_TYPE_PART_ANY);
                     if (ret != CL_CLEAN) {
-                        if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS))
+                        if (SCAN_ALLMATCHES && (ret == CL_VIRUS))
                             detection = CL_VIRUS;
                         else
                             return ret;
@@ -495,30 +493,24 @@ static int mbr_primary_prtn_intxn(cli_ctx *ctx, struct mbr_boot_record mbr, size
 
     for (i = 0; i < MBR_MAX_PARTITION_ENTRIES && prtncount < ctx->engine->maxpartitions; ++i) {
         if (mbr.entries[i].type == MBR_EMPTY) {
-            /* empty partiton entry */
+            /* empty partition entry */
             prtncount++;
         }
         else {
             tmp = prtn_intxn_list_check(&prtncheck, &pitxn, mbr.entries[i].firstLBA,
                                         mbr.entries[i].numLBA);
             if (tmp != CL_CLEAN) {
-                if ((ctx->options & CL_SCAN_ALLMATCHES) && (tmp == CL_VIRUS)) {
+                if (tmp == CL_VIRUS) {
                     cli_dbgmsg("cli_scanmbr: detected intersection with partitions "
                                "[%u, %u]\n", pitxn, i);
-                    cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                    ret = cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                    if (SCAN_ALLMATCHES || ret == CL_CLEAN)
+                        tmp = 0;
+                    else
+                        goto leave;
+                } else {
                     ret = tmp;
-                    tmp = 0;
-                }
-                else if (tmp == CL_VIRUS) {
-                    cli_dbgmsg("cli_scanmbr: detected intersection with partitions "
-                               "[%u, %u]\n", pitxn, i);
-                    cli_append_virus(ctx, PRTN_INTXN_DETECTION);
-                    prtn_intxn_list_free(&prtncheck);
-                    return CL_VIRUS;
-                }
-                else {
-                    prtn_intxn_list_free(&prtncheck);
-                    return tmp;
+                    goto leave;
                 }
             }
 
@@ -527,7 +519,7 @@ static int mbr_primary_prtn_intxn(cli_ctx *ctx, struct mbr_boot_record mbr, size
                 tmp = mbr_extended_prtn_intxn(ctx, &prtncount, 
                                   mbr.entries[i].firstLBA, sectorsize);
                 if (tmp != CL_CLEAN) {
-                    if ((ctx->options & CL_SCAN_ALLMATCHES) && (tmp == CL_VIRUS)) {
+                    if (SCAN_ALLMATCHES && (tmp == CL_VIRUS)) {
                         ret = tmp;
                         tmp = 0;
                     }
@@ -547,6 +539,7 @@ static int mbr_primary_prtn_intxn(cli_ctx *ctx, struct mbr_boot_record mbr, size
         }
     }
 
+leave:
     prtn_intxn_list_free(&prtncheck);
     return ret;
 }
@@ -559,6 +552,7 @@ static int mbr_extended_prtn_intxn(cli_ctx *ctx, unsigned *prtncount, off_t extl
     unsigned i, pitxn;
     int ret = CL_CLEAN, tmp = CL_CLEAN, mbr_base = 0;
     off_t pos = 0, logiclba = 0;
+    int virus_found = 0;
 
     mbr_base = sectorsize - sizeof(struct mbr_boot_record);
 
@@ -585,23 +579,19 @@ static int mbr_extended_prtn_intxn(cli_ctx *ctx, unsigned *prtncount, off_t extl
         /* assume that logical record is first and extended is second */
         tmp = prtn_intxn_list_check(&prtncheck, &pitxn, logiclba, ebr.entries[0].numLBA);
         if (tmp != CL_CLEAN) {
-            if ((ctx->options & CL_SCAN_ALLMATCHES) && (tmp == CL_VIRUS)) {
+            if (tmp == CL_VIRUS) {
                 cli_dbgmsg("cli_scanebr: detected intersection with partitions "
                            "[%u, %u]\n", pitxn, i);
-                cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                ret = cli_append_virus(ctx, PRTN_INTXN_DETECTION);
+                if (ret == CL_VIRUS)
+                    virus_found = 1;
+                if (SCAN_ALLMATCHES || ret == CL_CLEAN)
+                    tmp = 0;
+                else
+                    goto leave;
+            } else {
                 ret = tmp;
-                tmp = 0;
-            }
-            else if (tmp == CL_VIRUS) {
-                cli_dbgmsg("cli_scanebr: detected intersection with partitions "
-                           "[%u, %u]\n", pitxn, i);
-                cli_append_virus(ctx, PRTN_INTXN_DETECTION);
-                prtn_intxn_list_free(&prtncheck);
-                return CL_VIRUS;
-            }
-            else {
-                prtn_intxn_list_free(&prtncheck);
-                return tmp;
+                goto leave;
             }
         }
 
@@ -616,6 +606,9 @@ static int mbr_extended_prtn_intxn(cli_ctx *ctx, unsigned *prtncount, off_t extl
         ++i;
     } while (logiclba != 0 && (*prtncount) < ctx->engine->maxpartitions);
 
-    prtn_intxn_list_free(&prtncheck);    
+ leave:
+    prtn_intxn_list_free(&prtncheck);
+    if (virus_found)
+        return CL_VIRUS;
     return ret;
 }

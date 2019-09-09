@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2015-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *
  *  Authors: Mickey Sola
  *
@@ -28,7 +28,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include <fts.h>
 #include <signal.h>
 #include <pthread.h>
 
@@ -36,11 +35,17 @@
 #include "shared/output.h"
 
 #include "others.h"
-
+#include "priv_fts.h"
+#include "onaccess_others.h"
 #include "onaccess_scth.h"
+#include "onaccess_others.h"
 
-static void onas_scth_handle_dir(const char *pathname);
-static void onas_scth_handle_file(const char *pathname);
+#include "libclamav/clamav.h"
+
+
+static int onas_scth_scanfile(const char *fname, int fd, int extinfo, struct scth_thrarg *tharg);
+static int onas_scth_handle_dir(const char *pathname, struct scth_thrarg *tharg);
+static int onas_scth_handle_file(const char *pathname, struct scth_thrarg *tharg);
 
 static void onas_scth_exit(int sig);
 
@@ -50,34 +55,59 @@ static void onas_scth_exit(int sig) {
 	pthread_exit(NULL);
 }
 
-static void onas_scth_handle_dir(const char *pathname) {
+static int onas_scth_scanfile(const char *fname, int fd, int extinfo, struct scth_thrarg *tharg)
+{
+    int ret = 0;
+    const char *virname = NULL;
+
+    return onas_scan(fname, fd, &virname, tharg->engine, tharg->options, extinfo);
+}
+
+static int onas_scth_handle_dir(const char *pathname, struct scth_thrarg *tharg) {
 	FTS *ftsp = NULL;
+	int fd;
 	int ftspopts = FTS_PHYSICAL | FTS_XDEV;
+	int extinfo;
+	int ret;
 	FTSENT *curr = NULL;
 
-	char *const pathargv[] = { (char *) pathname, NULL };
-	if (!(ftsp = fts_open(pathargv, ftspopts, NULL))) return;
+	extinfo = optget(tharg->opts, "ExtendedDetectionInfo")->enabled;
 
-	/* Offload scanning work to fanotify thread to avoid potential deadlocks. */
-	while ((curr = fts_read(ftsp))) {
+	char *const pathargv[] = { (char *) pathname, NULL };
+	if (!(ftsp = _priv_fts_open(pathargv, ftspopts, NULL))) return CL_EOPEN;
+
+	while ((curr = _priv_fts_read(ftsp))) {
 		if (curr->fts_info != FTS_D) {
-			int fd = open(curr->fts_path, O_RDONLY);
-			if (fd > 0) close(fd);
+			if ((fd = safe_open(curr->fts_path, O_RDONLY | O_BINARY)) == -1)
+                            return CL_EOPEN;
+
+                        if (onas_scth_scanfile(curr->fts_path, fd, extinfo, tharg) == CL_VIRUS);
+                            ret = CL_VIRUS;
+
+			close(fd);
 		}
 	}
 
-	return;
+	return ret;
 }
 
 
-static void onas_scth_handle_file(const char *pathname) {
-	if (!pathname) return;
+static int onas_scth_handle_file(const char *pathname, struct scth_thrarg *tharg) {
+	int fd;
+	int extinfo;
+	int ret;
 
-	/* Offload scanning work to fanotify thread to avoid potential deadlocks. */
-	int fd = open(pathname, O_RDONLY);
-	if (fd > 0) close(fd);
+	if (!pathname) return CL_ENULLARG;
 
-	return;
+	extinfo = optget(tharg->opts, "ExtendedDetectionInfo")->enabled;
+
+	if ((fd = safe_open(pathname, O_RDONLY | O_BINARY)) == -1)
+		return CL_EOPEN;
+	ret = onas_scth_scanfile(pathname, fd, extinfo, tharg);
+
+	close(fd);
+
+	return ret;
 }
 
 void *onas_scan_th(void *arg) {
@@ -103,17 +133,31 @@ void *onas_scan_th(void *arg) {
 	sigaction(SIGUSR1, &act, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 
-
-	if (tharg->options & ONAS_SCTH_ISDIR) {
-		logg("ScanOnAccess: Performing additional scanning on directory '%s'\n", tharg->pathname);
-		onas_scth_handle_dir(tharg->pathname);
-	} else if (tharg->options & ONAS_SCTH_ISFILE) {
-		logg("ScanOnAccess: Performing additional scanning on file '%s'\n", tharg->pathname);
-		onas_scth_handle_file(tharg->pathname);
+	if (NULL == tharg || NULL == tharg->pathname || NULL == tharg->opts || NULL == tharg->engine) {
+		logg("ScanOnAccess: Invalid thread arguments for extra scanning\n");
+		goto done;
 	}
 
-	free(tharg->pathname);
-	tharg->pathname = NULL;
+	if (tharg->extra_options & ONAS_SCTH_ISDIR) {
+		logg("*ScanOnAccess: Performing additional scanning on directory '%s'\n", tharg->pathname);
+		onas_scth_handle_dir(tharg->pathname, tharg);
+	} else if (tharg->extra_options & ONAS_SCTH_ISFILE) {
+		logg("*ScanOnAccess: Performing additional scanning on file '%s'\n", tharg->pathname);
+		onas_scth_handle_file(tharg->pathname, tharg);
+	}
+
+done:
+	if (NULL != tharg->pathname){
+		free(tharg->pathname);
+		tharg->pathname = NULL;
+	}
+	if (NULL != tharg->options) {
+		free(tharg->options);
+		tharg->options = NULL;
+	}
+	if (NULL != tharg) {
+		free(tharg);
+	}
 
 	return NULL;
 }

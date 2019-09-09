@@ -1,8 +1,8 @@
 /*
  *  Javascript normalizer.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2008-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -36,7 +36,6 @@
 #include <assert.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "jsparse/lexglobal.h"
 #include "hashtab.h"
 #include "others.h"
@@ -871,7 +870,7 @@ void cli_js_parse_done(struct parser_state* state)
 	}
 	if (end != '\0')
 		cli_js_process_buffer(state, &end, 1);
-	/* close remaining paranthesis */
+	/* close remaining parenthesis */
 	for (i=0;i<tokens->cnt;i++) {
 		if (tokens->data[i].type == TOK_PAR_OPEN)
 			par_balance++;
@@ -887,7 +886,7 @@ void cli_js_parse_done(struct parser_state* state)
 		}
 	}
 
-	/* we had to close unfinished strings, paranthesis,
+	/* we had to close unfinished strings, parenthesis,
 	 * so that the folders/decoders can run properly */
 	run_folders(&state->tokens);
 	run_decoders(state);

@@ -4,12 +4,6 @@ set -e
 
 #COMMON-FUNCTIONS#
 
-if [ -x "/etc/init.d/clamav-freshclam" ]; then
-  if pathfind invoke-rc.d ; then
-    invoke-rc.d clamav-freshclam stop
-  else
-    /etc/init.d/clamav-freshclam stop
-  fi
-fi
+invoke-rc.d clamav-freshclam stop || true
 #DEBHELPER#
 exit 0

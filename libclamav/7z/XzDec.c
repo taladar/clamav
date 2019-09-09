@@ -331,7 +331,7 @@ void MixCoder_Construct(CMixCoder *p, ISzAlloc *alloc)
 {
   int i;
   p->alloc = alloc;
-  p->buf = 0;
+  p->buf = NULL;
   p->numCoders = 0;
   for (i = 0; i < MIXCODER_NUM_FILTERS_MAX; i++)
     p->coders[i].p = NULL;
@@ -348,7 +348,10 @@ void MixCoder_Free(CMixCoder *p)
   }
   p->numCoders = 0;
   if (p->buf)
+  {
     p->alloc->Free(p->alloc, p->buf);
+    p->buf = NULL; /* 9.31: the BUG was fixed */
+  }
 }
 
 void MixCoder_Init(CMixCoder *p)
@@ -604,12 +607,18 @@ SRes XzUnpacker_Create(CXzUnpacker *p, ISzAlloc *alloc)
   p->state = XZ_STATE_STREAM_HEADER;
   p->pos = 0;
   p->numStreams = 0;
+  p->numBlocks = 0;
+  p->padSize = 0;
   return SZ_OK;
 }
 
 void XzUnpacker_Free(CXzUnpacker *p)
 {
+  if (!p)
+    return;
   MixCoder_Free(&p->decoder);
+  cl_hash_destroy(p->sha);
+  p->sha = NULL;
 }
 
 SRes XzUnpacker_Code(CXzUnpacker *p, Byte *dest, SizeT *destLen,
@@ -811,8 +820,10 @@ SRes XzUnpacker_Code(CXzUnpacker *p, Byte *dest, SizeT *destLen,
             p->state = XZ_STATE_STREAM_INDEX_CRC;
             p->indexSize += 4;
             p->pos = 0;
-            if ((p->sha))
+            if ((p->sha)) {
                 cl_finish_hash(p->sha, digest);
+                p->sha = NULL;
+            }
 
             if (memcmp(digest, p->shaDigest, SHA256_DIGEST_SIZE) != 0)
               return SZ_ERROR_CRC;

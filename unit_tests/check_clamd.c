@@ -1,8 +1,8 @@
 /*
  *  Unit tests for clamd.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -42,7 +42,9 @@
 
 #include <sys/time.h>
 #include <sys/resource.h>
+#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -50,7 +52,6 @@
 #include "checks_common.h"
 #include "libclamav/clamav.h"
 #include "libclamav/version.h"
-#include "libclamav/cltypes.h"
 
 #ifdef CHECK_HAVE_LOOPS
 
@@ -181,7 +182,7 @@ static struct basic_test {
     {"CONTSCAN "CLEANFILE, NULL, CLEANREPLY, 1, 0, IDS_REJECT},
     {"MULTISCAN "SCANFILE, NULL, FOUNDREPLY, 1, 0, IDS_REJECT},
     {"MULTISCAN "CLEANFILE, NULL, CLEANREPLY, 1, 0, IDS_REJECT},
-    /* unknown commnads */
+    /* unknown commands */
     {"RANDOM", NULL, UNKNOWN_REPLY, 1, 0, IDS_REJECT},
     /* commands invalid as first */
     {"END", NULL, UNKNOWN_REPLY, 1, 0, IDS_END},

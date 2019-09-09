@@ -1,10 +1,7 @@
-AUTHORS
-BUGS
-FAQ
-README
-docs/*.pdf
-docs/*.tex
-docs/clam.eps
-docs/html
-debian/README.Debian
 debian/NEWS.Debian
+debian/README.Debian
+docs/html
+docs/UserManual
+docs/UserManual.md
+NEWS.md
+README.md

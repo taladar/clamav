@@ -1,8 +1,8 @@
 /*
  *  JIT detection for ClamAV bytecode.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -45,7 +45,7 @@ static void warn_assumptions(const char *msg, int a, int b)
     errs() << "LibClamAV Warning: libclamav and llvm make inconsistent "
 	<< "assumptions about " << msg << ": " <<
 	a << " and " << b << "."
-	<< "Please report to http://bugs.clamav.net\n";
+	<< "Please report to https://bugzilla.clamav.net\n";
 }
 
 #define CASE_OS(theos, compat) case Triple::theos:\

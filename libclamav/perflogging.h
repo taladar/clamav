@@ -1,8 +1,8 @@
 /*
  *  Gather statistics from performance sensitive code.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2008-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -36,7 +36,7 @@
 /*TODO: maybe we need a GCC version check too here */
 #include <pthread.h>
 #include <assert.h>
-#include "cltypes.h"
+#include "clamav-types.h"
 
 enum perf_log_sumable {
 	RAW_BYTES_SCANNED,

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2013 Sourcefire, Inc.
  *
  *  Authors: Steven Morgan (smorgan@sourcefire.com)
@@ -57,6 +57,8 @@ int cli_XzInit(struct CLI_XZ *XZ) {
 }
 	
 void cli_XzShutdown(struct CLI_XZ *XZ) {
+    if (!XZ)
+        return;
     XzUnpacker_Free(&XZ->state);
 }
 
@@ -76,7 +78,11 @@ int cli_XzDecode(struct CLI_XZ *XZ) {
         return XZ_STREAM_END;
     if (XZ->status == CODER_STATUS_NOT_FINISHED && XZ->avail_out == 0)
         return XZ_RESULT_OK;
-    if (((inbytes == 0) && (outbytes == 0)) || res != SZ_OK)
+    if (((inbytes == 0) && (outbytes == 0)) || res != SZ_OK) {
+        if (res == SZ_ERROR_MEM) {
+            return XZ_DIC_HEURISTIC;
+        }
 	return XZ_RESULT_DATA_ERROR;
+    }
     return XZ_RESULT_OK;
 }

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Trog, Török Edvin
  *
@@ -44,7 +44,7 @@
 #endif
 
 /* BSD and HP-UX need a bigger stacksize than the system default */
-#if defined (C_BSD) || defined (C_HPUX) || defined(C_AIX)
+#if defined (C_BSD) || defined (C_HPUX) || defined(C_AIX) || (defined(C_LINUX) && !defined(__GLIBC__))
 #define C_BIGSTACK 1
 #endif
 

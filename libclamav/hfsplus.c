@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2013 Sourcefire, Inc.
  *
  *  Authors: David Raynor <draynor@sourcefire.com>
@@ -24,7 +24,6 @@
 #endif
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "hfsplus.h"
 #include "scanners.h"
@@ -68,7 +67,7 @@ static void headerrecord_print(const char *pfx, hfsHeaderRecord *hdr)
     cli_dbgmsg("%s Header: depth %hu root %u leafRecords %u firstLeaf %u lastLeaf %u nodeSize %hu\n",
         pfx, hdr->treeDepth, hdr->rootNode, hdr->leafRecords, hdr->firstLeafNode,
         hdr->lastLeafNode, hdr->nodeSize);
-    cli_dbgmsg("%s Header: maxKeyLength %hu totalNodes %u freeNodes %u btreeType %hu attributes %x\n",
+    cli_dbgmsg("%s Header: maxKeyLength %hu totalNodes %u freeNodes %u btreeType %hhu attributes %x\n",
         pfx, hdr->maxKeyLength, hdr->totalNodes, hdr->freeNodes,
         hdr->btreeType, hdr->attributes);
 }
@@ -407,7 +406,7 @@ static int hfsplus_scanfile(cli_ctx *ctx, hfsPlusVolumeHeader *volHeader, hfsHea
 
     /* if successful so far, scan the output */
     if (ret == CL_CLEAN) {
-        ret = cli_magic_scandesc(ofd, ctx);
+        ret = cli_magic_scandesc(ofd, tmpname, ctx);
     }
 
     if (ofd >= 0) {
@@ -662,8 +661,8 @@ static int hfsplus_walk_catalog(cli_ctx *ctx, hfsPlusVolumeHeader *volHeader, hf
                 /* Check return code */
                 if (ret == CL_VIRUS) {
                     has_alerts = 1;
-                    if (SCAN_ALL) {
-                        /* Continue scanning in SCAN_ALL mode */
+                    if (SCAN_ALLMATCHES) {
+                        /* Continue scanning in SCAN_ALLMATCHES mode */
                         cli_dbgmsg("hfsplus_walk_catalog: data fork alert, continuing");
                         ret = CL_CLEAN;
                     }
@@ -681,8 +680,8 @@ static int hfsplus_walk_catalog(cli_ctx *ctx, hfsPlusVolumeHeader *volHeader, hf
                 /* Check return code */
                 if (ret == CL_VIRUS) {
                     has_alerts = 1;
-                    if (SCAN_ALL) {
-                        /* Continue scanning in SCAN_ALL mode */
+                    if (SCAN_ALLMATCHES) {
+                        /* Continue scanning in SCAN_ALLMATCHES mode */
                         cli_dbgmsg("hfsplus_walk_catalog: resource fork alert, continuing");
                         ret = CL_CLEAN;
                     }

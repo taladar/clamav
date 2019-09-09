@@ -1,8 +1,8 @@
 /*
  *  HTML Entity & Encoding normalization.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -24,7 +24,7 @@
 #ifndef _ENTITIES_H
 #define _ENTITIES_H
 
-#include "cltypes.h"
+#include "clamav-types.h"
 
 #include "hashtab.h"
 
@@ -49,7 +49,7 @@ struct entity_conv {
 	unsigned char entity_buff[MAX_ENTITY_SIZE+2];
 };
 
-enum encodings {E_UCS4,E_UTF16,E_UCS4_1234,E_UCS4_4321,E_UCS4_2143,E_UCS4_3412,E_UTF16_BE,E_UTF16_LE,E_UTF8, E_UNKNOWN,E_OTHER, E_ICONV};
+enum encodings {E_UCS4,E_UTF16,E_UCS4_1234,E_UCS4_4321,E_UCS4_2143,E_UCS4_3412,E_UTF16_BE,E_UTF16_LE,E_UTF8, E_UNKNOWN,E_OTHER};
 
 unsigned char* u16_normalize_tobuffer(uint16_t u16, unsigned char* dst, size_t dst_size);
 const char* entity_norm(struct entity_conv* conv,const unsigned char* entity);

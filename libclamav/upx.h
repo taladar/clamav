@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
  *
@@ -22,11 +22,11 @@
 #ifndef __UPX_H
 #define __UPX_H
 
-#include "cltypes.h"
+#include "clamav-types.h"
 
 int upx_inflate2b(const char *, uint32_t, char *, uint32_t *, uint32_t, uint32_t, uint32_t);
 int upx_inflate2d(const char *, uint32_t, char *, uint32_t *, uint32_t, uint32_t, uint32_t);
 int upx_inflate2e(const char *, uint32_t, char *, uint32_t *, uint32_t, uint32_t, uint32_t);
-int upx_inflatelzma(const char *, uint32_t, char *, uint32_t *, uint32_t, uint32_t, uint32_t);
+int upx_inflatelzma(const char *, uint32_t, char *, uint32_t *, uint32_t, uint32_t, uint32_t, uint32_t);
 
 #endif

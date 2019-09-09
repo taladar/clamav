@@ -1,4 +1,4 @@
-From fef1bbc259bca9cfaac65a85de877f9b7ed27773 Mon Sep 17 00:00:00 2001
+From d270e1b7719040d02da3674f913a229a27a95ef8 Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:56 +0200
 Subject: Add support for LLVM 3.9
@@ -10,11 +10,11 @@ AtomicOrdering is now a strongly typed enum.
 Patch-Name: Add-support-for-LLVM-3.9.patch
 ---
  libclamav/c++/bytecode2llvm.cpp | 12 +++++++++++-
- libclamav/c++/m4/llvm-flags.m4  |  4 ++--
+ libclamav/c++/configure.ac      |  4 ++--
  2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/libclamav/c++/bytecode2llvm.cpp b/libclamav/c++/bytecode2llvm.cpp
-index 213847c..252f8f6 100644
+index 8bc1937..19325c2 100644
 --- a/libclamav/c++/bytecode2llvm.cpp
 +++ b/libclamav/c++/bytecode2llvm.cpp
 @@ -787,7 +787,11 @@ class RuntimeLimits : public FunctionPass {
@@ -53,11 +53,11 @@ index 213847c..252f8f6 100644
  
      std::vector<Value*> globals;
      DenseMap<unsigned, unsigned> GVoffsetMap;
-diff --git a/libclamav/c++/m4/llvm-flags.m4 b/libclamav/c++/m4/llvm-flags.m4
-index 345c7ae..9631d5d 100644
---- a/libclamav/c++/m4/llvm-flags.m4
-+++ b/libclamav/c++/m4/llvm-flags.m4
-@@ -98,14 +98,14 @@ elif test $llvmver_test -lt 290; then
+diff --git a/libclamav/c++/configure.ac b/libclamav/c++/configure.ac
+index 291b8a0..c6482de 100644
+--- a/libclamav/c++/configure.ac
++++ b/libclamav/c++/configure.ac
+@@ -89,14 +89,14 @@ elif test $llvmver_test -lt 290; then
  elif test $llvmver_test -lt 360; then
      llvmcomp="jit nativecodegen scalaropts ipo"
      AC_MSG_RESULT([ok ($llvmver)])
@@ -73,4 +73,4 @@ index 345c7ae..9631d5d 100644
 +    AC_MSG_ERROR([LLVM < 4.0 required, but "$llvmver"($llvmver_test) found])
  fi
  
- dnl aquire the required flags to properly link in external LLVM
+ dnl acquire the required flags to properly link in external LLVM

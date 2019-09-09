@@ -26,12 +26,13 @@ LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS) -Wl,--as-needed
 # To add new llvm/jit archs add it here and to the arch list for llvm-dev in
 # debian/control.
 # PowerPC is disabled until atleast llvm-3.8. As thing stand now MCJIT is
-# broken in llvm-3.6. llvm v3.8 looks promissing but needs to be verified.
-ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 kfreebsd-amd64 kfreebsd-i386))
+# broken in llvm-3.6.
+# Currently LLVM is disabled because there is no support for llvm > 3.8
+#ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 kfreebsd-amd64 kfreebsd-i386))
   export enable_llvm=no
-else
-    SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
-endif
+#else
+#    SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
+#endif
 
 # Set the configure options:
 #	* add the build flags
@@ -45,7 +46,7 @@ endif
 CONFIG := CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
 	--with-dbdir=/var/lib/clamav --sysconfdir=/etc/clamav \
 	--disable-clamav --disable-unrar --enable-milter --enable-dns-fix \
-	--with-libjson \
+	--with-libjson --with-system-libmspack --with-libcurl=/usr \
 	--with-gnu-ld $(SYSTEM_LLVM) \
 	--with-systemdsystemunitdir=/lib/systemd/system
 
@@ -58,17 +59,8 @@ else
 	DEBUG_OPTS += --enable-debug
 endif
 
-# Don't use systemd on wheezy.
-ifeq ($(shell cut -c1 /etc/debian_version),7)
-  SYSTEMD =
-else
-  SYSTEMD = --with systemd
-endif
-
-# Use the default debhelper scripts, where possible.
-# Enable parallel building and conditionally autoreconf and systemd.
 %:
-	dh $@ --parallel --with autoreconf $(SYSTEMD)
+	dh $@
 
 override_dh_auto_configure:
 	$(info DEB_BUILD_OPTIONS = $(DEB_BUILD_OPTIONS))
@@ -95,20 +87,20 @@ override_dh_auto_configure:
 	    touch debian/exit; \
 	  fi;\
 	done; \
-	# Check if for library features whih may get upgrade.
-	if ! grep -q "CL_FLEVEL 82" libclamav/others.h ; then \
+	# Check for library features which may have been upgraded.
+	if ! grep -q "CL_FLEVEL 105" libclamav/others.h ; then \
 		echo "cl_retflevel needs boosting in symbol file"; \
 		touch debian/exit; \
 	fi;
 	sed "s/ \(.*\)@CLAMAV_PRIVATE .*/ \1@CLAMAV_PRIVATE $(shell dpkg-parsechangelog -S Version | sed 's/+dfsg.*//')/" \
-		< debian/libclamav7.symbols > debian/libclamav7.symbols.latest
-	if ! cmp debian/libclamav7.symbols debian/libclamav7.symbols.latest; then \
+		< debian/libclamav9.symbols > debian/libclamav9.symbols.latest
+	if ! cmp debian/libclamav9.symbols debian/libclamav9.symbols.latest; then \
 		echo "Need to update CLAMAV_PRIVATE symbols"; \
 		touch debian/exit; \
 	fi;
 
 	[ ! -f debian/exit ] || (rm debian/exit && exit 1)
-	rm debian/libclamav7.symbols.latest
+	rm debian/libclamav9.symbols.latest
 
 	# Configure using the specified flags.
 	dh_auto_configure -- $(CONFIG) $(DEBUG_OPTS)
@@ -150,8 +142,10 @@ else
 	T=900 dh_auto_test -- V=1 VERBOSE=1
 endif
 
-override_dh_strip:
-	dh_strip --dbgsym-migration=clamav-dbg
+override_dh_install:
+	dh_install
+	dh_apparmor -pclamav-freshclam --profile-name=usr.bin.freshclam
+	dh_apparmor -pclamav-daemon --profile-name=usr.sbin.clamd
 
 override_dh_installinit:
 	dh_installinit -pclamav-daemon
@@ -169,19 +163,6 @@ override_dh_installdocs-indep:
 override_dh_strip_nondeterminism:
 	dh_strip_nondeterminism -Xclam.bz2.zip -Xclam.d64.zip -Xclam.impl.zip -Xclam.zip
 
-# Install the upstream ChangeLog.
-override_dh_installchangelogs:
-	dh_installchangelogs -pclamav-base ChangeLog
-	dh_installchangelogs -pclamav-daemon ChangeLog
-	dh_installchangelogs -pclamav-docs ChangeLog
-	dh_installchangelogs -pclamav-freshclam ChangeLog
-	dh_installchangelogs -pclamav-milter ChangeLog
-	dh_installchangelogs -pclamav-testfiles ChangeLog
-	dh_installchangelogs -pclamav ChangeLog
-	dh_installchangelogs -pclamdscan ChangeLog
-	dh_installchangelogs -plibclamav-dev ChangeLog
-	dh_installchangelogs -plibclamav7 ChangeLog
-
 # Don't compress the example configuration files and the documentation PDFs.
 override_dh_compress:
-	dh_compress -Xexamples -X.pdf
+	dh_compress -Xexamples

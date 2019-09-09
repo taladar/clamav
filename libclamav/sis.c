@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
  *
@@ -407,13 +407,13 @@ static int real_scansis(cli_ctx *ctx, const char *tmpd) {
 	sftype = "sub sis";
 	break;
       case FTcontsis:
-	sftype = "conatiner sis";
+	sftype = "container sis";
 	break;
       case FTtextuninst:
 	sftype = "uninstall text";
 	break;
       case FTnotinst:
-	sftype = "not to be intalled";
+	sftype = "not to be installed";
 	break;
       default:
 	sftype = "unknown";
@@ -505,7 +505,7 @@ static int real_scansis(cli_ctx *ctx, const char *tmpd) {
 	    return CL_EWRITE;
 	  }
 	  free(decomp);
-	  if (cli_magic_scandesc(fd, ctx) == CL_VIRUS) {
+	  if (cli_magic_scandesc(fd, ofn, ctx) == CL_VIRUS) {
 	    close(fd);
 	    free(ptrs);
 	    free(alangs);
@@ -766,7 +766,7 @@ static int real_scansis9x(cli_ctx *ctx, const char *tmpd) {
 		break;
 	      }
 	      free(dst);
-	      if (cli_magic_scandesc(fd, ctx) == CL_VIRUS) {
+	      if (cli_magic_scandesc(fd, tempf, ctx) == CL_VIRUS) {
 		close(fd);
 		return CL_VIRUS;
 	      }
@@ -832,7 +832,7 @@ static int real_scansis9x(cli_ctx *ctx, const char *tmpd) {
 /* #define GETD(VAR) \ */
 /*   if (cbuff) { \ */
 /*     if (sleft<4) { \ */
-/*       printf("Unespectedly reached end of compressed buffer\n"); \ */
+/*       printf("Unexpectedly reached end of compressed buffer\n"); \ */
 /*       free(cbuff); \ */
 /*       cbuff=NULL; \ */
 /*       smax=sleft=0; \ */
@@ -999,7 +999,7 @@ static int real_scansis9x(cli_ctx *ctx, const char *tmpd) {
 /*       break; */
 /*     } */
 /*     if(!this->optional && this->expect!=field) { */
-/*       printf("Error: expecing %s but found %s\n", sisfields[this->expect], sisfields[field]); */
+/*       printf("Error: expected %s but found %s\n", sisfields[this->expect], sisfields[field]); */
 /*       goto SIS_ERROR; */
 /*     } */
 /*     printf("Got %s field (%d) with size %x(%u)\n", sisfields[field], field, fsz, fsz); */

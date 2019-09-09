@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2013 Sourcefire, Inc.
  *
  *  Authors: David Raynor <draynor@sourcefire.com>
@@ -26,7 +26,7 @@
 #include "clamav-config.h"
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 
 /* Structures based on Apple Technote 1150 */
 

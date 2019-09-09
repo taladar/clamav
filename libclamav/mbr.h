@@ -1,6 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2014 Sourcefire, Inc.
+ *  Copyright (C) 2014-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *
  *  Authors: Kevin Lin <klin@sourcefire.com>
  *
@@ -26,7 +25,7 @@
 #include "clamav-config.h"
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "others.h"
 
 #define MBR_SECTOR_SIZE 512

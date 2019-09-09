@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
  *
@@ -54,7 +54,6 @@
 #include <string.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "rebuildpe.h"
 #include "execs.h"
 #include "others.h"
@@ -277,7 +276,7 @@ int petite_inflate2x_1to9(char *buf, uint32_t minrva, uint32_t bufsz, struct cli
       uint8_t goback;
       unsigned int q;
       
-      /* Unpak each original section in turn */
+      /* Unpack each original section in turn */
 
       if ( ! CLI_ISCONTAINED(buf, bufsz, packed+4, 8)) {
 	if (usects)

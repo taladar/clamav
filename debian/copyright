@@ -11,6 +11,7 @@ Comment:
 Files-Excluded:
  win32/*
  libclamav/c++/llvm/*
+ libclammspack/*
 
 
 Files: *
@@ -19,7 +20,7 @@ Copyright:
  2002-2007, Tomasz Kojm <tkojm@clamav.net>
  2006, Sensory Networks, Inc
  2007-2015, Cisco Systems, Inc
- 2014, Cisco and/or its affiliates
+ 2014-2018, Cisco and/or its affiliates
 License: GPL-2
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License version 2 as
@@ -44,7 +45,7 @@ Files:
  libclamav/xdp.c
  libclamav/xdp.h
 Copyright:
- 2014, Cisco and/or its affiliates
+ 2014, 2017-2018 Cisco and/or its affiliates
 License: GPL-2 with OpenSSL exception
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License version 2 as
@@ -88,7 +89,6 @@ Files:
  clamdscan/Makefile.am
  clamscan/Makefile.am
  database/Makefile.am
- docs/clamdoc.tex
  docs/Makefile.am
  etc/Makefile.am
  examples/ex1.c
@@ -105,7 +105,6 @@ Files:
  libclamav/Makefile.am
  libclamav/c++/configure.ac
  libclamav/c++/Makefile.am
- libclamunrar_iface/Makefile.am
  Makefile.am
  sigtool/Makefile.am
  sigtool/vba.c
@@ -269,7 +268,7 @@ Comment:
 Files:
  libclamav/mspack.c
  libclamav/mspack.h
- libclamunrar_iface/unrar_iface.c
+ libclamunrar_iface/unrar_iface.cpp
  libclamunrar_iface/unrar_iface.h
 Copyright:
  2003-2004 Stuart Caie
@@ -279,7 +278,6 @@ License: LGPL-2.1
 Files:
  clamd/fts.c
  clamd/priv_fts.h
- debian/patches/clamav_add_private_fts_implementation.patch
 Copyright:
  1990, 1993-1994, The Regents of the University of California.
  1994-2015, Free Software Foundation, Inc.
@@ -394,7 +392,6 @@ Files:
  libclamav/c++/m4/ltoptions.m4
  libclamav/c++/m4/ltsugar.m4
  libclamav/c++/m4/ltversion.m4
- m4/ltargz.m4
  m4/lib-ld.m4
  m4/lib-link.m4
  m4/lib-prefix.m4
@@ -437,7 +434,6 @@ Files:
  libclamav/c++/aclocal.m4
  libclamav/c++/Makefile.in
  libclamav/Makefile.in
- libclamunrar_iface/Makefile.in
  libltdl/Makefile.in
  Makefile.in
  shared/Makefile.in
@@ -537,6 +533,42 @@ License: public-domain~3
  LZMA SDK is written and placed in the public domain by Igor Pavlov.
 Comment:
  See COPYING.lzma.
+
+Files: libclamav/lzw/*
+Copyright:
+ 1988-1997 Sam Leffler
+ 1991-1997 Silicon Graphics, Inc
+ 2016 Cisco and/or its affiliates. All rights reserved.
+License: LZW
+ Permission to use, copy, modify, distribute, and sell this software and
+ its documentation for any purpose is hereby granted without fee, provided
+ that (i) the above copyright notices and this permission notice appear in
+ all copies of the software and related documentation, and (ii) the names of
+ Sam Leffler and Silicon Graphics may not be used in any advertising or
+ publicity relating to the software without the specific, prior written
+ permission of Sam Leffler and Silicon Graphics.
+ .
+ THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+ WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+ .
+ IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
+ ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
+ OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+ LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ OF THIS SOFTWARE.
+
+Files: libclamav/tomsfastmath/*
+Copyright: Public Domain
+License: public-domain
+ TomsFastMath is public domain.
+ .
+ Note some ideas were borrowed from LibTomMath and OpenSSL.  All of the code is original or ported
+ from LibTomMath [no code was ported from OpenSSL].  As such the origins and status of this code
+ are both public domain.
+ .
+ -- Tom St Denis
 
 Files:
  libclamav/yara_*

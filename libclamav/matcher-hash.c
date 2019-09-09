@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB
  *
@@ -230,6 +230,10 @@ int cli_hm_have_size(const struct cli_matcher *root, enum CLI_HASH_TYPE type, ui
 
 int cli_hm_have_wild(const struct cli_matcher *root, enum CLI_HASH_TYPE type) {
     return (root && root->hwild.hashes[type].items);
+}
+
+int cli_hm_have_any(const struct cli_matcher *root, enum CLI_HASH_TYPE type) {
+    return (root && (root->hwild.hashes[type].items || root->hm.sizehashes[type].capacity));
 }
 
 /* cli_hm_scan will scan only size-specific hashes, if any */

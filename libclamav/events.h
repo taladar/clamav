@@ -1,8 +1,8 @@
 /*
  *  (bytecode) events
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010-2012 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -24,7 +24,7 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
-#include "cltypes.h"
+#include "clamav-types.h"
 
 struct cli_events;
 typedef struct cli_events cli_events_t;

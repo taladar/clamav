@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>
  *
@@ -45,7 +45,6 @@
 
 #include "clamav.h"
 #include "scanners.h"
-#include "cltypes.h"
 #include "others.h"
 #include "fmap.h"
 #include "ishield.h"
@@ -304,7 +303,7 @@ int cli_scanishield_msi(cli_ctx *ctx, off_t off) {
             cli_dbgmsg("ishield-msi: call to lseek() failed\n");
             ret = CL_ESEEK;
         }
-	    ret = cli_magic_scandesc(ofd, ctx);
+	    ret = cli_magic_scandesc(ofd, tempfile, ctx);
 	}
 	close(ofd);
 
@@ -350,6 +349,7 @@ int cli_scanishield(cli_ctx *ctx, off_t off, size_t sz) {
     struct IS_CABSTUFF c = { NULL, -1, 0, 0 };
     fmap_t *map = *ctx->fmap;
     unsigned fc = 0;
+    int virus_found = 0;
 
     while(ret == CL_CLEAN) {
 	fname = fmap_need_offstr(map, coff, 2048);
@@ -379,8 +379,12 @@ int cli_scanishield(cli_ctx *ctx, off_t off, size_t sz) {
 
 	cli_dbgmsg("ishield: @%lx found file %s (%s) - version %s - size %lu\n", (unsigned long int) coff, fname, path, version, (unsigned long int) fsize);
 	if(cli_matchmeta(ctx, fname, fsize, fsize, 0, fc++, 0, NULL) == CL_VIRUS) {
-	    ret = CL_VIRUS;
-	    break;
+            if (!SCAN_ALLMATCHES) {
+                ret = CL_VIRUS;
+                break;
+            }
+            ret = CL_CLEAN;
+            virus_found = 1;
 	}
 	sz -= (data - fname) + fsize;
 
@@ -436,6 +440,9 @@ int cli_scanishield(cli_ctx *ctx, off_t off, size_t sz) {
       } else if( ret == CL_BREAK ) ret = CL_CLEAN;
     }
     if(c.cabs) free(c.cabs);
+
+    if (virus_found != 0)
+        return CL_VIRUS;
     return ret;
 }
 
@@ -479,7 +486,7 @@ static int is_dump_and_scan(cli_ctx *ctx, off_t off, size_t fsize) {
         cli_dbgmsg("ishield: call to lseek() failed\n");
         ret = CL_ESEEK;
     }
-	ret = cli_magic_scandesc(ofd, ctx);
+	ret = cli_magic_scandesc(ofd, fname, ctx);
     }
     close(ofd);
     if(!ctx->engine->keeptmp)
@@ -778,7 +785,7 @@ static int is_extract_cab(cli_ctx *ctx, uint64_t off, uint64_t size, uint64_t cs
 	    cli_dbgmsg("is_extract_cab: extracted to %s\n", tempfile);
 	if (lseek(ofd, 0, SEEK_SET) == -1)
         cli_dbgmsg("is_extract_cab: call to lseek() failed\n");
-	ret = cli_magic_scandesc(ofd, ctx);
+	ret = cli_magic_scandesc(ofd, tempfile, ctx);
     }
 
     close(ofd);

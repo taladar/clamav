@@ -35,7 +35,7 @@ if [ ! -f "$CLAMAVCONF" ]; then
   log_failure_msg "There is no configuration file for clamav-milter."
   log_failure_msg "Please either dpkg-reconfigure $DESC, or copy the example from"
   log_failure_msg "/usr/share/doc/clamav-milter/examples/ to $CLAMAVCONF and run"
-  log_failure_msg "'/etc/init.d/clamav-milter start'"
+  log_failure_msg "'invoke-rc.d clamav-milter start'"
   if [ "$1" = "status" ]; then
     # program or service status is unknown
     exit 4;
@@ -50,7 +50,7 @@ slurp_config "$CLAMAVCONF"
 
 if [ -n "$Example" ]; then
   log_failure_msg "$DESC is not configured."
-  log_failure_msg "Please edit $CLAMAVCONF and run '/etc/init.d/clamav-milter start'"
+  log_failure_msg "Please edit $CLAMAVCONF and run 'invoke-rc.d clamav-milter start'"
   if [ "$1" = "status" ]; then
     # program or service status is unknown
     exit 4;

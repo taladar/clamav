@@ -1,4 +1,4 @@
-From 3111db3d1a3f2b20a007673f69a53ad69afec2f8 Mon Sep 17 00:00:00 2001
+From dadb4b37352a7ffcd3b4bc070281c858b34f1381 Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:48 +0200
 Subject: Add support for LLVM 3.8
@@ -14,18 +14,18 @@ the corresponding C++ API.
 
 Patch-Name: Add-support-for-LLVM-3.8.patch
 ---
- libclamav/c++/ClamBCRTChecks.cpp  | 50 ++++++++++++++++++++++++++++++
- libclamav/c++/PointerTracking.cpp | 12 ++++++++
- libclamav/c++/bytecode2llvm.cpp   | 65 +++++++++++++++++++++++++++++++--------
- libclamav/c++/detect.cpp          |  2 ++
- libclamav/c++/m4/llvm-flags.m4    |  4 +--
+ libclamav/c++/ClamBCRTChecks.cpp  | 50 ++++++++++++++++++++++++
+ libclamav/c++/PointerTracking.cpp | 12 ++++++
+ libclamav/c++/bytecode2llvm.cpp   | 65 +++++++++++++++++++++++++------
+ libclamav/c++/configure.ac        |  4 +-
+ libclamav/c++/detect.cpp          |  2 +
  5 files changed, 119 insertions(+), 14 deletions(-)
 
 diff --git a/libclamav/c++/ClamBCRTChecks.cpp b/libclamav/c++/ClamBCRTChecks.cpp
-index 35f7272..a254c40 100644
+index 033604e..8b065e7 100644
 --- a/libclamav/c++/ClamBCRTChecks.cpp
 +++ b/libclamav/c++/ClamBCRTChecks.cpp
-@@ -54,7 +54,9 @@
+@@ -53,7 +53,9 @@
  #include "llvm/Analysis/ScalarEvolution.h"
  #include "llvm/Analysis/ScalarEvolutionExpressions.h"
  #include "llvm/Analysis/ScalarEvolutionExpander.h"
@@ -35,7 +35,7 @@ index 35f7272..a254c40 100644
  #include "llvm/Pass.h"
  #include "llvm/Support/CommandLine.h"
  #if LLVM_VERSION < 35
-@@ -207,7 +209,11 @@ namespace llvm {
+@@ -206,7 +208,11 @@ namespace llvm {
  #else
            TD = &F.getEntryBlock().getModule()->getDataLayout();
  #endif
@@ -47,7 +47,7 @@ index 35f7272..a254c40 100644
            PT = &getAnalysis<PointerTracking>();
  #if LLVM_VERSION < 35
            DT = &getAnalysis<DominatorTree>();
-@@ -332,7 +338,11 @@ namespace llvm {
+@@ -331,7 +337,11 @@ namespace llvm {
                AbrtC->setDoesNotThrow();
  #endif
                // remove all instructions from entry
@@ -59,7 +59,7 @@ index 35f7272..a254c40 100644
                while (BBI != BBE) {
                    if (!BBI->use_empty())
                        BBI->replaceAllUsesWith(UndefValue::get(BBI->getType()));
-@@ -367,7 +377,11 @@ namespace llvm {
+@@ -366,7 +376,11 @@ namespace llvm {
  #else
            AU.addRequired<DominatorTreeWrapperPass>();
  #endif
@@ -71,7 +71,7 @@ index 35f7272..a254c40 100644
            AU.addRequired<PointerTracking>();
  #if LLVM_VERSION < 35
            AU.addRequired<CallGraph>();
-@@ -398,9 +412,17 @@ namespace llvm {
+@@ -397,9 +411,17 @@ namespace llvm {
  
        Instruction *getInsertPoint(Value *V)
        {
@@ -89,7 +89,7 @@ index 35f7272..a254c40 100644
                ++It;
            }
            return &*It;
-@@ -427,7 +449,11 @@ namespace llvm {
+@@ -426,7 +448,11 @@ namespace llvm {
            constType *P8Ty =
                PointerType::getUnqual(Type::getInt8Ty(Ptr->getContext()));
            if (PHINode *PN = dyn_cast<PHINode>(Ptr)) {
@@ -101,7 +101,7 @@ index 35f7272..a254c40 100644
                ++It;
                PHINode *newPN = PHINode::Create(P8Ty, HINT(PN->getNumIncomingValues()) ".verif.base", &*It);
                Changed = true;
-@@ -441,7 +467,11 @@ namespace llvm {
+@@ -440,7 +466,11 @@ namespace llvm {
                return newPN;
            }
            if (SelectInst *SI = dyn_cast<SelectInst>(Ptr)) {
@@ -113,7 +113,7 @@ index 35f7272..a254c40 100644
                ++It;
                Value *TrueB = getPointerBase(SI->getTrueValue());
                Value *FalseB = getPointerBase(SI->getFalseValue());
-@@ -552,7 +582,11 @@ namespace llvm {
+@@ -574,7 +604,11 @@ namespace llvm {
            }
  #endif
            if (PHINode *PN = dyn_cast<PHINode>(Base)) {
@@ -125,7 +125,7 @@ index 35f7272..a254c40 100644
                ++It;
                PHINode *newPN = PHINode::Create(I64Ty, HINT(PN->getNumIncomingValues()) ".verif.bounds", &*It);
                Changed = true;
-@@ -575,7 +609,11 @@ namespace llvm {
+@@ -597,7 +631,11 @@ namespace llvm {
                return BoundsMap[Base] = newPN;
            }
            if (SelectInst *SI = dyn_cast<SelectInst>(Base)) {
@@ -137,7 +137,7 @@ index 35f7272..a254c40 100644
                ++It;
                Value *TrueB = getPointerBounds(SI->getTrueValue());
                Value *FalseB = getPointerBounds(SI->getFalseValue());
-@@ -632,7 +670,11 @@ namespace llvm {
+@@ -654,7 +692,11 @@ namespace llvm {
            if (!MDDbgKind)
                return 0;
            Approximate = true;
@@ -149,7 +149,7 @@ index 35f7272..a254c40 100644
            while (It != I->getParent()->begin()) {
                --It;
                if (MDNode *Dbg = It->getMetadata(MDDbgKind))
-@@ -666,7 +708,11 @@ namespace llvm {
+@@ -688,7 +730,11 @@ namespace llvm {
                return false;
            }
            BasicBlock *BB = I->getParent();
@@ -161,7 +161,7 @@ index 35f7272..a254c40 100644
  #if LLVM_VERSION < 37
            BasicBlock *newBB = SplitBlock(BB, &*It, this);
  #else
-@@ -949,7 +995,11 @@ INITIALIZE_PASS_DEPENDENCY(DominatorTree)
+@@ -971,7 +1017,11 @@ INITIALIZE_PASS_DEPENDENCY(DominatorTree)
  #else
  INITIALIZE_PASS_DEPENDENCY(DominatorTreeWrapperPass)
  #endif
@@ -174,7 +174,7 @@ index 35f7272..a254c40 100644
  INITIALIZE_AG_DEPENDENCY(CallGraph)
  #elif LLVM_VERSION < 35
 diff --git a/libclamav/c++/PointerTracking.cpp b/libclamav/c++/PointerTracking.cpp
-index 67340e8..ad5b93f 100644
+index 5567894..147ad48 100644
 --- a/libclamav/c++/PointerTracking.cpp
 +++ b/libclamav/c++/PointerTracking.cpp
 @@ -79,7 +79,11 @@ INITIALIZE_PASS_DEPENDENCY(LoopInfo)
@@ -214,7 +214,7 @@ index 67340e8..ad5b93f 100644
  }
  
 diff --git a/libclamav/c++/bytecode2llvm.cpp b/libclamav/c++/bytecode2llvm.cpp
-index 2171993..213847c 100644
+index 80b6fc3..8bc1937 100644
 --- a/libclamav/c++/bytecode2llvm.cpp
 +++ b/libclamav/c++/bytecode2llvm.cpp
 @@ -170,7 +170,9 @@ void LLVMInitializePowerPCAsmPrinter();
@@ -420,25 +420,11 @@ index 2171993..213847c 100644
        return DIG;
  #endif
    }
-diff --git a/libclamav/c++/detect.cpp b/libclamav/c++/detect.cpp
-index 17348af..95ba2f7 100644
---- a/libclamav/c++/detect.cpp
-+++ b/libclamav/c++/detect.cpp
-@@ -22,7 +22,9 @@
-  */
- 
- #include "llvm/ADT/Triple.h"
-+#if LLVM_VERSION < 38
- #include "llvm/Config/config.h"
-+#endif
- #include "llvm/Support/raw_ostream.h"
- #if LLVM_VERSION < 29
- #include "llvm/System/DataTypes.h"
-diff --git a/libclamav/c++/m4/llvm-flags.m4 b/libclamav/c++/m4/llvm-flags.m4
-index 04d6833..345c7ae 100644
---- a/libclamav/c++/m4/llvm-flags.m4
-+++ b/libclamav/c++/m4/llvm-flags.m4
-@@ -98,14 +98,14 @@ elif test $llvmver_test -lt 290; then
+diff --git a/libclamav/c++/configure.ac b/libclamav/c++/configure.ac
+index a8511a0..291b8a0 100644
+--- a/libclamav/c++/configure.ac
++++ b/libclamav/c++/configure.ac
+@@ -89,14 +89,14 @@ elif test $llvmver_test -lt 290; then
  elif test $llvmver_test -lt 360; then
      llvmcomp="jit nativecodegen scalaropts ipo"
      AC_MSG_RESULT([ok ($llvmver)])
@@ -454,4 +440,18 @@ index 04d6833..345c7ae 100644
 +    AC_MSG_ERROR([LLVM < 3.9 required, but "$llvmver"($llvmver_test) found])
  fi
  
- dnl aquire the required flags to properly link in external LLVM
+ dnl acquire the required flags to properly link in external LLVM
+diff --git a/libclamav/c++/detect.cpp b/libclamav/c++/detect.cpp
+index dea61b5..db3d3bd 100644
+--- a/libclamav/c++/detect.cpp
++++ b/libclamav/c++/detect.cpp
+@@ -22,7 +22,9 @@
+  */
+ 
+ #include "llvm/ADT/Triple.h"
++#if LLVM_VERSION < 38
+ #include "llvm/Config/config.h"
++#endif
+ #include "llvm/Support/raw_ostream.h"
+ #if LLVM_VERSION < 29
+ #include "llvm/System/DataTypes.h"

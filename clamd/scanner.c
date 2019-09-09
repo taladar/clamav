@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Török Edvin
  *
@@ -54,6 +54,7 @@
 #include "libclamav/others.h"
 #include "libclamav/scanners.h"
 
+#include "shared/idmef_logging.h"
 #include "shared/optparser.h"
 #include "shared/output.h"
 #include "shared/misc.h"
@@ -116,7 +117,7 @@ void clamd_virus_found_cb(int fd, const char *virname, void *ctx)
     
     if (d == NULL)
         return;
-    if (!(d->options & CL_SCAN_ALLMATCHES))
+    if (!(d->options->general & CL_SCAN_GENERAL_ALLMATCHES) && !(d->options->general & CL_SCAN_GENERAL_HEURISTIC_PRECEDENCE))
         return;
     if (virname == NULL)
         return;
@@ -124,6 +125,7 @@ void clamd_virus_found_cb(int fd, const char *virname, void *ctx)
     fname = (c && c->filename) ? c->filename : "(filename not set)";
 
     if (virname) {
+        d->infected++;
         conn_reply_virus(d->conn, fname, virname);
         if(c->virsize > 0 && optget(d->opts, "ExtendedDetectionInfo")->enabled)
             logg("~%s: %s(%s:%llu) FOUND\n", fname, virname, c->virhash, c->virsize);
@@ -274,14 +276,22 @@ int scan_callback(STATBUF *sb, char *filename, const char *msg, enum cli_ftw_rea
     }
 
     if (ret == CL_VIRUS) {
-        scandata->infected++;
-        if (scandata->options & CL_SCAN_ALLMATCHES) {
+
+         if (scandata->options->general & CL_SCAN_GENERAL_ALLMATCHES || (scandata->infected && scandata->options->general & CL_SCAN_GENERAL_HEURISTIC_PRECEDENCE)) {
+            if(optget(scandata->opts, "PreludeEnable")->enabled){
+                prelude_logging(filename, virname, context.virhash, context.virsize);
+            }
             virusaction(filename, virname, scandata->opts);
         } else {
+           scandata->infected++;
             if (conn_reply_virus(scandata->conn, filename, virname) == -1) {
                 free(filename);
                 return CL_ETIMEOUT;
             }
+            if(optget(scandata->opts, "PreludeEnable")->enabled){
+                prelude_logging(filename, virname, context.virhash, context.virsize);
+            }
+
             if(context.virsize && optget(scandata->opts, "ExtendedDetectionInfo")->enabled)
                 logg("~%s: %s(%s:%llu) FOUND\n", filename, virname, context.virhash, context.virsize);
             else
@@ -343,12 +353,17 @@ int scan_pathchk(const char *path, struct cli_ftw_cbdata *data)
     return 0;
 }
 
-int scanfd(const client_conn_t *conn, unsigned long int *scanned,
-	   const struct cl_engine *engine,
-	   unsigned int options, const struct optstruct *opts, int odesc, int stream)
+int scanfd(
+	const client_conn_t *conn,
+	unsigned long int *scanned,
+	const struct cl_engine *engine,
+	struct cl_scan_options *options,
+	const struct optstruct *opts,
+	int odesc,
+	int stream)
 {
     int ret, fd = conn->scanfd;
-	const char *virname;
+	const char *virname = NULL;
 	STATBUF statbuf;
 	struct cb_context context;
 	char fdstr[32];
@@ -378,8 +393,8 @@ int scanfd(const client_conn_t *conn, unsigned long int *scanned,
 	thrmgr_setactivetask(fdstr, NULL);
 	context.filename = fdstr;
 	context.virsize = 0;
-        context.scandata = NULL;
-	ret = cl_scandesc_callback(fd, &virname, scanned, engine, options, &context);
+	context.scandata = NULL;
+	ret = cl_scandesc_callback(fd, conn->filename, &virname, scanned, engine, options, &context);
 	thrmgr_setactivetask(NULL, NULL);
 
 	if (thrmgr_group_need_terminate(conn->group)) {
@@ -408,14 +423,20 @@ int scanfd(const client_conn_t *conn, unsigned long int *scanned,
 	return ret;
 }
 
-int scanstream(int odesc, unsigned long int *scanned, const struct cl_engine *engine, unsigned int options, const struct optstruct *opts, char term)
+int scanstream(
+	int odesc,
+	unsigned long int *scanned,
+	const struct cl_engine *engine,
+	struct cl_scan_options *options,
+	const struct optstruct *opts,
+	char term)
 {
 	int ret, sockfd, acceptd;
 	int tmpd, bread, retval, firsttimeout, timeout, btread;
 	unsigned int port = 0, portscan, min_port, max_port;
 	unsigned long int quota = 0, maxsize = 0;
 	short bound = 0;
-	const char *virname;
+	const char *virname = NULL;
 	char buff[FILEBUFF];
 	char peer_addr[32];
 	struct cb_context context;
@@ -542,13 +563,13 @@ int scanstream(int odesc, unsigned long int *scanned, const struct cl_engine *en
     }
 
     if(retval == 1) {
-	lseek(tmpd, 0, SEEK_SET);
-	thrmgr_setactivetask(peer_addr, NULL);
-	context.filename = peer_addr;
-	context.virsize = 0;
-        context.scandata = NULL;
-	ret = cl_scandesc_callback(tmpd, &virname, scanned, engine, options, &context);
-	thrmgr_setactivetask(NULL, NULL);
+		lseek(tmpd, 0, SEEK_SET);
+		thrmgr_setactivetask(peer_addr, NULL);
+		context.filename = peer_addr;
+		context.virsize = 0;
+		context.scandata = NULL;
+		ret = cl_scandesc_callback(tmpd, tmpname, &virname, scanned, engine, options, &context);
+		thrmgr_setactivetask(NULL, NULL);
     } else {
     	ret = -1;
     }

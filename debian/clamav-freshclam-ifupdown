@@ -6,7 +6,7 @@ set -e
 
 [ -e /var/lib/clamav/interface ] || exit 0
 
-INIT=/etc/init.d/clamav-freshclam
+INIT=invoke-rc.d clamav-freshclam
 CLAMAV_CONF_FILE=/etc/clamav/clamd.conf
 FRESHCLAM_CONF_FILE=/etc/clamav/freshclam.conf
 

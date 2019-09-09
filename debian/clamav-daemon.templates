@@ -272,26 +272,3 @@ Template: clamav-daemon/BytecodeTimeout
 Type: string
 Default: 60000
 _Description: Bytecode execution timeout in milliseconds:
-
-Template: clamav-daemon/StatsEnabled
-Type: boolean
-Default: false
-_Description: Do you want to submit statistical information?
-
-Template: clamav-daemon/StatsPEDisabled
-Type: boolean
-Default: true
-_Description: Do you want to disable submitting files flagged as malware?
- If this is enabled, individual PE sections of files flagged as malware
- will be submitted.
-
-Template: clamav-daemon/StatsHostID
-Type: string
-Default: auto
-_Description: HostID, a UUID to use when submitting statistical information:
-
-Template: clamav-daemon/StatsTimeout
-Type: string
-Default: 10
-_Description: Time in seconds to wait for the stats server to come back with a response:
-

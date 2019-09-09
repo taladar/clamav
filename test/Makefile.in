@@ -87,10 +87,11 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/ax_check_uname_syscall.m4 \
 	$(top_srcdir)/m4/fdpassing.m4 $(top_srcdir)/m4/lib-ld.m4 \
 	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/llvm.m4 \
-	$(top_srcdir)/m4/ltargz.m4 $(top_srcdir)/m4/ltdl.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/lib-prelude.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/llvm.m4 $(top_srcdir)/m4/ltargz.m4 \
+	$(top_srcdir)/m4/ltdl.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/mmap_private.m4 $(top_srcdir)/m4/resolv.m4 \
 	$(top_srcdir)/m4/reorganization/version.m4 \
 	$(top_srcdir)/m4/reorganization/build_tools.m4 \
@@ -98,6 +99,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/c_options.m4 \
 	$(top_srcdir)/m4/reorganization/compiler_checks.m4 \
 	$(top_srcdir)/m4/reorganization/linker_checks.m4 \
+	$(top_srcdir)/m4/reorganization/code_checks/fuzz.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/functions.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/mpool.m4 \
 	$(top_srcdir)/m4/reorganization/code_checks/unit_tests.m4 \
@@ -106,6 +108,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/libs/openssl.m4 \
 	$(top_srcdir)/m4/reorganization/libs/json.m4 \
 	$(top_srcdir)/m4/reorganization/libs/pcre.m4 \
+	$(top_srcdir)/m4/reorganization/libs/libmspack.m4 \
 	$(top_srcdir)/m4/reorganization/libs/libz.m4 \
 	$(top_srcdir)/m4/reorganization/libs/bzip.m4 \
 	$(top_srcdir)/m4/reorganization/libs/unrar.m4 \
@@ -145,17 +148,23 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/clamdtop.m4 \
 	$(top_srcdir)/m4/reorganization/distcheck.m4 \
 	$(top_srcdir)/m4/reorganization/llvm.m4 \
+	$(top_srcdir)/libclamav/c++/m4/llvm-opts.m4 \
 	$(top_srcdir)/m4/reorganization/sha_collect.m4 \
 	$(top_srcdir)/m4/reorganization/yara.m4 \
+	$(top_srcdir)/m4/reorganization/code_checks/fts.m4 \
 	$(top_srcdir)/m4/reorganization/libfreshclam.m4 \
+	$(top_srcdir)/m4/reorganization/prelude.m4 \
 	$(top_srcdir)/m4/reorganization/bsd.m4 \
 	$(top_srcdir)/m4/reorganization/libs/curl.m4 \
 	$(top_srcdir)/m4/reorganization/substitutions.m4 \
+	$(top_srcdir)/m4/reorganization/strni.m4 \
+	$(top_srcdir)/m4/reorganization/types.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/clamav-config.h
+CONFIG_HEADER = $(top_builddir)/clamav-config.h \
+	$(top_builddir)/libclammspack/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -219,8 +228,14 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CURSES_CPPFLAGS = @CURSES_CPPFLAGS@
 CURSES_LIBS = @CURSES_LIBS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBDIR = @DBDIR@
+DEFINE_SF32_PREFIX = @DEFINE_SF32_PREFIX@
+DEFINE_SF64_PREFIX = @DEFINE_SF64_PREFIX@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -235,17 +250,26 @@ FGREP = @FGREP@
 FRESHCLAM_CPPFLAGS = @FRESHCLAM_CPPFLAGS@
 FRESHCLAM_LIBS = @FRESHCLAM_LIBS@
 GCOV = @GCOV@
+GENERATE_WARNING = @GENERATE_WARNING@
 GENHTML = @GENHTML@
 GETENT = @GETENT@
 GPERF = @GPERF@
 GREP = @GREP@
+HAVE_STRNI = @HAVE_STRNI@
 HAVE_YARA = @HAVE_YARA@
+ICONV_CPPFLAGS = @ICONV_CPPFLAGS@
+ICONV_LDFLAGS = @ICONV_LDFLAGS@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+INT16_DEF = @INT16_DEF@
+INT32_DEF = @INT32_DEF@
+INT64_DEF = @INT64_DEF@
+INT8_DEF = @INT8_DEF@
+INT_TYPES_HEADER = @INT_TYPES_HEADER@
 JSON_CPPFLAGS = @JSON_CPPFLAGS@
 JSON_LDFLAGS = @JSON_LDFLAGS@
 JSON_LIBS = @JSON_LIBS@
@@ -267,7 +291,16 @@ LIBCLAMAV_VERSION = @LIBCLAMAV_VERSION@
 LIBCLAMSHARED_CPPFLAGS = @LIBCLAMSHARED_CPPFLAGS@
 LIBLTDL = @LIBLTDL@
 LIBM = @LIBM@
+LIBMSPACK_CFLAGS = @LIBMSPACK_CFLAGS@
+LIBMSPACK_LIBS = @LIBMSPACK_LIBS@
 LIBOBJS = @LIBOBJS@
+LIBPRELUDE_CFLAGS = @LIBPRELUDE_CFLAGS@
+LIBPRELUDE_CONFIG = @LIBPRELUDE_CONFIG@
+LIBPRELUDE_CONFIG_PREFIX = @LIBPRELUDE_CONFIG_PREFIX@
+LIBPRELUDE_LDFLAGS = @LIBPRELUDE_LDFLAGS@
+LIBPRELUDE_LIBS = @LIBPRELUDE_LIBS@
+LIBPRELUDE_PREFIX = @LIBPRELUDE_PREFIX@
+LIBPRELUDE_PTHREAD_CFLAGS = @LIBPRELUDE_PTHREAD_CFLAGS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
@@ -318,6 +351,10 @@ SYSTEMD_CFLAGS = @SYSTEMD_CFLAGS@
 SYSTEMD_LIBS = @SYSTEMD_LIBS@
 THREAD_LIBS = @THREAD_LIBS@
 TH_SAFE = @TH_SAFE@
+UINT16_DEF = @UINT16_DEF@
+UINT32_DEF = @UINT32_DEF@
+UINT64_DEF = @UINT64_DEF@
+UINT8_DEF = @UINT8_DEF@
 VERSION = @VERSION@
 VERSIONSCRIPTFLAG = @VERSIONSCRIPTFLAG@
 WERR_CFLAGS = @WERR_CFLAGS@
@@ -332,6 +369,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -361,6 +399,7 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+llvmconfig = @llvmconfig@
 localedir = @localedir@
 localstatedir = @localstatedir@
 ltdl_LIBOBJS = @ltdl_LIBOBJS@
@@ -598,7 +637,7 @@ uninstall-am:
 all: $(FILES)
 
 $(FILES) :
-	cat $(SPLIT_DIR)/split.$@aa $(SPLIT_DIR)/split.$@ab > $@
+	cat $(SPLIT_DIR)/split.$@a* > $@
 
 clean-local:
 	rm -f clam*

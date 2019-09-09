@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2011 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2011-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB
  *
@@ -106,13 +106,9 @@ int cli_7unz (cli_ctx *ctx, size_t offset) {
 
     SzArEx_Init(&db);
     res = SzArEx_Open(&db, &lookStream.s, &allocImp, &allocTempImp);
-    if(res == SZ_ERROR_ENCRYPTED && DETECT_ENCRYPTED) {
+    if(res == SZ_ERROR_ENCRYPTED && SCAN_HEURISTIC_ENCRYPTED_ARCHIVE) {
 	cli_dbgmsg("cli_7unz: Encrypted header found in archive.\n");
-	cli_append_virus(ctx, "Heuristics.Encrypted.7Zip");
-	viruses_found++;
-	if(!SCAN_ALL) {
-	    found = CL_VIRUS;
-	}
+	found = cli_append_virus(ctx, "Heuristics.Encrypted.7Zip");
     } else if(res == SZ_OK) {
 	UInt32 i, blockIndex = 0xFFFFFFFF;
 	Byte *outBuffer = 0;
@@ -162,20 +158,22 @@ int cli_7unz (cli_ctx *ctx, size_t offset) {
 	    res = SzArEx_Extract(&db, &lookStream.s, i, &blockIndex, &outBuffer, &outBufferSize, &offset, &outSizeProcessed, &allocImp, &allocTempImp);
 	    if(res == SZ_ERROR_ENCRYPTED) {
 		encrypted = 1;
-		if(DETECT_ENCRYPTED) {
+		if(SCAN_HEURISTIC_ENCRYPTED_ARCHIVE) {
 		    cli_dbgmsg("cli_7unz: Encrypted files found in archive.\n");
-		    cli_append_virus(ctx, "Heuristics.Encrypted.7Zip");
-		    viruses_found++;
-		    if(!SCAN_ALL) {
-			found = CL_VIRUS;
-			break;
+		    found = cli_append_virus(ctx, "Heuristics.Encrypted.7Zip");
+                    if (found != CL_CLEAN) {
+                        if (found == CL_VIRUS) {
+                            if (SCAN_ALLMATCHES)
+                                viruses_found++;
+                        } else
+                            break;
 		    }
 		}
 	    }
 	    if(cli_matchmeta(ctx, name, 0, f->Size, encrypted, i, f->CrcDefined ? f->Crc : 0, NULL)) {
 		found = CL_VIRUS;
 		viruses_found++;
-		if (!SCAN_ALL)
+		if (!SCAN_ALLMATCHES)
 		    break;
 	    }
 	    if (res != SZ_OK)
@@ -188,7 +186,7 @@ int cli_7unz (cli_ctx *ctx, size_t offset) {
 		if((size_t)cli_writen(fd, outBuffer + offset, outSizeProcessed) != outSizeProcessed)
 		    found = CL_EWRITE;
 		else
-		    if ((found = cli_magic_scandesc(fd, ctx)) == CL_VIRUS)
+		    if ((found = cli_magic_scandesc(fd, name, ctx)) == CL_VIRUS)
 			viruses_found++;
 		close(fd);
 		if(!ctx->engine->keeptmp && cli_unlink(name))
@@ -196,7 +194,7 @@ int cli_7unz (cli_ctx *ctx, size_t offset) {
 
 		free(name);
 		if(found != CL_CLEAN)
-		    if (!(SCAN_ALL && found == CL_VIRUS))
+		    if (!(SCAN_ALLMATCHES && found == CL_VIRUS))
 			break;
 	    }
 	}
@@ -219,7 +217,7 @@ int cli_7unz (cli_ctx *ctx, size_t offset) {
     else
 	cli_dbgmsg("cli_7unz: error %d\n", res);
 
-    if (SCAN_ALL && viruses_found)
+    if (SCAN_ALLMATCHES && viruses_found)
 	return CL_VIRUS;
     return found;
 }

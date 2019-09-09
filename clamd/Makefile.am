@@ -1,5 +1,7 @@
 #
-#  Copyright (C) 2002 - 2007 Tomasz Kojm <tkojm@clamav.net>
+#  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+#  Copyright (C) 2007-2013 Sourcefire, Inc.
+#  Copyright (C) 2002-2007 Tomasz Kojm <tkojm@clamav.net>
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,6 +25,8 @@ sbin_PROGRAMS = clamd
 clamd_SOURCES = \
     $(top_srcdir)/shared/output.c \
     $(top_srcdir)/shared/output.h \
+    $(top_srcdir)/shared/idmef_logging.c \
+    $(top_srcdir)/shared/idmef_logging.h \
     $(top_srcdir)/shared/optparser.c \
     $(top_srcdir)/shared/optparser.h \
     $(top_srcdir)/shared/getopt.c \
@@ -45,6 +49,8 @@ clamd_SOURCES = \
     others.c \
     others.h \
     shared.h \
+    onaccess_others.c \
+    onaccess_others.h \
     onaccess_fan.c \
     onaccess_fan.h \
     onaccess_ddd.c \
@@ -52,7 +58,12 @@ clamd_SOURCES = \
     onaccess_hash.c \
     onaccess_hash.h \
     onaccess_scth.c \
-    onaccess_scth.h
+    onaccess_scth.h \
+    priv_fts.h
+
+if !SYSTEM_LFS_FTS
+clamd_SOURCES += fts.c
+endif
 
 AM_CFLAGS=@WERR_CFLAGS@
 

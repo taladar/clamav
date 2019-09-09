@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Nigel Horne
  *
@@ -21,6 +21,8 @@
 
 #ifndef	_MESSAGE_H
 #define	_MESSAGE_H
+
+#include "json_api.h"
 
 /* The contents could change, ONLY access in message.c */
 typedef struct message {
@@ -49,6 +51,9 @@ typedef struct message {
 	unsigned	int	isInfected : 1;
 	unsigned        int     isTruncated  : 1;
 
+#if HAVE_JSON
+	json_object *jobj;
+#endif
 } message;
 
 message	*messageCreate(void);
@@ -85,5 +90,8 @@ int	isuuencodebegin(const char *line);
 void	messageSetCTX(message *m, cli_ctx *ctx);
 int	messageContainsVirus(const message *m);
 int messageSavePartial(message *m, const char *dir, const char *id, unsigned part);
+#if HAVE_JSON
+json_object *messageGetJObj(message *m);
+#endif
 
 #endif	/*_MESSAGE_H*/

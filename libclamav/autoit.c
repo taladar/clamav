@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
@@ -393,8 +393,8 @@ static int ea05(cli_ctx *ctx, const uint8_t *base, char *tmpd) {
         close(i);
         return CL_ESEEK;
     }
-    if(cli_magic_scandesc(i, ctx) == CL_VIRUS) {
-      if (!SCAN_ALL) {
+    if(cli_magic_scandesc(i, tempfile, ctx) == CL_VIRUS) {
+      if (!SCAN_ALLMATCHES) {
 	close(i);
 	if(!ctx->engine->keeptmp)
 	  if(cli_unlink(tempfile)) return CL_EUNLINK;
@@ -920,8 +920,8 @@ static int ea06(cli_ctx *ctx, const uint8_t *base, char *tmpd) {
         close(i);
         return CL_ESEEK;
     }
-    if(cli_magic_scandesc(i, ctx) == CL_VIRUS) {
-      if (!SCAN_ALL) {
+    if(cli_magic_scandesc(i, tempfile, ctx) == CL_VIRUS) {
+      if (!SCAN_ALLMATCHES) {
 	close(i);
 	if(!ctx->engine->keeptmp)
 	  if (cli_unlink(tempfile)) return CL_EUNLINK;

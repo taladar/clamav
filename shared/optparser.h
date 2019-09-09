@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2008-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2008-2013 Sourcefire, Inc.
  *
  *  Author: Tomasz Kojm <tkojm@clamav.net>
  *
@@ -36,7 +36,7 @@
 
 #define CLOPT_TYPE_STRING  1	/* quoted/regular string */
 #define CLOPT_TYPE_NUMBER  2	/* raw number */
-#define CLOPT_TYPE_SIZE    3	/* number possibly followed by modifers (M/m or K/k) */
+#define CLOPT_TYPE_SIZE    3	/* number possibly followed by modifiers (M/m or K/k) */
 #define CLOPT_TYPE_BOOL    4	/* boolean */
 
 struct optstruct {

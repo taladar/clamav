@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>, Török Edvin <edwin@clamav.net>
  *
@@ -833,7 +833,7 @@ void cache_add(unsigned char *md5, size_t size, cli_ctx *ctx) {
     level =  (*ctx->fmap && (*ctx->fmap)->dont_cache_flag) ? ctx->recursion : 0;
     if (ctx->found_possibly_unwanted && (level || !ctx->recursion))
 	return;
-    if (SCAN_ALL && (ctx->num_viruses > 0)) {
+    if (SCAN_ALLMATCHES && (ctx->num_viruses > 0)) {
 	cli_dbgmsg("cache_add: alert found within same topfile, skipping cache\n");
 	return;
     }

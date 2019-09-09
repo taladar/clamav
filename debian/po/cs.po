@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: clamav\n"
 "Report-Msgid-Bugs-To: clamav@packages.debian.org\n"
-"POT-Creation-Date: 2014-05-10 23:12+0200\n"
+"POT-Creation-Date: 2017-12-25 22:20+0100\n"
 "PO-Revision-Date: 2010-10-13 19:12+0200\n"
 "Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
 "Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
@@ -815,41 +815,6 @@ msgstr "Maximální čas běhu bajtkódu (v milisekundách):"
 
 #. Type: boolean
 #. Description
-#: ../clamav-daemon.templates:40001
-#, fuzzy
-#| msgid "Do you want to enable mail scanning?"
-msgid "Do you want to submit statistical information?"
-msgstr "Chcete povolit prohledávání pošty?"
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid "Do you want to disable submitting files flagged as malware?"
-msgstr ""
-
-#. Type: boolean
-#. Description
-#: ../clamav-daemon.templates:41001
-msgid ""
-"If this is enabled, individual PE sections of files flagged as malware will "
-"be submitted."
-msgstr ""
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:42001
-msgid "HostID, a UUID to use when submitting statistical information:"
-msgstr ""
-
-#. Type: string
-#. Description
-#: ../clamav-daemon.templates:43001
-msgid ""
-"Time in seconds to wait for the stats server to come back with a response:"
-msgstr ""
-
-#. Type: boolean
-#. Description
 #: ../clamav-milter.templates:2001
 msgid "Some options must be configured for clamav-milter."
 msgstr "U clamav-milter je několik voleb, které musíte nastavit."
@@ -1529,6 +1494,11 @@ msgid ""
 "Note: although it's probably a good idea to enable this option, the default "
 "value is currently set to off for legacy reasons."
 msgstr ""
+
+#, fuzzy
+#~| msgid "Do you want to enable mail scanning?"
+#~ msgid "Do you want to submit statistical information?"
+#~ msgstr "Chcete povolit prohledávání pošty?"
 
 #~ msgid "Set to a value of '0' to disable the timeout."
 #~ msgstr "Hodnotou „0“ časový limit zrušíte."

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>
@@ -25,9 +25,11 @@
 #include "clamav-config.h"
 #endif
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <libgen.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -44,7 +46,7 @@
 
 #include "clamav.h"
 #include "others.h"
-#include "cltypes.h"
+#include "str.h"
 
 static inline unsigned int fmap_align_items(unsigned int sz, unsigned int al);
 static inline unsigned int fmap_align_to(unsigned int sz, unsigned int al);
@@ -145,12 +147,12 @@ fmap_t *fmap_check_empty(int fd, off_t offset, size_t len, int *empty) { /* WIN3
 	return NULL;
     }
     if(!(m = cl_fmap_open_memory(data, len))) {
-	cli_errmsg("fmap: canot allocate fmap_t\n", fd);
+	cli_errmsg("fmap: cannot allocate fmap_t\n", fd);
 	CloseHandle(mh);
 	CloseHandle(fh);
 	return NULL;
     }
-    m->handle = (void*)(ssize_t)fd;
+    m->handle = (void*)(size_t)fd;
     m->handle_is_fd = 1;
     m->fh = fh;
     m->mh = mh;
@@ -401,7 +403,7 @@ static int fmap_readpage(fmap_t *m, unsigned int first_page, unsigned int count,
 	    /* we have some pending reads to perform */
 	    if (m->handle_is_fd) {
 		unsigned int j;
-		int _fd = (int)(ssize_t)m->handle;
+		int _fd = (int)(ptrdiff_t)m->handle;
 		for(j=first_page; j<page; j++) {
 		    if(fmap_bitmap[j] & FM_MASK_SEEN) {
 			/* page we've seen before: check mtime */
@@ -547,7 +549,7 @@ static void unmap_mmap(fmap_t *m)
     size_t len = m->pages * m->pgsz + m->hdrsz;
     fmap_lock;
     if (munmap((void *)m, len) == -1) /* munmap() failed */
-        cli_warnmsg("funmap: unable to unmap memory segment at address: %p with length: %d\n", (void *)m, len);
+        cli_warnmsg("funmap: unable to unmap memory segment at address: %p with length: %zu\n", (void *)m, len);
     fmap_unlock;
 #endif
 }
@@ -741,25 +743,77 @@ static inline unsigned int fmap_which_page(fmap_t *m, size_t at) {
     return at / m->pgsz;
 }
 
-int fmap_dump_to_file(fmap_t *map, const char *tmpdir, char **outname, int *outfd)
+cl_error_t fmap_dump_to_file(fmap_t* map, const char* filepath, const char* tmpdir, char** outname, int* outfd, size_t start_offset, size_t end_offset)
 {
-    char *tmpname;
-    int tmpfd, ret;
-    size_t pos = 0, len;
+    cl_error_t ret = CL_EARG;
 
-    cli_dbgmsg("fmap_dump_to_file: dumping fmap not backed by file...\n");
-    ret = cli_gentempfd(tmpdir, &tmpname, &tmpfd);
-    if(ret != CL_SUCCESS) {
-        cli_dbgmsg("fmap_dump_to_file: failed to generate temporary file.\n");
+    char* filebase = NULL;
+    char* prefix = NULL;
+
+    char* tmpname = NULL;
+    int tmpfd = -1;
+
+    size_t pos = 0, len = 0, bytes_remaining = 0, write_size = 0;
+
+    if ((start_offset > map->real_len) || (end_offset < start_offset)) {
+        cli_dbgmsg("fmap_dump_to_file: Invalid offset arguments: start %zu, end %zu\n", start_offset, end_offset);
         return ret;
     }
 
+    pos = start_offset;
+    end_offset = MIN(end_offset, map->real_len);
+    bytes_remaining = end_offset - start_offset;
+
+    /* Create a filename prefix that includes the original filename, if available */
+    if (filepath != NULL) {
+        if (CL_SUCCESS != cli_basename(filepath, strlen(filepath), &filebase)) {
+            cli_dbgmsg("fmap_dump_to_file: Unable to determine basename from filepath.\n");
+        } else if ((start_offset != 0) && (end_offset != map->real_len)) {
+            /* If we're only dumping a portion of the file, inlcude the offsets in the prefix,...
+			 * e.g. tmp filename will become something like:  filebase.500-1200.<randhex> */
+            uint32_t prefix_len = strlen(filebase) + 1 + SIZE_T_CHARLEN + 1 + SIZE_T_CHARLEN + 1;
+            prefix = malloc(prefix_len);
+            if (NULL == prefix) {
+                cli_errmsg("fmap_dump_to_file: Failed to allocate memory for tempfile prefix.\n");
+                if (NULL != filebase)
+                    free(filebase);
+                return CL_EMEM;
+            }
+            snprintf(prefix, prefix_len, "%s.%zu-%zu", filebase, start_offset, end_offset);
+
+            free(filebase);
+            filebase = NULL;
+        } else {
+            /* Else if we're dumping the whole thing, use the filebase as the prefix */
+            prefix = filebase;
+            filebase = NULL;
+        }
+    }
+
+    cli_dbgmsg("fmap_dump_to_file: dumping fmap not backed by file...\n");
+    ret = cli_gentempfd_with_prefix(tmpdir, prefix, &tmpname, &tmpfd);
+    if (ret != CL_SUCCESS) {
+        cli_dbgmsg("fmap_dump_to_file: failed to generate temporary file.\n");
+        if (NULL != prefix) {
+            free(prefix);
+            prefix = NULL;
+        }
+        return ret;
+    }
+
+    if (NULL != prefix) {
+        free(prefix);
+        prefix = NULL;
+    }
+
     do {
-        const char *b;
+        const char* b;
         len = 0;
-        b = fmap_need_off_once_len(map, pos, BUFSIZ, &len);
+        write_size = MIN(BUFSIZ, bytes_remaining);
+
+        b = fmap_need_off_once_len(map, pos, write_size, &len);
         pos += len;
-        if(b && (len > 0)) {
+        if (b && (len > 0)) {
             if ((size_t)cli_writen(tmpfd, b, len) != len) {
                 cli_warnmsg("fmap_dump_to_file: write failed to %s!\n", tmpname);
                 close(tmpfd);
@@ -768,9 +822,14 @@ int fmap_dump_to_file(fmap_t *map, const char *tmpdir, char **outname, int *outf
                 return CL_EWRITE;
             }
         }
-    } while (len > 0);
+        if (len <= bytes_remaining) {
+            bytes_remaining -= len;
+        } else {
+            bytes_remaining = 0;
+        }
+    } while ((len > 0) && (bytes_remaining > 0));
 
-    if(lseek(tmpfd, 0, SEEK_SET) == -1) {
+    if (lseek(tmpfd, 0, SEEK_SET) == -1) {
         cli_dbgmsg("fmap_dump_to_file: lseek failed\n");
     }
 
@@ -779,12 +838,12 @@ int fmap_dump_to_file(fmap_t *map, const char *tmpdir, char **outname, int *outf
     return CL_SUCCESS;
 }
 
-int fmap_fd(fmap_t *m)
+int fmap_fd(fmap_t* m)
 {
     int fd;
     if (!m->handle_is_fd)
-	return -1;
-    fd = (int)(ssize_t)m->handle;
+        return -1;
+    fd = (int)(ptrdiff_t)m->handle;
     lseek(fd, 0, SEEK_SET);
     return fd;
 }

@@ -1,9 +1,8 @@
 /*
  *  Support for PCRE regex variant
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
- *  All Rights Reserved.
  *
  *  Authors: Kevin Lin
  *
@@ -37,7 +36,7 @@
 #include <pcre.h>
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "mpool.h"
 
 /* used for setting overrides */

@@ -1,10 +1,14 @@
 /*
- *  Hash-table and -set data structures.
- *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
+ * 
+ *  Summary: Hash-table and -set data structures.
+ * 
+ *  Acknowledgements: hash32shift() is an implementation of Thomas Wang's 
+ * 	                  32-bit integer hash function: 
+ * 	                  http://www.cris.com/~Ttwang/tech/inthash.htm
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -20,14 +24,12 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  *  MA 02110-1301, USA.
  */
-#include <clamav-config.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "cltypes.h"
 #include "clamav.h"
+#include "clamav-config.h"
 #include "others.h"
 #include "hashtab.h"
 
@@ -134,9 +136,9 @@ static inline void PROFILE_REPORT(const struct cli_hashtable *s)
 	size_t lookups, queries, insert_tries, inserts;
 	cli_dbgmsg("--------Hashtable usage report for %p--------------\n",(const void*)s);
 	cli_dbgmsg("hash function calculations:%ld\n",s->PROFILE_STRUCT.calc_hash);
-	cli_dbgmsg("successfull finds/total searches: %ld/%ld; lookups: %ld\n", s->PROFILE_STRUCT.found, s->PROFILE_STRUCT.find_req, s->PROFILE_STRUCT.found_tries);
-	cli_dbgmsg("unsuccessfull finds/total searches: %ld/%ld; lookups: %ld\n", s->PROFILE_STRUCT.not_found, s->PROFILE_STRUCT.find_req , s->PROFILE_STRUCT.not_found_tries);
-	cli_dbgmsg("successfull finds during grow:%ld; lookups: %ld\n",s->PROFILE_STRUCT.grow_found, s->PROFILE_STRUCT.grow_found_tries);
+	cli_dbgmsg("successful finds/total searches: %ld/%ld; lookups: %ld\n", s->PROFILE_STRUCT.found, s->PROFILE_STRUCT.find_req, s->PROFILE_STRUCT.found_tries);
+	cli_dbgmsg("unsuccessful finds/total searches: %ld/%ld; lookups: %ld\n", s->PROFILE_STRUCT.not_found, s->PROFILE_STRUCT.find_req , s->PROFILE_STRUCT.not_found_tries);
+	cli_dbgmsg("successful finds during grow:%ld; lookups: %ld\n",s->PROFILE_STRUCT.grow_found, s->PROFILE_STRUCT.grow_found_tries);
 	lookups = s->PROFILE_STRUCT.found_tries + s->PROFILE_STRUCT.not_found_tries + s->PROFILE_STRUCT.grow_found_tries;
 	queries = s->PROFILE_STRUCT.find_req + s->PROFILE_STRUCT.grow_found;
 	cli_dbgmsg("Find Lookups/total queries: %ld/%ld = %3f\n", lookups, queries, lookups*1.0/queries);
@@ -673,7 +675,7 @@ int cli_hashset_init(struct cli_hashset* hs, size_t initial_capacity, uint8_t lo
 	hs->keys = cli_malloc(initial_capacity * sizeof(*hs->keys));
 	hs->mempool = NULL;
 	if(!hs->keys) {
-        cli_errmsg("hashtab.c: Uable to allocate memory for hs->keys\n");
+        cli_errmsg("hashtab.c: Unable to allocate memory for hs->keys\n");
 		return CL_EMEM;
 	}
 	hs->bitmap = cli_calloc(initial_capacity >> 5, sizeof(*hs->bitmap));
@@ -739,7 +741,7 @@ static inline size_t cli_hashset_search(const struct cli_hashset* hs, const uint
 	size_t idx = hash32shift(key) & (hs->mask);
 	size_t tries = 1;
 
-	/* check wether the entry is used, and if the key matches */
+	/* check whether the entry is used, and if the key matches */
 	while(BITMAP_CONTAINS(hs->bitmap, idx) && (hs->keys[idx] != key)) {
 		/* entry used, key different -> collision */
 		idx = (idx + tries++)&(hs->mask);

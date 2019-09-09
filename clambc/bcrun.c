@@ -1,8 +1,8 @@
 /*
  *  ClamAV bytecode handler tool.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009-2012 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -23,7 +23,6 @@
 #if HAVE_CONFIG_H
 #include "clamav-config.h"
 #endif
-#include "cltypes.h"
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
@@ -48,12 +47,13 @@
 static void help(void)
 {
     printf("\n");
-    printf("           Clam AntiVirus: Bytecode Testing Tool %s\n",
-	   get_version());
-    printf("           By The ClamAV Team: http://www.clamav.net/about.html#credits\n");
-    printf("           (C) 2009-2015 Cisco Systems, Inc.\n\n");
-    printf("clambc <file> [function] [param1 ...]\n\n");
-    printf("    --help                 -h         Show help\n");
+    printf("                       Clam AntiVirus: Bytecode Testing Tool %s\n", get_version());
+    printf("           By The ClamAV Team: https://www.clamav.net/about.html#credits\n");
+    printf("           (C) 2019 Cisco Systems, Inc.\n");
+    printf("\n");
+    printf("    clambc <file> [function] [param1 ...]\n");
+    printf("\n");
+    printf("    --help                 -h         Show this help\n");
     printf("    --version              -V         Show version\n");
     printf("    --debug                           Show debug\n");
     printf("    --force-interpreter    -f         Force using the interpreter instead of the JIT\n");
@@ -61,10 +61,11 @@ static void help(void)
     printf("    --info                 -i         Print information about bytecode\n");
     printf("    --printsrc             -p         Print bytecode source\n");
     printf("    --printbcir            -c         Print IR of bytecode signature\n");
+    printf("    --input                -c         Input file to run the bytecode on\n");
     printf("    --trace <level>        -T         Set bytecode trace level 0..7 (default 7)\n");
     printf("    --no-trace-showsource  -s         Don't show source line during tracing\n");
     printf("    --statistics=bytecode             Collect and print bytecode execution statistics\n");
-    printf("    file                              file to test\n");
+    printf("    file                              File to test\n");
     printf("\n");
     return;
 }

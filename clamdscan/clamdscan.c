@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, aCaB
  *
@@ -179,15 +179,16 @@ int main(int argc, char **argv)
 
 void help(void)
 {
-
     mprintf_stdout = 1;
 
     mprintf("\n");
-    mprintf("                       ClamAV Daemon Client %s\n", get_version());
-    printf("           By The ClamAV Team: http://www.clamav.net/about.html#credits\n");
-    printf("           (C) 2007-2015 Cisco Systems, Inc.\n\n");
-
-    mprintf("    --help              -h             Show help\n");
+    mprintf("                      Clam AntiVirus: Daemon Client %s\n", get_version());
+    mprintf("           By The ClamAV Team: https://www.clamav.net/about.html#credits\n");
+    mprintf("           (C) 2019 Cisco Systems, Inc.\n");
+    mprintf("\n");
+    mprintf("    clamdscan [options] [file/directory/-]\n");
+    mprintf("\n");
+    mprintf("    --help              -h             Show this help\n");
     mprintf("    --version           -V             Print version number and exit\n");
     mprintf("    --verbose           -v             Be verbose\n");
     mprintf("    --quiet                            Be quiet, only output error messages\n");

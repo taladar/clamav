@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm <tkojm@clamav.net>
  *
@@ -30,7 +30,6 @@
 #include <fcntl.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "macho.h"
 #include "execs.h"
@@ -175,9 +174,9 @@ struct macho_fat_arch
 #define RETURN_BROKEN					    \
     if(matcher)						    \
 	return -1;					    \
-    if(DETECT_BROKEN) {					    \
-	cli_append_virus(ctx, "Heuristics.Broken.Executable"); \
-	return CL_VIRUS;				    \
+    if(SCAN_HEURISTIC_BROKEN) {					    \
+        if (CL_VIRUS == cli_append_virus(ctx, "Heuristics.Broken.Executable")) \
+            return CL_VIRUS;				    \
     }							    \
     return CL_EFORMAT
 

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>
  *
@@ -31,4 +31,7 @@ void cache_remove(unsigned char *md5, size_t size, const struct cl_engine *engin
 int cache_check(unsigned char *hash, cli_ctx *ctx);
 int cli_cache_init(struct cl_engine *engine);
 void cli_cache_destroy(struct cl_engine *engine);
+
+int cache_get_MD5(unsigned char *hash, cli_ctx *ctx);
+
 #endif

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
  *
@@ -26,6 +26,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #endif
+#include "platform.h"
 #include "optparser.h"
 /* Maximum filenames under various systems - njh */
 #ifndef	NAME_MAX	/* e.g. Linux */

@@ -51,6 +51,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <openssl/evp.h>
+
 #if !defined(_WIN32)
 #include <unistd.h>
 #endif
@@ -118,6 +120,16 @@ time_t timegm(struct tm *t)
 }
 #endif
 
+
+/**
+ * @brief This function initializes the openssl crypto system
+ *
+ * Called by cl_init() and does not need to be cleaned up as de-init
+ * is handled automatically by openssl 1.0.2.h and 1.1.0
+ *
+ * @return Always returns 0
+ *
+ */
 int cl_initialize_crypto(void)
 {
     SSL_load_error_strings();
@@ -130,12 +142,19 @@ int cl_initialize_crypto(void)
     return 0;
 }
 
+/**
+ * @brief This is a deprecated function that used to clean up ssl crypto inits
+ * 
+ * Call to EVP_cleanup() has been removed since cleanup is now handled by 
+ * auto-deinit as of openssl 1.0.2h and 1.1.0 
+ *
+ */
 void cl_cleanup_crypto(void)
 {
-    EVP_cleanup();
+    return;
 }
 
-unsigned char *cl_hash_data(char *alg, const void *buf, size_t len, unsigned char *obuf, unsigned int *olen)
+unsigned char *cl_hash_data(const char *alg, const void *buf, size_t len, unsigned char *obuf, unsigned int *olen)
 {
     EVP_MD_CTX *ctx;
     unsigned char *ret;
@@ -229,7 +248,7 @@ unsigned char *cl_hash_data(char *alg, const void *buf, size_t len, unsigned cha
     return ret;
 }
 
-unsigned char *cl_hash_file_fd(int fd, char *alg, unsigned int *olen)
+unsigned char *cl_hash_file_fd(int fd, const char *alg, unsigned int *olen)
 {
     EVP_MD_CTX *ctx;
     const EVP_MD *md;
@@ -336,9 +355,19 @@ unsigned char *cl_hash_file_fd_ctx(EVP_MD_CTX *ctx, int fd, unsigned int *olen)
     return hash;
 }
 
-unsigned char *cl_hash_file_fp(FILE *fp, char *alg, unsigned int *olen)
+unsigned char *cl_hash_file_fp(FILE *fp, const char *alg, unsigned int *olen)
 {
     return cl_hash_file_fd(fileno(fp), alg, olen);
+}
+
+unsigned char *cl_sha512(const void *buf, size_t len, unsigned char *obuf, unsigned int *olen)
+{
+    return cl_hash_data("sha512", buf, len, obuf, olen);
+}
+
+unsigned char *cl_sha384(const void *buf, size_t len, unsigned char *obuf, unsigned int *olen)
+{
+    return cl_hash_data("sha384", buf, len, obuf, olen);
 }
 
 unsigned char *cl_sha256(const void *buf, size_t len, unsigned char *obuf, unsigned int *olen)
@@ -351,7 +380,7 @@ unsigned char *cl_sha1(const void *buf, size_t len, unsigned char *obuf, unsigne
     return cl_hash_data("sha1", buf, len, obuf, olen);
 }
 
-int cl_verify_signature_hash(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
+int cl_verify_signature_hash(EVP_PKEY *pkey, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
 {
     EVP_MD_CTX *ctx;
     const EVP_MD *md;
@@ -391,7 +420,7 @@ int cl_verify_signature_hash(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsi
     return 0;
 }
 
-int cl_verify_signature_fd(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsigned int siglen, int fd)
+int cl_verify_signature_fd(EVP_PKEY *pkey, const char *alg, unsigned char *sig, unsigned int siglen, int fd)
 {
     EVP_MD_CTX *ctx;
     const EVP_MD *md;
@@ -444,7 +473,7 @@ int cl_verify_signature_fd(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsign
     return 0;
 }
 
-int cl_verify_signature(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
+int cl_verify_signature(EVP_PKEY *pkey, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
 {
     EVP_MD_CTX *ctx;
     const EVP_MD *md;
@@ -531,7 +560,7 @@ int cl_verify_signature(EVP_PKEY *pkey, char *alg, unsigned char *sig, unsigned 
     return 0;
 }
 
-int cl_verify_signature_hash_x509_keyfile(char *x509path, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
+int cl_verify_signature_hash_x509_keyfile(char *x509path, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
 {
     X509 *x509;
     FILE *fp;
@@ -557,7 +586,7 @@ int cl_verify_signature_hash_x509_keyfile(char *x509path, char *alg, unsigned ch
     return res;
 }
 
-int cl_verify_signature_fd_x509_keyfile(char *x509path, char *alg, unsigned char *sig, unsigned int siglen, int fd)
+int cl_verify_signature_fd_x509_keyfile(char *x509path, const char *alg, unsigned char *sig, unsigned int siglen, int fd)
 {
     X509 *x509;
     FILE *fp;
@@ -583,7 +612,7 @@ int cl_verify_signature_fd_x509_keyfile(char *x509path, char *alg, unsigned char
     return res;
 }
 
-int cl_verify_signature_x509_keyfile(char *x509path, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
+int cl_verify_signature_x509_keyfile(char *x509path, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
 {
     X509 *x509;
     FILE *fp;
@@ -609,7 +638,7 @@ int cl_verify_signature_x509_keyfile(char *x509path, char *alg, unsigned char *s
     return res;
 }
 
-int cl_verify_signature_hash_x509(X509 *x509, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
+int cl_verify_signature_hash_x509(X509 *x509, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *digest)
 {
     EVP_PKEY *pkey;
     int res;
@@ -625,7 +654,7 @@ int cl_verify_signature_hash_x509(X509 *x509, char *alg, unsigned char *sig, uns
     return res;
 }
 
-int cl_verify_signature_fd_x509(X509 *x509, char *alg, unsigned char *sig, unsigned int siglen, int fd)
+int cl_verify_signature_fd_x509(X509 *x509, const char *alg, unsigned char *sig, unsigned int siglen, int fd)
 {
     EVP_PKEY *pkey;
     int res;
@@ -641,7 +670,7 @@ int cl_verify_signature_fd_x509(X509 *x509, char *alg, unsigned char *sig, unsig
     return res;
 }
 
-int cl_verify_signature_x509(X509 *x509, char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
+int cl_verify_signature_x509(X509 *x509, const char *alg, unsigned char *sig, unsigned int siglen, unsigned char *data, size_t datalen, int decode)
 {
     EVP_PKEY *pkey;
     int res;
@@ -657,7 +686,7 @@ int cl_verify_signature_x509(X509 *x509, char *alg, unsigned char *sig, unsigned
     return res;
 }
 
-unsigned char *cl_sign_data_keyfile(char *keypath, char *alg, unsigned char *hash, unsigned int *olen, int encode)
+unsigned char *cl_sign_data_keyfile(char *keypath, const char *alg, unsigned char *hash, unsigned int *olen, int encode)
 {
     FILE *fp;
     EVP_PKEY *pkey;
@@ -683,7 +712,7 @@ unsigned char *cl_sign_data_keyfile(char *keypath, char *alg, unsigned char *has
     return res;
 }
 
-unsigned char *cl_sign_data(EVP_PKEY *pkey, char *alg, unsigned char *hash, unsigned int *olen, int encode)
+unsigned char *cl_sign_data(EVP_PKEY *pkey, const char *alg, unsigned char *hash, unsigned int *olen, int encode)
 {
     EVP_MD_CTX *ctx;
     const EVP_MD *md;
@@ -745,7 +774,7 @@ unsigned char *cl_sign_data(EVP_PKEY *pkey, char *alg, unsigned char *hash, unsi
     return sig;
 }
 
-unsigned char *cl_sign_file_fd(int fd, EVP_PKEY *pkey, char *alg, unsigned int *olen, int encode)
+unsigned char *cl_sign_file_fd(int fd, EVP_PKEY *pkey, const char *alg, unsigned int *olen, int encode)
 {
     unsigned char *hash, *res;
     unsigned int hashlen;
@@ -761,7 +790,7 @@ unsigned char *cl_sign_file_fd(int fd, EVP_PKEY *pkey, char *alg, unsigned int *
     return res;
 }
 
-unsigned char *cl_sign_file_fp(FILE *fp, EVP_PKEY *pkey, char *alg, unsigned int *olen, int encode)
+unsigned char *cl_sign_file_fp(FILE *fp, EVP_PKEY *pkey, const char *alg, unsigned int *olen, int encode)
 {
     return cl_sign_file_fd(fileno(fp), pkey, alg, olen, encode);
 }
@@ -1096,7 +1125,6 @@ X509_CRL *cl_load_crl(const char *file)
 {
     X509_CRL *x=NULL;
     FILE *fp;
-    struct tm *tm;
 
     if (!(file))
         return NULL;
@@ -1110,21 +1138,13 @@ X509_CRL *cl_load_crl(const char *file)
     fclose(fp);
 
     if ((x)) {
-        tm = cl_ASN1_GetTimeT(x->crl->nextUpdate);
-        if (!(tm)) {
-            X509_CRL_free(x);
-            return NULL;
-        }
+	ASN1_TIME *tme;
 
-#if !defined(_WIN32)
-        if (timegm(tm) < time(NULL)) {
-            X509_CRL_free(x);
-            free(tm);
-            return NULL;
-        }
-#endif
-
-        free(tm);
+	tme = X509_CRL_get_nextUpdate(x);
+	if (!tme || X509_cmp_current_time(tme) < 0) {
+		X509_CRL_free(x);
+		return NULL;
+	}
     }
 
     return x;
@@ -1157,7 +1177,7 @@ void *cl_hash_init(const char *alg)
     return (void *)ctx;
 }
 
-int cl_update_hash(void *ctx, void *data, size_t sz)
+int cl_update_hash(void *ctx, const void *data, size_t sz)
 {
     int winres=0;
 

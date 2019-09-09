@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
@@ -126,6 +126,9 @@ static const struct ftmap_s {
     { "CL_TYPE_XML_HWP",	CL_TYPE_XML_HWP		},
     { "CL_TYPE_HWPOLE2",	CL_TYPE_HWPOLE2		},
     { "CL_TYPE_OOXML_HWP",	CL_TYPE_OOXML_HWP	},
+    { "CL_TYPE_PS",		CL_TYPE_PS		},
+    { "CL_TYPE_MHTML",		CL_TYPE_MHTML		},
+    { "CL_TYPE_LNK", 		CL_TYPE_LNK		},
     { NULL,			CL_TYPE_IGNORED		}
 };
 

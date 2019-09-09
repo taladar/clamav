@@ -1,8 +1,8 @@
 /*
  *  HTML Entity & Encoding normalization.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -42,7 +42,6 @@
 #include "hashtab.h"
 #include "entconv.h"
 #include "entitylist.h"
-#include "cltypes.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
@@ -734,7 +733,7 @@ static int in_iconv_u16(const m_area_t* in_m_area, iconv_t* iconv_struct, m_area
 	while (inleft && (outleft >= 2)) { /* iconv doesn't like inleft to be 0 */
 		const size_t outleft_last = outleft;
 		assert(*iconv_struct != (iconv_t)-1);
-		rc = iconv(*iconv_struct, (const char **)(&input),  &inleft, &out, &outleft);
+		rc = iconv(*iconv_struct, &input,  &inleft, &out, &outleft);
 		if(rc == (size_t)-1) {
 			if(errno == E2BIG) {
 				/* not enough space in output buffer */

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2011 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2011-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Mickey Sola
  *
@@ -44,9 +44,8 @@
 #include "shared/optparser.h"
 #include "shared/output.h"
 
+#include "onaccess_others.h"
 #include "server.h"
-#include "others.h"
-#include "scanner.h"
 
 #include "onaccess_fan.h"
 #include "onaccess_hash.h"
@@ -73,23 +72,19 @@ static void onas_fan_exit(int sig)
 static int onas_fan_scanfile(int fan_fd, const char *fname, struct fanotify_event_metadata *fmd, int scan, int extinfo, struct thrarg *tharg)
 {
 	struct fanotify_response res;
-	struct cb_context context;
-	const char *virname;
+	const char *virname = NULL;
 	int ret = 0;
 
     res.fd = fmd->fd;
     res.response = FAN_ALLOW;
-    context.filename = fname;
-    context.virsize = 0;
-    context.scandata = NULL;
-    if(scan && cl_scandesc_callback(fmd->fd, &virname, NULL, tharg->engine, tharg->options, &context) == CL_VIRUS) {
-	if(extinfo && context.virsize)
-	    logg("ScanOnAccess: %s: %s(%s:%llu) FOUND\n", fname, virname, context.virhash, context.virsize);
-	else
-	    logg("ScanOnAccess: %s: %s FOUND\n", fname, virname);
-	virusaction(fname, virname, tharg->opts);
 
-	res.response = FAN_DENY;
+    if (scan) {
+        if (onas_scan(fname, fmd->fd, &virname, tharg->engine, tharg->options, extinfo) == CL_VIRUS) {
+            /* TODO : FIXME? virusaction forks. This could be extraordinarily problematic, lead to deadlocks, 
+             * or at the very least lead to extreme memory consumption. Leaving disabled for now.*/ 
+            //virusaction(fname, virname, tharg->opts);
+            res.response = FAN_DENY;
+        }
     }
 
     if(fmd->mask & FAN_ALL_PERM_EVENTS) {
@@ -108,7 +103,7 @@ void *onas_fan_th(void *arg)
         struct sigaction act;
 	const struct optstruct *pt;
 	short int scan;
-	int sizelimit = 0, extinfo;
+	unsigned int sizelimit = 0, extinfo;
 	STATBUF sb;
         uint64_t fan_mask = FAN_EVENT_ON_CHILD | FAN_CLOSE;
         fd_set rfds;
@@ -116,7 +111,7 @@ void *onas_fan_th(void *arg)
 	ssize_t bread;
 	struct fanotify_event_metadata *fmd;
 	char fname[1024];
-	int ret, len;
+	int ret, len, check;
 	char err[128];
 
 	pthread_attr_t ddd_attr;
@@ -176,24 +171,36 @@ void *onas_fan_th(void *arg)
 	    }
 
     } else if (!optget(tharg->opts, "OnAccessDisableDDD")->enabled) {
+		int thread_started = 1;
 	    do {
 		    if(pthread_attr_init(&ddd_attr)) break;
 		    pthread_attr_setdetachstate(&ddd_attr, PTHREAD_CREATE_JOINABLE);
 
-		    if(!(ddd_tharg = (struct ddd_thrarg *) malloc(sizeof(struct ddd_thrarg)))) break;
+			/* Allocate memory for arguments. Thread is responsible for freeing it. */
+		    if (!(ddd_tharg = (struct ddd_thrarg *) calloc(sizeof(struct ddd_thrarg), 1))) break;
+			if (!(ddd_tharg->options = (struct cl_scan_options *) calloc(sizeof(struct cl_scan_options), 1))) break;
 
+			(void) memcpy(ddd_tharg->options, tharg->options, sizeof(struct cl_scan_options));
 		    ddd_tharg->fan_fd = onas_fan_fd;
 		    ddd_tharg->fan_mask = fan_mask;
 		    ddd_tharg->opts = tharg->opts;
 		    ddd_tharg->engine = tharg->engine;
-		    ddd_tharg->options = tharg->options;
 
-		    if(!pthread_create(&ddd_pid, &ddd_attr, onas_ddd_th, ddd_tharg)) break;
-
-		    free(ddd_tharg);
-		    ddd_tharg=NULL;
+		    thread_started = pthread_create(&ddd_pid, &ddd_attr, onas_ddd_th, ddd_tharg);
 	    } while(0);
-	    if (!ddd_tharg) logg("!Unable to start dynamic directory determination.\n");
+
+		if (0 != thread_started) {
+			/* Failed to create thread. Free anything we may have allocated. */
+			logg("!Unable to start dynamic directory determination.\n");
+			if (NULL != ddd_tharg) {
+				if (NULL != ddd_tharg->options) {
+					free(ddd_tharg->options);
+					ddd_tharg->options = NULL;
+				}
+				free(ddd_tharg);
+				ddd_tharg = NULL;
+			}
+		}
 
     } else {
 	    if((pt = optget(tharg->opts, "OnAccessIncludePath"))->enabled) {
@@ -214,7 +221,7 @@ void *onas_fan_th(void *arg)
     /* Load other options. */
     sizelimit = optget(tharg->opts, "OnAccessMaxFileSize")->numarg;
     if(sizelimit)
-	logg("ScanOnAccess: Max file size limited to %d bytes\n", sizelimit);
+	logg("ScanOnAccess: Max file size limited to %u bytes\n", sizelimit);
     else
 	logg("ScanOnAccess: File size limit disabled\n");
 
@@ -255,9 +262,16 @@ void *onas_fan_th(void *arg)
 		}
 		fname[len] = 0;
 
-		if(onas_fan_checkowner(fmd->pid, tharg->opts)) {
+		if((check = onas_fan_checkowner(fmd->pid, tharg->opts))) {
 		    scan = 0;
-		    logg("*ScanOnAccess: %s skipped (excluded UID)\n", fname);
+	/* TODO: Re-enable OnAccessExtraScanning once the thread resource consumption issue is resolved. */
+	#if 0
+			if ((check != CHK_SELF) || !(optget(tharg->opts, "OnAccessExtraScanning")->enabled)) {
+	#else
+			if (check != CHK_SELF) {
+	#endif
+				logg("*ScanOnAccess: %s skipped (excluded UID)\n", fname);
+			}
 		}
 
 		if(sizelimit) {
@@ -292,6 +306,8 @@ void *onas_fan_th(void *arg)
     return NULL;
 }
 
+
+/* CLAMAUTH is deprecated */
 #elif defined(CLAMAUTH)
 
 #include <stdio.h>
@@ -337,7 +353,7 @@ static void cauth_exit(int sig)
 static int cauth_scanfile(const char *fname, int extinfo, struct thrarg *tharg)
 {
 	struct cb_context context;
-	const char *virname;
+	const char *virname = NULL;
 	int ret = 0, fd;
 
     context.filename = fname;
@@ -348,7 +364,7 @@ static int cauth_scanfile(const char *fname, int extinfo, struct thrarg *tharg)
     if(fd == -1)
 	return -1;
 
-    if(cl_scandesc_callback(fd, &virname, NULL, tharg->engine, tharg->options, &context) == CL_VIRUS) {
+    if(cl_scandesc_callback(fd, fname, &virname, NULL, tharg->engine, tharg->options, &context) == CL_VIRUS) {
 	if(extinfo && context.virsize)
 	    logg("ScanOnAccess: %s: %s(%s:%llu) FOUND\n", fname, virname, context.virhash, context.virsize);
 	else

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Török Edvin
  *
@@ -191,7 +191,7 @@ int command(client_conn_t *conn, int *virus)
 {
     int desc = conn->sd;
     struct cl_engine *engine = conn->engine;
-    unsigned int options = conn->options;
+    struct cl_scan_options *options = conn->options;
     const struct optstruct *opts = conn->opts;
     enum scan_type type = TYPE_INIT;
     int maxdirrec;
@@ -369,7 +369,7 @@ int command(client_conn_t *conn, int *virus)
 		return 1;
 	    }
 	    thrmgr_setactivetask(NULL, "ALLMATCHSCAN");
-	    scandata.options |= CL_SCAN_ALLMATCHES;
+	    scandata.options->general |= CL_SCAN_GENERAL_ALLMATCHES;
 	    type = TYPE_SCAN;
 	    break;
 	 default:

@@ -1,4 +1,4 @@
-From 3b1b2e757d0d1f13a3f234abf05d6e5015f52744 Mon Sep 17 00:00:00 2001
+From 35b9f66b69337557d4034f54d71e8ef61c32f295 Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Fri, 14 Oct 2016 20:24:39 +0200
 Subject: Add support for LLVM 3.7
@@ -17,17 +17,17 @@ DIDescriptor was removed.
 
 Patch-Name: Add-support-for-LLVM-3.7.patch
 ---
- libclamav/c++/ClamBCRTChecks.cpp  |  34 ++++++-
- libclamav/c++/PointerTracking.cpp |  44 ++++++++-
- libclamav/c++/bytecode2llvm.cpp   | 181 +++++++++++++++++++++++++++++++++++---
- libclamav/c++/m4/llvm-flags.m4    |   4 +-
+ libclamav/c++/ClamBCRTChecks.cpp  |  34 +++++-
+ libclamav/c++/PointerTracking.cpp |  44 +++++++-
+ libclamav/c++/bytecode2llvm.cpp   | 181 ++++++++++++++++++++++++++++--
+ libclamav/c++/configure.ac        |   4 +-
  4 files changed, 244 insertions(+), 19 deletions(-)
 
 diff --git a/libclamav/c++/ClamBCRTChecks.cpp b/libclamav/c++/ClamBCRTChecks.cpp
-index 97099b2..35f7272 100644
+index 56e4b3e..033604e 100644
 --- a/libclamav/c++/ClamBCRTChecks.cpp
 +++ b/libclamav/c++/ClamBCRTChecks.cpp
-@@ -201,9 +201,11 @@ namespace llvm {
+@@ -200,9 +200,11 @@ namespace llvm {
            TD = &getAnalysis<TargetData>();
  #elif LLVM_VERSION < 35
            TD = &getAnalysis<DataLayout>();
@@ -40,7 +40,7 @@ index 97099b2..35f7272 100644
  #endif
            SE = &getAnalysis<ScalarEvolution>();
            PT = &getAnalysis<PointerTracking>();
-@@ -212,7 +214,11 @@ namespace llvm {
+@@ -211,7 +213,11 @@ namespace llvm {
  #else
            DT = &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
  #endif
@@ -52,7 +52,7 @@ index 97099b2..35f7272 100644
  
            std::vector<Instruction*> insns;
  
-@@ -351,8 +357,10 @@ namespace llvm {
+@@ -350,8 +356,10 @@ namespace llvm {
            AU.addRequired<TargetData>();
  #elif LLVM_VERSION < 35
            AU.addRequired<DataLayout>();
@@ -64,7 +64,7 @@ index 97099b2..35f7272 100644
  #endif
  #if LLVM_VERSION < 35
            AU.addRequired<DominatorTree>();
-@@ -406,7 +414,11 @@ namespace llvm {
+@@ -405,7 +413,11 @@ namespace llvm {
            if (BaseMap.count(P)) {
                return BaseMap[Ptr] = BaseMap[P];
            }
@@ -76,7 +76,7 @@ index 97099b2..35f7272 100644
            if (P2 != P) {
                Value *V = getPointerBase(P2);
                return BaseMap[Ptr] = V;
-@@ -524,7 +536,11 @@ namespace llvm {
+@@ -519,7 +531,11 @@ namespace llvm {
                }
            }
            if (LoadInst *LI = dyn_cast<LoadInst>(Base)) {
@@ -88,7 +88,7 @@ index 97099b2..35f7272 100644
                if (Argument *A = dyn_cast<Argument>(V)) {
                    if (A->getArgNo() == 0) {
                        // pointers from hidden ctx are trusted to be at least the
-@@ -651,7 +667,11 @@ namespace llvm {
+@@ -673,7 +689,11 @@ namespace llvm {
            }
            BasicBlock *BB = I->getParent();
            BasicBlock::iterator It = I;
@@ -100,7 +100,7 @@ index 97099b2..35f7272 100644
            PHINode *PN;
            unsigned MDDbgKind = I->getContext().getMDKindID("dbg");
            //verifyFunction(*BB->getParent());
-@@ -696,9 +716,15 @@ namespace llvm {
+@@ -718,9 +738,15 @@ namespace llvm {
            unsigned locationid = 0;
            bool Approximate;
            if (MDNode *Dbg = getLocation(I, Approximate, MDDbgKind)) {
@@ -116,7 +116,7 @@ index 97099b2..35f7272 100644
                if (col > 254)
                    col = 254;
                if (Approximate)
-@@ -912,7 +938,11 @@ INITIALIZE_PASS_DEPENDENCY(TargetData)
+@@ -934,7 +960,11 @@ INITIALIZE_PASS_DEPENDENCY(TargetData)
  #elif LLVM_VERSION < 35
  INITIALIZE_PASS_DEPENDENCY(DataLayout)
  #else
@@ -129,7 +129,7 @@ index 97099b2..35f7272 100644
  #if LLVM_VERSION < 35
  INITIALIZE_PASS_DEPENDENCY(DominatorTree)
 diff --git a/libclamav/c++/PointerTracking.cpp b/libclamav/c++/PointerTracking.cpp
-index 8e17a4a..67340e8 100644
+index d5841a1..5567894 100644
 --- a/libclamav/c++/PointerTracking.cpp
 +++ b/libclamav/c++/PointerTracking.cpp
 @@ -30,7 +30,11 @@
@@ -247,7 +247,7 @@ index 8e17a4a..67340e8 100644
      if (isa<SCEVCouldNotCompute>(Limit)) {
        Base = 0;
 diff --git a/libclamav/c++/bytecode2llvm.cpp b/libclamav/c++/bytecode2llvm.cpp
-index e5aea03..2171993 100644
+index 9313202..80b6fc3 100644
 --- a/libclamav/c++/bytecode2llvm.cpp
 +++ b/libclamav/c++/bytecode2llvm.cpp
 @@ -63,7 +63,11 @@
@@ -717,11 +717,11 @@ index e5aea03..2171993 100644
    	    errs() << ":" << Col;
    	}
    	errs() << ": ";
-diff --git a/libclamav/c++/m4/llvm-flags.m4 b/libclamav/c++/m4/llvm-flags.m4
-index dce4e10..04d6833 100644
---- a/libclamav/c++/m4/llvm-flags.m4
-+++ b/libclamav/c++/m4/llvm-flags.m4
-@@ -98,14 +98,14 @@ elif test $llvmver_test -lt 290; then
+diff --git a/libclamav/c++/configure.ac b/libclamav/c++/configure.ac
+index 49db4ab..a8511a0 100644
+--- a/libclamav/c++/configure.ac
++++ b/libclamav/c++/configure.ac
+@@ -89,14 +89,14 @@ elif test $llvmver_test -lt 290; then
  elif test $llvmver_test -lt 360; then
      llvmcomp="jit nativecodegen scalaropts ipo"
      AC_MSG_RESULT([ok ($llvmver)])
@@ -737,4 +737,4 @@ index dce4e10..04d6833 100644
 +    AC_MSG_ERROR([LLVM < 3.8 required, but "$llvmver"($llvmver_test) found])
  fi
  
- dnl aquire the required flags to properly link in external LLVM
+ dnl acquire the required flags to properly link in external LLVM

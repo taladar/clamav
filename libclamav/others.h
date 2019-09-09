@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
@@ -38,7 +38,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "cltypes.h"
 
 #include "clamav.h"
 #include "dconf.h"
@@ -72,7 +71,7 @@
  * in re-enabling affected modules.
  */
 
-#define CL_FLEVEL 82
+#define CL_FLEVEL 105
 #define CL_FLEVEL_DCONF	CL_FLEVEL
 #define CL_FLEVEL_SIGTOOL CL_FLEVEL
 
@@ -80,21 +79,40 @@ extern uint8_t cli_debug_flag;
 extern uint8_t cli_always_gen_section_hash;
 
 /*
- * CLI_ISCONTAINED(buf1, size1, buf2, size2) checks if buf2 is contained
- * within buf1.
+ * CLI_ISCONTAINED(bb, bb_size, sb, sb_size) checks if sb (sub buffer) is contained
+ * within bb (buffer).
  *
- * buf1 and buf2 are pointers (or offsets) for the main buffer and the
- * sub-buffer respectively, and size1/2 are their sizes
+ * bb and sb are pointers (or offsets) for the main buffer and the
+ * sub-buffer respectively, and bb_size and sb_size are their sizes
  *
  * The macro can be used to protect against wraps.
  */
-#define CLI_ISCONTAINED(bb, bb_size, sb, sb_size)	\
-  ((bb_size) > 0 && (sb_size) > 0 && (size_t)(sb_size) <= (size_t)(bb_size) \
-   && (sb) >= (bb) && ((sb) + (sb_size)) <= ((bb) + (bb_size)) && ((sb) + (sb_size)) > (bb) && (sb) < ((bb) + (bb_size)))
+#define CLI_ISCONTAINED(bb, bb_size, sb, sb_size)                                           \
+    (                                                                                       \
+        (size_t)(bb_size) > 0 && (size_t)(sb_size) > 0 &&                                   \
+        (size_t)(sb_size) <= (size_t)(bb_size) &&                                           \
+        (ptrdiff_t)(sb) >= (ptrdiff_t)(bb) &&                                               \
+        (ptrdiff_t)(sb) + (ptrdiff_t)(sb_size) <= (ptrdiff_t)(bb) + (ptrdiff_t)(bb_size) && \
+        (ptrdiff_t)(sb) + (ptrdiff_t)(sb_size) > (ptrdiff_t)(bb) &&                         \
+        (ptrdiff_t)(sb) < (ptrdiff_t)(bb) + (ptrdiff_t)(bb_size)                            \
+    )
 
-#define CLI_ISCONTAINED2(bb, bb_size, sb, sb_size)	\
-  ((bb_size) > 0 && (sb_size) >= 0 && (size_t)(sb_size) <= (size_t)(bb_size) \
-   && (sb) >= (bb) && ((sb) + (sb_size)) <= ((bb) + (bb_size)) && ((sb) + (sb_size)) >= (bb) && (sb) < ((bb) + (bb_size)))
+/*
+ * CLI_ISCONTAINED2(bb, bb_size, sb, sb_size) checks if sb (sub buffer) is contained
+ * within bb (buffer).
+ *
+ * CLI_ISCONTAINED2 is the same as CLI_ISCONTAINED except that it allows for sub-
+ * buffers with sb_size == 0.
+ */
+#define CLI_ISCONTAINED2(bb, bb_size, sb, sb_size)                                          \
+    (                                                                                       \
+        (size_t)(bb_size) > 0 && (size_t)(sb_size) >= 0 &&                                  \
+        (size_t)(sb_size) <= (size_t)(bb_size) &&                                           \
+        (ptrdiff_t)(sb) >= (ptrdiff_t)(bb) &&                                               \
+        (ptrdiff_t)(sb) + (ptrdiff_t)(sb_size) <= (ptrdiff_t)(bb) + (ptrdiff_t)(bb_size) && \
+        (ptrdiff_t)(sb) + (ptrdiff_t)(sb_size) >= (ptrdiff_t)(bb) &&                        \
+        (ptrdiff_t)(sb) < (ptrdiff_t)(bb) + (ptrdiff_t)(bb_size)                            \
+    )
 
 #define CLI_MAX_ALLOCATION (182*1024*1024)
 
@@ -126,22 +144,30 @@ typedef struct bitset_tag
         unsigned long length;
 } bitset_t;
 
+typedef struct cli_ctx_container_tag {
+    cli_file_t type;
+    size_t size;
+    unsigned char flag;
+} cli_ctx_container;
+#define CONTAINER_FLAG_VALID 0x01
+
 /* internal clamav context */
 typedef struct cli_ctx_tag {
+    char *target_filepath;
+    const char *sub_filepath;
     const char **virname;
     unsigned int num_viruses;
     unsigned long int *scanned;
     const struct cli_matcher *root;
     const struct cl_engine *engine;
     unsigned long scansize;
-    unsigned int options;
+    struct cl_scan_options *options;
     unsigned int recursion;
     unsigned int scannedfiles;
     unsigned int found_possibly_unwanted;
     unsigned int corrupted_input;
     unsigned int img_validate;
-    cli_file_t container_type; /* FIXME: to be made into a stack or array - see bb#1579 & bb#1293 */
-    size_t container_size;
+    cli_ctx_container *containers; /* set container type after recurse */
     unsigned char handlertype_hash[16];
     struct cli_dconf *dconf;
     fmap_t **fmap;
@@ -149,7 +175,6 @@ typedef struct cli_ctx_tag {
     void *cb_ctx;
     cli_events_t* perf;
 #ifdef HAVE__INTERNAL__SHA_COLLECT
-    char entry_filename[2048];
     int sha_collect;
 #endif
 #ifdef HAVE_JSON
@@ -157,6 +182,7 @@ typedef struct cli_ctx_tag {
     struct json_object *wrkproperty;
 #endif
     struct timeval time_limit;
+    int limit_exceeded;
 } cli_ctx;
 
 #define STATS_ANON_UUID "5b585e8f-3be5-11e3-bf0b-18037319526c"
@@ -227,7 +253,7 @@ struct icon_matcher {
 
 struct cli_dbinfo {
     char *name;
-    unsigned char *hash;
+    char *hash;
     size_t size;
     struct cl_cvd *cvd;
     struct cli_dbinfo *next;
@@ -242,7 +268,7 @@ typedef enum {
 
 struct cli_pwdb {
     char *name;
-    unsigned char *passwd;
+    char *passwd;
     uint16_t length;
     struct cli_pwdb *next;
 };
@@ -260,6 +286,7 @@ struct cl_engine {
     uint64_t engine_options;
 
     /* Limits */
+    uint32_t maxscantime;  /* Time limit (in milliseconds) */
     uint64_t maxscansize;  /* during the scanning of archives this size
 				     * will never be exceeded
 				     */
@@ -271,7 +298,7 @@ struct cl_engine {
 				     * within a single archive
 				     */
     /* This is for structured data detection.  You can set the minimum
-     * number of occurences of an CC# or SSN before the system will
+     * number of occurrences of an CC# or SSN before the system will
      * generate a notification.
      */
     uint32_t min_cc_count;
@@ -284,6 +311,8 @@ struct cl_engine {
     struct cli_matcher *hm_hdb;
     /* hash matcher for MD5 sigs for PE sections */
     struct cli_matcher *hm_mdb;
+    /* hash matcher for MD5 sigs for PE import tables */
+    struct cli_matcher *hm_imp;
     /* hash matcher for whitelist db */
     struct cli_matcher *hm_fp;
 
@@ -377,9 +406,6 @@ struct cl_engine {
     uint32_t maxiconspe; /* max number of icons to scan for PE */
     uint32_t maxrechwp3; /* max recursive calls for HWP3 parsing */
 
-    /* millisecond time limit for preclassification scanning */
-    uint32_t time_limit;
-
     /* PCRE matching limitations */
     uint64_t pcre_match_limit;
     uint64_t pcre_recmatch_limit;
@@ -401,6 +427,7 @@ struct cl_settings {
     uint32_t ac_maxdepth;
     char *tmpdir;
     uint32_t keeptmp;
+    uint32_t maxscantime;
     uint64_t maxscansize;
     uint64_t maxfilesize;
     uint32_t maxreclevel;
@@ -456,30 +483,47 @@ struct cl_settings {
     uint64_t pcre_max_filesize;
 };
 
-extern int (*cli_unrar_open)(int fd, const char *dirname, unrar_state_t *state);
-extern int (*cli_unrar_extract_next_prepare)(unrar_state_t *state, const char *dirname);
-extern int (*cli_unrar_extract_next)(unrar_state_t *state, const char *dirname);
-extern void (*cli_unrar_close)(unrar_state_t *state);
+extern cl_unrar_error_t (*cli_unrar_open)(const char *filename, void **hArchive, char **comment, uint32_t *comment_size, uint8_t debug_flag);
+extern cl_unrar_error_t (*cli_unrar_peek_file_header)(void *hArchive, unrar_metadata_t *file_metadata);
+extern cl_unrar_error_t (*cli_unrar_extract_file)(void* hArchive, const char* destPath, char *outputBuffer);
+extern cl_unrar_error_t (*cli_unrar_skip_file)(void *hArchive);
+extern void (*cli_unrar_close)(void *hArchive);
+
 extern int have_rar;
 
-#define SCAN_ARCHIVE	    (ctx->options & CL_SCAN_ARCHIVE)
-#define SCAN_MAIL	    (ctx->options & CL_SCAN_MAIL)
-#define SCAN_OLE2	    (ctx->options & CL_SCAN_OLE2)
-#define SCAN_PDF	    (ctx->options & CL_SCAN_PDF)
-#define SCAN_HTML	    (ctx->options & CL_SCAN_HTML)
-#define SCAN_PE		    (ctx->options & CL_SCAN_PE)
-#define SCAN_ELF	    (ctx->options & CL_SCAN_ELF)
-#define SCAN_ALGO 	    (ctx->options & CL_SCAN_ALGORITHMIC)
-#define DETECT_ENCRYPTED    (ctx->options & CL_SCAN_BLOCKENCRYPTED)
-/* #define BLOCKMAX	    (ctx->options & CL_SCAN_BLOCKMAX) */
-#define DETECT_BROKEN	    (ctx->options & CL_SCAN_BLOCKBROKEN)
-#define BLOCK_MACROS	    (ctx->options & CL_SCAN_BLOCKMACROS)
-#define SCAN_STRUCTURED	    (ctx->options & CL_SCAN_STRUCTURED)
-#define SCAN_ALL            (ctx->options & CL_SCAN_ALLMATCHES)
-#define SCAN_SWF            (ctx->options & CL_SCAN_SWF)
-#define SCAN_PROPERTIES     (ctx->options & CL_SCAN_FILE_PROPERTIES)
-#define SCAN_XMLDOCS        (ctx->options & CL_SCAN_XMLDOCS)
-#define SCAN_HWP3           (ctx->options & CL_SCAN_HWP3)
+#define SCAN_ALLMATCHES                         (ctx->options->general & CL_SCAN_GENERAL_ALLMATCHES)
+#define SCAN_COLLECT_METADATA                   (ctx->options->general & CL_SCAN_GENERAL_COLLECT_METADATA)
+#define SCAN_HEURISTICS                         (ctx->options->general & CL_SCAN_GENERAL_HEURISTICS)
+#define SCAN_HEURISTIC_PRECEDENCE               (ctx->options->general & CL_SCAN_GENERAL_HEURISTIC_PRECEDENCE)
+#define SCAN_UNPRIVILEGED                       (ctx->options->general & CL_SCAN_GENERAL_UNPRIVILEGED)
+
+#define SCAN_PARSE_ARCHIVE                      (ctx->options->parse & CL_SCAN_PARSE_ARCHIVE)
+#define SCAN_PARSE_ELF                          (ctx->options->parse & CL_SCAN_PARSE_ELF)
+#define SCAN_PARSE_PDF                          (ctx->options->parse & CL_SCAN_PARSE_PDF)
+#define SCAN_PARSE_SWF                          (ctx->options->parse & CL_SCAN_PARSE_SWF)
+#define SCAN_PARSE_HWP3                         (ctx->options->parse & CL_SCAN_PARSE_HWP3)
+#define SCAN_PARSE_XMLDOCS                      (ctx->options->parse & CL_SCAN_PARSE_XMLDOCS)
+#define SCAN_PARSE_MAIL                         (ctx->options->parse & CL_SCAN_PARSE_MAIL)
+#define SCAN_PARSE_OLE2                         (ctx->options->parse & CL_SCAN_PARSE_OLE2)
+#define SCAN_PARSE_HTML                         (ctx->options->parse & CL_SCAN_PARSE_HTML)
+#define SCAN_PARSE_PE                           (ctx->options->parse & CL_SCAN_PARSE_PE)
+
+#define SCAN_HEURISTIC_BROKEN                   (ctx->options->heuristic & CL_SCAN_HEURISTIC_BROKEN)
+#define SCAN_HEURISTIC_EXCEEDS_MAX              (ctx->options->heuristic & CL_SCAN_HEURISTIC_EXCEEDS_MAX)
+#define SCAN_HEURISTIC_PHISHING_SSL_MISMATCH    (ctx->options->heuristic & CL_SCAN_HEURISTIC_PHISHING_SSL_MISMATCH)
+#define SCAN_HEURISTIC_PHISHING_CLOAK           (ctx->options->heuristic & CL_SCAN_HEURISTIC_PHISHING_CLOAK)
+#define SCAN_HEURISTIC_MACROS                   (ctx->options->heuristic & CL_SCAN_HEURISTIC_MACROS)
+#define SCAN_HEURISTIC_ENCRYPTED_ARCHIVE        (ctx->options->heuristic & CL_SCAN_HEURISTIC_ENCRYPTED_ARCHIVE)
+#define SCAN_HEURISTIC_ENCRYPTED_DOC            (ctx->options->heuristic & CL_SCAN_HEURISTIC_ENCRYPTED_DOC)
+#define SCAN_HEURISTIC_PARTITION_INTXN          (ctx->options->heuristic & CL_SCAN_HEURISTIC_PARTITION_INTXN)
+#define SCAN_HEURISTIC_STRUCTURED               (ctx->options->heuristic & CL_SCAN_HEURISTIC_STRUCTURED)
+#define SCAN_HEURISTIC_STRUCTURED_SSN_NORMAL    (ctx->options->heuristic & CL_SCAN_HEURISTIC_STRUCTURED_SSN_NORMAL)
+#define SCAN_HEURISTIC_STRUCTURED_SSN_STRIPPED  (ctx->options->heuristic & CL_SCAN_HEURISTIC_STRUCTURED_SSN_STRIPPED)
+
+#define SCAN_MAIL_PARTIAL_MESSAGE               (ctx->options->mail & CL_SCAN_MAIL_PARTIAL_MESSAGE)
+
+#define SCAN_DEV_COLLECT_SHA                    (ctx->options->dev & CL_SCAN_DEV_COLLECT_SHA)
+#define SCAN_DEV_COLLECT_PERF_INFO              (ctx->options->dev & CL_SCAN_DEV_COLLECT_PERFORMANCE_INFO)
 
 /* based on macros from A. Melnikoff */
 #define cbswap16(v) (((v & 0xff) << 8) | (((v) >> 8) & 0xff))
@@ -494,7 +538,7 @@ extern int have_rar;
 		     (((v) & 0x00ff000000000000ULL) >> 40) | \
 		     (((v) & 0xff00000000000000ULL) >> 56))
 
-#ifndef HAVE_ATTRIB_PACKED 
+#ifndef HAVE_ATTRIB_PACKED
 #define __attribute__(x)
 #endif
 #ifdef HAVE_PRAGMA_PACK
@@ -531,56 +575,77 @@ struct unaligned_ptr {
 #endif
 
 #if WORDS_BIGENDIAN == 0
-
-/* Little endian */
-#define le16_to_host(v)	(v)
-#define le32_to_host(v)	(v)
-#define le64_to_host(v)	(v)
-#define	be16_to_host(v)	cbswap16(v)
-#define	be32_to_host(v)	cbswap32(v)
-#define be64_to_host(v) cbswap64(v)
-#define cli_readint32(buff) (((const union unaligned_32 *)(buff))->una_s32)
-#define cli_readint16(buff) (((const union unaligned_16 *)(buff))->una_s16)
-#define cli_writeint32(offset, value) (((union unaligned_32 *)(offset))->una_u32=(uint32_t)(value))
+    /* Little endian */
+    #define le16_to_host(v)	(v)
+    #define le32_to_host(v)	(v)
+    #define le64_to_host(v)	(v)
+    #define	be16_to_host(v)	cbswap16(v)
+    #define	be32_to_host(v)	cbswap32(v)
+    #define be64_to_host(v) cbswap64(v)
+    #define cli_readint64(buff) (((const union unaligned_64 *)(buff))->una_s64)
+    #define cli_readint32(buff) (((const union unaligned_32 *)(buff))->una_s32)
+    #define cli_readint16(buff) (((const union unaligned_16 *)(buff))->una_s16)
+    #define cli_writeint32(offset, value) (((union unaligned_32 *)(offset))->una_u32=(uint32_t)(value))
 #else
-/* Big endian */
-#define	le16_to_host(v)	cbswap16(v)
-#define	le32_to_host(v)	cbswap32(v)
-#define le64_to_host(v) cbswap64(v)
-#define be16_to_host(v)	(v)
-#define be32_to_host(v)	(v)
-#define be64_to_host(v)	(v)
+    /* Big endian */
+    #define	le16_to_host(v)	cbswap16(v)
+    #define	le32_to_host(v)	cbswap32(v)
+    #define le64_to_host(v) cbswap64(v)
+    #define be16_to_host(v)	(v)
+    #define be32_to_host(v)	(v)
+    #define be64_to_host(v)	(v)
 
-static inline int32_t cli_readint32(const void *buff)
-{
-	int32_t ret;
-    ret = ((const char *)buff)[0] & 0xff;
-    ret |= (((const char *)buff)[1] & 0xff) << 8;
-    ret |= (((const char *)buff)[2] & 0xff) << 16;
-    ret |= (((const char *)buff)[3] & 0xff) << 24;
-    return ret;
-}
+    static inline int64_t cli_readint64(const void *buff)
+    {
+        int64_t ret;
+        ret = (int64_t)((const char *)buff)[0] & 0xff;
+        ret |= (int64_t)(((const char *)buff)[1] & 0xff) << 8;
+        ret |= (int64_t)(((const char *)buff)[2] & 0xff) << 16;
+        ret |= (int64_t)(((const char *)buff)[3] & 0xff) << 24;
 
-static inline int16_t cli_readint16(const void *buff)
-{
-	int16_t ret;
-    ret = ((const char *)buff)[0] & 0xff;
-    ret |= (((const char *)buff)[1] & 0xff) << 8;
-    return ret;
-}
+        ret |= (int64_t)(((const char *)buff)[4] & 0xff) << 32;
+        ret |= (int64_t)(((const char *)buff)[5] & 0xff) << 40;
+        ret |= (int64_t)(((const char *)buff)[6] & 0xff) << 48;
+        ret |= (int64_t)(((const char *)buff)[7] & 0xff) << 56;
+        return ret;
+    }
 
-static inline void cli_writeint32(void *offset, uint32_t value)
-{
-    ((char *)offset)[0] = value & 0xff;
-    ((char *)offset)[1] = (value & 0xff00) >> 8;
-    ((char *)offset)[2] = (value & 0xff0000) >> 16;
-    ((char *)offset)[3] = (value & 0xff000000) >> 24;
-}
+    static inline int32_t cli_readint32(const void *buff)
+    {
+        int32_t ret;
+        ret = (int32_t)((const char *)buff)[0] & 0xff;
+        ret |= (int32_t)(((const char *)buff)[1] & 0xff) << 8;
+        ret |= (int32_t)(((const char *)buff)[2] & 0xff) << 16;
+        ret |= (int32_t)(((const char *)buff)[3] & 0xff) << 24;
+        return ret;
+    }
+
+    static inline int16_t cli_readint16(const void *buff)
+    {
+        int16_t ret;
+        ret = (int16_t)((const char *)buff)[0] & 0xff;
+        ret |= (int16_t)(((const char *)buff)[1] & 0xff) << 8;
+        return ret;
+    }
+
+    static inline void cli_writeint32(void *offset, uint32_t value)
+    {
+        ((char *)offset)[0] = value & 0xff;
+        ((char *)offset)[1] = (value & 0xff00) >> 8;
+        ((char *)offset)[2] = (value & 0xff0000) >> 16;
+        ((char *)offset)[3] = (value & 0xff000000) >> 24;
+    }
 #endif
 
-void cli_append_virus(cli_ctx *ctx, const char *virname);
+int cli_append_virus(cli_ctx *ctx, const char *virname);
 const char *cli_get_last_virus(const cli_ctx *ctx);
 const char *cli_get_last_virus_str(const cli_ctx *ctx);
+void cli_virus_found_cb(cli_ctx *ctx);
+
+void cli_set_container(cli_ctx *ctx, cli_file_t type, size_t size);
+cli_file_t cli_get_container(cli_ctx *ctx, int index);
+size_t cli_get_container_size(cli_ctx *ctx, int index);
+cli_file_t cli_get_container_intermediate(cli_ctx *ctx, int index);
 
 /* used by: spin, yc (C) aCaB */
 #define __SHIFTBITS(a) (sizeof(a)<<3)
@@ -683,23 +748,82 @@ int cli_unlink(const char *pathname);
 int cli_readn(int fd, void *buff, unsigned int count);
 int cli_writen(int fd, const void *buff, unsigned int count);
 const char *cli_gettmpdir(void);
+
+/**
+ * @brief Sanitize a relative path, so it cannot have a negative depth.
+ *
+ * Caller is responsible for freeing the filename.
+ *
+ * @return char* filename or NULL.
+ */
+char *cli_sanitize_filepath(const char *filepath, size_t filepath_len);
+
+/**
+ * @brief Generate tempfile filename (no path) with a random MD5 hash.
+ *
+ * Caller is responsible for freeing the filename.
+ *
+ * @return char* filename or NULL.
+ */
+char *cli_genfname(const char *prefix);
+
+/**
+ * @brief Generate a full tempfile filepath with a random MD5 hash and prefix the name, if provided.
+ *
+ * Caller is responsible for freeing the filename.
+ *
+ * @param dir 	 Alternative temp directory. (optional)
+ * @return char* filename or NULL.
+ */
+char* cli_gentemp_with_prefix(const char* dir, const char* prefix);
+
+/**
+ * @brief Generate a full tempfile filepath with a random MD5 hash.
+ *
+ * Caller is responsible for freeing the filename.
+ *
+ * @param dir 	 Alternative temp directory. (optional)
+ * @return char* filename or NULL.
+ */
 char *cli_gentemp(const char *dir);
-int cli_gentempfd(const char *dir, char **name, int *fd);
+
+/**
+ * @brief Create a temp filename, create the file, open it, and pass back the filepath and open file descriptor.
+ *
+ * @param dir        Alternative temp directory (optional).
+ * @param[out] name  Allocated filepath, must be freed by caller.
+ * @param[out] fd    File descriptor of open temp file.
+ * @return cl_error_t CL_SUCCESS, CL_ECREAT, or CL_EMEM.
+ */
+cl_error_t cli_gentempfd(const char *dir, char **name, int *fd);
+
+/**
+ * @brief Create a temp filename, create the file, open it, and pass back the filepath and open file descriptor.
+ *
+ * @param dir        Alternative temp directory (optional).
+ * @param prefix  	 (Optional) Prefix for new file tempfile.
+ * @param[out] name  Allocated filepath, must be freed by caller.
+ * @param[out] fd    File descriptor of open temp file.
+ * @return cl_error_t CL_SUCCESS, CL_ECREAT, or CL_EMEM.
+ */
+cl_error_t cli_gentempfd_with_prefix(const char* dir, char* prefix, char** name, int* fd);
+
 unsigned int cli_rndnum(unsigned int max);
 int cli_filecopy(const char *src, const char *dest);
-int cli_mapscan(fmap_t *map, off_t offset, size_t size, cli_ctx *ctx, cli_file_t type);
 bitset_t *cli_bitset_init(void);
 void cli_bitset_free(bitset_t *bs);
 int cli_bitset_set(bitset_t *bs, unsigned long bit_offset);
 int cli_bitset_test(bitset_t *bs, unsigned long bit_offset);
 const char* cli_ctime(const time_t *timep, char *buf, const size_t bufsize);
-int cli_checklimits(const char *, cli_ctx *, unsigned long, unsigned long, unsigned long);
-int cli_updatelimits(cli_ctx *, unsigned long);
+void cli_check_blockmax(cli_ctx *, int);
+cl_error_t cli_checklimits(const char *, cli_ctx *, unsigned long, unsigned long, unsigned long);
+cl_error_t cli_updatelimits(cli_ctx *, unsigned long);
 unsigned long cli_getsizelimit(cli_ctx *, unsigned long);
 int cli_matchregex(const char *str, const char *regex);
 void cli_qsort(void *a, size_t n, size_t es, int (*cmp)(const void *, const void *));
 void cli_qsort_r(void *a, size_t n, size_t es, int (*cmp)(const void*, const void *, const void *), void *arg);
-int cli_checktimelimit(cli_ctx *ctx);
+cl_error_t cli_checktimelimit(cli_ctx *ctx);
+cl_error_t cli_append_possibly_unwanted(cli_ctx *ctx, const char *virname);
 
 /* symlink behaviour */
 #define CLI_FTW_FOLLOW_FILE_SYMLINK 0x01
@@ -728,11 +852,11 @@ struct cli_ftw_cbdata {
     void *data;
 };
 
-/* 
+/*
  * return CL_BREAK to break out without an error, CL_SUCCESS to continue,
  * or any CL_E* to break out due to error.
  * The callback is responsible for freeing filename when it is done using it.
- * Note that callback decides if directory traversal should continue 
+ * Note that callback decides if directory traversal should continue
  * after an error, we call the callback with reason == error,
  * and if it returns CL_BREAK we break.
  */
@@ -745,7 +869,7 @@ typedef int (*cli_ftw_cb)(STATBUF *stat_buf, char *filename, const char *path, e
 typedef int (*cli_ftw_pathchk)(const char *path, struct cli_ftw_cbdata *data);
 
 /*
- * returns 
+ * returns
  *  CL_SUCCESS if it traversed all files and subdirs
  *  CL_BREAK if traversal has stopped at some point
  *  CL_E* if error encountered during traversal and we had to break out
@@ -761,4 +885,17 @@ typedef int (*cli_ftw_pathchk)(const char *path, struct cli_ftw_cbdata *data);
 int cli_ftw(char *base, int flags, int maxdepth, cli_ftw_cb callback, struct cli_ftw_cbdata *data, cli_ftw_pathchk pathchk);
 
 const char *cli_strerror(int errnum, char* buf, size_t len);
+
+/**
+ * @brief   Attempt to get a filename from an open file descriptor.
+ *
+ * Caller is responsible for free'ing the filename.
+ * Should work on Linux, macOS, Windows.
+ *
+ * @param desc           File descriptor
+ * @param[out] filepath  Will be set to file path if found, or NULL.
+ * @return cl_error_t    CL_SUCCESS if found, else an error code.
+ */
+cl_error_t cli_get_filepath_from_filedesc(int desc, char** filepath);
+
 #endif

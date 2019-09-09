@@ -1,8 +1,12 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
+ * 
+ *  Acknowledgements: The header structures were based upon "ELF: Executable 
+ *                    and Linkable Format, Portable Formats Specification, 
+ *                    Version 1.1".
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -34,7 +38,6 @@
 #endif
 #include <time.h>
 
-#include "cltypes.h"
 #include "elf.h"
 #include "clamav.h"
 #include "execs.h"
@@ -115,7 +118,9 @@ static int cli_elf_fileheader(cli_ctx *ctx, fmap_t *map, union elf_file_hdr *fil
 	    break;
         default:
 	    cli_dbgmsg("ELF: Unknown ELF class (%u)\n", file_hdr->hdr64.e_ident[4]);
-	    return CL_EFORMAT;
+	    if (ctx)
+	      cli_append_virus(ctx, "Heuristics.Broken.Executable");
+	    return CL_VIRUS;
     }
 
     /* Need to know to endian convert */
@@ -207,7 +212,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     cli_dbgmsg("ELF: Number of program headers: %d\n", phnum);
     if(phnum > 128) {
         cli_dbgmsg("ELF: Suspicious number of program headers\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
             cli_append_virus(ctx, "Heuristics.Broken.Executable");
             return CL_VIRUS;
         }
@@ -220,7 +225,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         /* Sanity check */
         if(phentsize != sizeof(struct elf_program_hdr32)) {
             cli_dbgmsg("ELF: phentsize != sizeof(struct elf_program_hdr32)\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -255,7 +260,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                     cli_dbgmsg("ELF: Possibly broken ELF file\n");
                 }
                 free(program_hdr);
-                if(ctx && DETECT_BROKEN) {
+                if(ctx && SCAN_HEURISTIC_BROKEN) {
                     cli_append_virus(ctx, "Heuristics.Broken.Executable");
                     return CL_VIRUS;
                 }
@@ -277,7 +282,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         free(program_hdr);
         if(err) {
             cli_dbgmsg("ELF: Can't calculate file offset of entry point\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -311,7 +316,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     cli_dbgmsg("ELF: Number of program headers: %d\n", phnum);
     if(phnum > 128) {
         cli_dbgmsg("ELF: Suspicious number of program headers\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
             cli_append_virus(ctx, "Heuristics.Broken.Executable");
             return CL_VIRUS;
         }
@@ -324,7 +329,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         /* Sanity check */
         if (phentsize != sizeof(struct elf_program_hdr64)) {
             cli_dbgmsg("ELF: phentsize != sizeof(struct elf_program_hdr64)\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -359,7 +364,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                     cli_dbgmsg("ELF: Possibly broken ELF file\n");
                 }
                 free(program_hdr);
-                if(ctx && DETECT_BROKEN) {
+                if(ctx && SCAN_HEURISTIC_BROKEN) {
                     cli_append_virus(ctx, "Heuristics.Broken.Executable");
                     return CL_VIRUS;
                 }
@@ -368,11 +373,11 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
 
             if(ctx) {
                 cli_dbgmsg("ELF: Segment #%d\n", i);
-                cli_dbgmsg("ELF: Segment type: 0x%x\n", EC32(program_hdr[i].p_type, conv));
-                cli_dbgmsg("ELF: Segment offset: 0x" STDx64 "\n", EC64(program_hdr[i].p_offset, conv));
-                cli_dbgmsg("ELF: Segment virtual address: 0x" STDx64 "\n", EC64(program_hdr[i].p_vaddr, conv));
-                cli_dbgmsg("ELF: Segment real size: 0x" STDx64 "\n", EC64(program_hdr[i].p_filesz, conv));
-                cli_dbgmsg("ELF: Segment virtual size: 0x" STDx64 "\n", EC64(program_hdr[i].p_memsz, conv));
+                cli_dbgmsg("ELF: Segment type: 0x" STDx32 "\n", (uint32_t) EC32(program_hdr[i].p_type, conv));
+                cli_dbgmsg("ELF: Segment offset: 0x" STDx64 "\n", (uint64_t) EC64(program_hdr[i].p_offset, conv));
+                cli_dbgmsg("ELF: Segment virtual address: 0x" STDx64 "\n", (uint64_t) EC64(program_hdr[i].p_vaddr, conv));
+                cli_dbgmsg("ELF: Segment real size: 0x" STDx64 "\n", (uint64_t) EC64(program_hdr[i].p_filesz, conv));
+                cli_dbgmsg("ELF: Segment virtual size: 0x" STDx64 "\n", (uint64_t) EC64(program_hdr[i].p_memsz, conv));
                 cli_dbgmsg("------------------------------------\n");
             }
         }
@@ -381,7 +386,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         free(program_hdr);
         if(err) {
             cli_dbgmsg("ELF: Can't calculate file offset of entry point\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -426,7 +431,7 @@ static int cli_elf_sh32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     /* Sanity check */
     if(shentsize != sizeof(struct elf_section_hdr32)) {
 	cli_dbgmsg("ELF: shentsize != sizeof(struct elf_section_hdr32)\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
 	    cli_append_virus(ctx, "Heuristics.Broken.Executable");
 	    return CL_VIRUS;
         }
@@ -478,7 +483,7 @@ static int cli_elf_sh32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                 free(elfinfo->section);
                 elfinfo->section = NULL;
 	    }
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
 		return CL_VIRUS;
             }
@@ -536,7 +541,7 @@ static int cli_elf_sh64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     /* Sanity check */
     if(shentsize != sizeof(struct elf_section_hdr64)) {
 	cli_dbgmsg("ELF: shentsize != sizeof(struct elf_section_hdr64)\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
 	    cli_append_virus(ctx, "Heuristics.Broken.Executable");
 	    return CL_VIRUS;
         }
@@ -588,7 +593,7 @@ static int cli_elf_sh64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                 free(elfinfo->section);
                 elfinfo->section = NULL;
 	    }
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
 		return CL_VIRUS;
             }
@@ -603,9 +608,9 @@ static int cli_elf_sh64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
             elfinfo->section[i].rsz = EC64(section_hdr[i].sh_size, conv);
         }
         if(ctx) {
-	    cli_dbgmsg("ELF: Section %u\n", i);
-	    cli_dbgmsg("ELF: Section offset: " STDu64 "\n", EC64(section_hdr[i].sh_offset, conv));
-	    cli_dbgmsg("ELF: Section size: " STDu64 "\n", EC64(section_hdr[i].sh_size, conv));
+	    cli_dbgmsg("ELF: Section " STDu32 "\n", (uint32_t) i);
+	    cli_dbgmsg("ELF: Section offset: " STDu64 "\n", (uint64_t) EC64(section_hdr[i].sh_offset, conv));
+	    cli_dbgmsg("ELF: Section size: " STDu64 "\n", (uint64_t) EC64(section_hdr[i].sh_size, conv));
 
             sh_type = EC32(section_hdr[i].sh_type, conv);
             sh_flags = (uint32_t)(EC64(section_hdr[i].sh_flags, conv) & ELF_SHF_MASK);

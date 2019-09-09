@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2014 Cisco Systems, Inc.
+ *  Copyright (C) 2014-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *
  *  Authors: Steven Morgan <smorgan@sourcefire.com>
  *
@@ -32,11 +32,6 @@
 #include "openioc.h"
 
 #ifdef HAVE_LIBXML2
-#ifdef _WIN32
-#ifndef LIBXML_WRITER_ENABLED
-#define LIBXML_WRITER_ENABLED 1
-#endif
-#endif
 #include <libxml/xmlreader.h>
 
 struct openioc_hash {
@@ -229,7 +224,7 @@ int openioc_parse(const char * fname, int fd, struct cl_engine *engine, unsigned
     else
         iocp++;
 
-    ioclen = strlen(fname);
+    ioclen = (uint16_t)strlen(fname);
 
     if (elems != NULL) {
         if (NULL == engine->hm_hdb) {

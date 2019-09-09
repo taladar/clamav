@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2013 Sourcefire, Inc.
  *
  *  Authors: Steven Morgan <smorgan@sourcefire.com>
@@ -32,7 +32,7 @@
  * Returns:
  *   FPU_ENDIAN_BIG - floating point big endian
  *   FPU_ENDIAN_LITTLE - floating point little endian
- *   FPU_ENDIAN_UNKNOWN - floating point endianess unknown
+ *   FPU_ENDIAN_UNKNOWN - floating point endianness unknown
  */
 extern int get_fpu_endian(void);
 

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Nigel Horne
  *
@@ -122,7 +122,7 @@ tableInsert(table_t *table, const char *key, int value)
  *	can't be -1 :-(
  *
  * Linear search. Since tables are rarely more than 3 or 4 in size, and never
- *	reach double figures, there's no need for optimisation
+ *	reach double figures, there's no need for optimization
  */
 int
 tableFind(const table_t *table, const char *key)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2013 Sourcefire, Inc.
  *
  *  Authors: Steven Morgan <smorgan@sourcefire.com>
@@ -22,7 +22,7 @@
 #include "../libclamav/clamav.h"
 #include "../libclamav/fpu.h"
 
-/* Helper command line interface to determinine fpu endianess in unit test scripts.
+/* Helper command line interface to determine fpu endianness in unit test scripts.
  *   parameters: none
  *   returns:
  *     1 - fpu big endian

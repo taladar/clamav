@@ -1,8 +1,8 @@
 /*
  *  Load, and verify ClamAV bytecode.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009-2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cltypes.h"
 #include "bytecode.h"
 #include "bytecode_priv.h"
 #include "clamav.h"

@@ -108,14 +108,6 @@ case "$1" in
     LogRotate="$RET"
     db_get clamav-daemon/SelfCheck || true
     SelfCheck="$RET"
-    db_get clamav-daemon/StatsEnabled || true
-    StatsEnabled="$RET"
-    db_get clamav-daemon/StatsPEDisabled || true
-    StatsPEDisabled="$RET"
-    db_get clamav-daemon/StatsHostID || true
-    StatsHostID="$RET"
-    db_get clamav-daemon/StatsTimeout || true
-    StatsTimeout="$RET"
     db_get clamav-daemon/Bytecode || true
     Bytecode="$RET"
     if [ "$Bytecode" = "true" ]; then
@@ -148,6 +140,8 @@ case "$1" in
     MaxScriptNormalize="$RET"
     db_get clamav-daemon/MaxZipTypeRcg || true
     MaxZipTypeRcg="$RET"
+    db_get clamav-daemon/BlockMax || RET=""
+    BlockMax="$RET"
 
     # Test for the broken versions, see #741675.
     if [ "$2" = "0.98.1+dfsg-3" ] || [ "$2" = "0.98.1+dfsg-1+deb7u2" ] || [ "$2" = "0.98.1+dfsg-1+deb6u2" ]; then
@@ -189,7 +183,7 @@ case "$1" in
     [ -z "$ExtendedDetectionInfo" ] && ExtendedDetectionInfo=true
     [ -z "$DatabaseDirectory" ] && DatabaseDirectory='/var/lib/clamav'
     [ -z "$OfficialDatabaseOnly" ] && OfficialDatabaseOnly=false
-    [ -z "$CommandReadTimeout" ] && CommandReadTimeout=5
+    [ -z "$CommandReadTimeout" ] && CommandReadTimeout=30
     [ -z "$SendBufTimeout" ] && SendBufTimeout=200
     [ -z "$MaxQueue" ] && MaxQueue=100
     [ -z "$IdleTimeout" ] && IdleTimeout=30
@@ -203,9 +197,9 @@ case "$1" in
     [ -z "$DisableCache" ] && DisableCache=false
     [ -z "$ScanPE" ] && ScanPE=true
     [ -z "$ScanELF" ] && ScanELF=true
-    [ -z "$DetectBrokenExecutables" ] && DetectBrokenExecutables=false
     [ -z "$ScanOLE2" ] && ScanOLE2=true
     [ -z "$OLE2BlockMacros" ] && OLE2BlockMacros=false
+    [ -z "$OnAccessExcludeRootUID" ] && OnAccessExcludeRootUID=no
     [ -z "$ScanPDF" ] && ScanPDF=true
     [ -z "$ScanPartialMessages" ] && ScanPartialMessages=false
     [ -z "$PhishingSignatures" ] && PhishingSignatures=true
@@ -217,6 +211,7 @@ case "$1" in
     [ -z "$StructuredDataDetection" ] && StructuredDataDetection=false
     [ -z "$ScanHTML" ] && ScanHTML=true
     [ -z "$ArchiveBlockEncrypted" ] && ArchiveBlockEncrypted=false
+    [ -z "$MaxScanTime" ] && MaxScanTime=120000
     [ -z "$MaxScanSize" ] && MaxScanSize=100M
     [ -z "$MaxFileSize" ] && MaxFileSize=25M
     [ -z "$MaxRecursion" ] && MaxRecursion=16
@@ -229,6 +224,8 @@ case "$1" in
     [ -z "$ScanXMLDOCS" ] && ScanXMLDOCS=true
     [ -z "$ScanHWP3" ] && ScanHWP3=true
     [ -z "$MaxRecHWP3" ] && MaxRecHWP3=16
+    [ -z "$PreludeEnable" ] && PreludeEnable=no
+    [ -z "$PreludeAnalyzerName" ] && PreludeAnalyzerName=ClamAV
 
     if `dpkg --compare-versions "$2" lt 0.98.7+dfsg-2~`; then
       # Update the MaxRecursion variable, if it is the previous default value.
@@ -293,6 +290,8 @@ LogRotate $LogRotate
 LogFacility $LogFacility
 LogClean $LogClean
 LogVerbose $LogVerbose
+PreludeEnable $PreludeEnable
+PreludeAnalyzerName $PreludeAnalyzerName
 DatabaseDirectory $DatabaseDirectory
 OfficialDatabaseOnly $OfficialDatabaseOnly
 SelfCheck $SelfCheck
@@ -308,7 +307,6 @@ MaxHTMLNoTags $MaxHTMLNoTags
 MaxScriptNormalize $MaxScriptNormalize
 MaxZipTypeRcg $MaxZipTypeRcg
 ScanSWF $ScanSWF
-DetectBrokenExecutables $DetectBrokenExecutables
 ExitOnOOM $ExitOnOOM
 LeaveTemporaryFiles $LeaveTemporaryFiles
 AlgorithmicDetection $AlgorithmicDetection
@@ -334,6 +332,7 @@ AllowAllMatchScan $AllowAllMatchScan
 ForceToDisk $ForceToDisk
 DisableCertCheck $DisableCertCheck
 DisableCache $DisableCache
+MaxScanTime $MaxScanTime
 MaxScanSize $MaxScanSize
 MaxFileSize $MaxFileSize
 MaxRecursion $MaxRecursion
@@ -346,10 +345,6 @@ PCREMaxFileSize $PCREMaxFileSize
 ScanXMLDOCS $ScanXMLDOCS
 ScanHWP3 $ScanHWP3
 MaxRecHWP3 $MaxRecHWP3
-StatsEnabled $StatsEnabled
-StatsPEDisabled $StatsPEDisabled
-StatsHostID $StatsHostID
-StatsTimeout $StatsTimeout
 EOF
 
     if is_true "$StructuredDataDetection"; then
@@ -399,6 +394,9 @@ EOF
         PidFile=''
       fi
     fi
+    if [ -n "$BlockMax" ]; then
+		echo "BlockMax $BlockMax" >> $DEBCONFFILE
+    fi
     # Preserve manually created, usually not needed options.
     [ -n "$PidFile" ] && echo "PidFile $PidFile" >> $DEBCONFFILE
     [ -n "$ExcludePath" ] && echo "ExcludePath $ExcludePath" >> $DEBCONFFILE
@@ -413,6 +411,16 @@ EOF
     [ -n "$OnAccessDisableDDD" ] && echo "OnAccessDisableDDD $OnAccessDisableDDD" >> $DEBCONFFILE
     [ -n "$OnAccessPrevention" ] && echo "OnAccessPrevention $OnAccessPrevention" >> $DEBCONFFILE
     [ -n "$OnAccessExtraScanning" ] && echo "OnAccessExtraScanning $OnAccessExtraScanning" >> $DEBCONFFILE
+    [ -n "$HeuristicAlerts" ] && echo "HeuristicAlerts $HeuristicAlerts" >> $DEBCONFFILE
+    [ -n "$AlertBrokenExecutables" ] && echo "AlertBrokenExecutables $AlertBrokenExecutables" >> $DEBCONFFILE
+    [ -n "$AlertEncrypted" ] && echo "AlertEncrypted $AlertEncrypted" >> $DEBCONFFILE
+    [ -n "$AlertEncryptedArchive" ] && echo "AlertEncryptedArchive $AlertEncryptedArchive" >> $DEBCONFFILE
+    [ -n "$AlertEncryptedDoc" ] && echo "AlertEncryptedDoc $AlertEncryptedDoc" >> $DEBCONFFILE
+    [ -n "$AlertOLE2Macros" ] && echo "AlertOLE2Macros $AlertOLE2Macros" >> $DEBCONFFILE
+    [ -n "$AlertPhishingSSLMismatch" ] && echo "AlertPhishingSSLMismatch $AlertPhishingSSLMismatch" >> $DEBCONFFILE
+    [ -n "$AlertPhishingCloak" ] && echo "AlertPhishingCloak $AlertPhishingCloak" >> $DEBCONFFILE
+    [ -n "$AlertPartitionIntersection" ] && echo "AlertPartitionIntersection $AlertPartitionIntersection" >> $DEBCONFFILE
+    [ -n "$AlertExceedsMax" ] && echo "AlertExceedsMax $AlertExceedsMax" >> $DEBCONFFILE
 
     # Preserve old, deprecated options.
     [ -n "$ClamukoScanOnAccess" ] && echo "ClamukoScanOnAccess $ClamukoScanOnAccess" >> $DEBCONFFILE
@@ -441,7 +449,7 @@ EOF
   else
     # Let the configuration be handled manually.
     ucf_cleanup "$CLAMAVCONF"
-    ucf_upgrade_check "$CLAMAVCONF" /usr/share/doc/clamav-daemon/examples/clamd.conf.sample /var/lib/ucf/cache/:etc:clamav:clamd.conf
+    ucf -p "$CLAMAVCONF"
     if [ -e "$CLAMAVSYSTEMDCLAMDONF" ]; then
       echo "Disabling old systemd service override options for clamav-daemon"
       mv "$CLAMAVSYSTEMDCLAMDONF" "$CLAMAVSYSTEMDCLAMDONF".dpkg-old
@@ -490,7 +498,7 @@ EOF
       echo "     if [ -d /run/systemd/system ]; then" >> $DEBROTATEFILE
       echo "         systemctl -q is-active clamav-daemon && systemctl kill --signal=SIGHUP clamav-daemon || true" >> $DEBROTATEFILE
       echo "     else" >> $DEBROTATEFILE
-      echo "         /etc/init.d/clamav-daemon reload-log > /dev/null || true" >> $DEBROTATEFILE
+      echo "         invoke-rc.d clamav-daemon reload-log > /dev/null || true" >> $DEBROTATEFILE
       echo "     fi" >> $DEBROTATEFILE
       echo "     endscript" >> $DEBROTATEFILE
       echo "     }" >> $DEBROTATEFILE
@@ -531,31 +539,6 @@ EOF
   exit 1
   ;;
 esac
-
-# AppArmor integration
-if [ "$1" = "configure" ]; then
-    APP_PROFILE=/etc/apparmor.d/usr.sbin.clamd
-    if [ -f "$APP_PROFILE" ]; then
-        # Add the local/ include
-        LOCAL_APP_PROFILE=/etc/apparmor.d/local/usr.sbin.clamd
-
-        test -e "$LOCAL_APP_PROFILE" || {
-            tmp=`mktemp`
-        cat <<EOM > "$tmp"
-# Site-specific additions and overrides for usr.sbin.clamd.
-# For more details, please see /etc/apparmor.d/local/README.
-EOM
-            mkdir `dirname $LOCAL_APP_PROFILE` 2>/dev/null || true
-            mv -f "$tmp" "$LOCAL_APP_PROFILE"
-            chmod 644 "$LOCAL_APP_PROFILE"
-        }
-
-        # Reload the profile, including any abstraction updates
-        if aa-status --enabled 2>/dev/null; then
-            apparmor_parser -r -T -W "$APP_PROFILE" || true
-        fi
-    fi
-fi
 
 # dh_installdeb will replace this with shell code automatically
 # generated by other debhelper scripts.

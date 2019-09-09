@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm, Trog, Török Edvin
  *
@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include "shared/optparser.h"
 #include "thrmgr.h"
-#include "cltypes.h"
+#include "clamav-types.h"
 
 enum mode {
     MODE_COMMAND,
@@ -82,9 +82,5 @@ void fds_remove(struct fd_data *data, int fd);
 void fds_cleanup(struct fd_data *data);
 int fds_poll_recv(struct fd_data *data, int timeout, int check_signals, void *event);
 void fds_free(struct fd_data *data);
-
-#ifdef FANOTIFY
-int onas_fan_checkowner(int pid, const struct optstruct *opts);
-#endif
 
 #endif

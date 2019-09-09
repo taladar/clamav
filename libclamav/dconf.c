@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
@@ -30,7 +30,6 @@
 #include <zlib.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "dconf.h"
 #include "readdb.h"
 #include "str.h"
@@ -74,6 +73,7 @@ static struct dconf_module modules[] = {
     { "PE",     "CATALOG",      PE_CONF_CATALOG,        1 },
     { "PE",     "CERTS",        PE_CONF_CERTS,      1 },
     { "PE",     "MATCHICON",    PE_CONF_MATCHICON,       1 },
+    { "PE",     "IMPTBL",       PE_CONF_IMPTBL,          1 },
 
     { "ELF",        NULL,       0x1,            1 },
 
@@ -130,6 +130,7 @@ static struct dconf_module modules[] = {
     { "OTHER",      "PREFILTERING", OTHER_CONF_PREFILTERING,1 },
     { "OTHER",      "PDFNAMEOBJ",   OTHER_CONF_PDFNAMEOBJ,  1 },
     { "OTHER",      "PRTNINTXN",   OTHER_CONF_PRTNINTXN,  1 },
+    { "OTHER",      "LZW",      OTHER_CONF_LZW,     1 },
 
     { "PHISHING",   "ENGINE",       PHISHING_CONF_ENGINE,   1 },
     { "PHISHING",   "ENTCONV",      PHISHING_CONF_ENTCONV,  1 },

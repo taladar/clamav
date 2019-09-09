@@ -1,7 +1,7 @@
 /*
  * Extract component parts of MS XML files (e.g. MS Office 2003 XML Documents)
  * 
- * Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  * Copyright (C) 2007-2013 Sourcefire, Inc.
  * 
  * Authors: Kevin Lin
@@ -36,11 +36,6 @@
 #include "msxml_parser.h"
 
 #if HAVE_LIBXML2
-#ifdef _WIN32
-#ifndef LIBXML_WRITER_ENABLED
-#define LIBXML_WRITER_ENABLED 1
-#endif
-#endif
 #include <libxml/xmlreader.h>
 
 #define MSXML_VERBIOSE 0
@@ -245,7 +240,7 @@ int cli_scanmsxml(cli_ctx *ctx)
 
     reader = xmlReaderForIO(msxml_read_cb, NULL, &cbdata, "msxml.xml", NULL, CLAMAV_MIN_XMLREADER_FLAGS);
     if (!reader) {
-        cli_dbgmsg("cli_scanmsxml: cannot intialize xmlReader\n");
+        cli_dbgmsg("cli_scanmsxml: cannot initialize xmlReader\n");
 
 #if HAVE_JSON
         ret = cli_json_parse_error(ctx->wrkproperty, "OOXML_ERROR_XML_READER_IO");

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
  *
@@ -24,7 +24,6 @@
 #endif
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "execs.h"
 #include "wwunpack.h"
@@ -226,7 +225,10 @@ int wwunpack(uint8_t *exe, uint32_t exesz, uint8_t *wwsect, struct cli_exe_secti
 	return CL_EFORMAT;
     exe[pe+6]=(uint8_t)scount;
     exe[pe+7]=(uint8_t)(scount>>8);
-    cli_writeint32(&exe[pe+0x28], cli_readint32(wwsect+0x295)+sects[scount].rva+0x299);
+    if (!CLI_ISCONTAINED(wwsect, sects[scount].rsz, wwsect+0x295, 4))
+        cli_dbgmsg("WWPack: unpack memory address out of bounds.\n");
+    else
+        cli_writeint32(&exe[pe+0x28], cli_readint32(wwsect+0x295)+sects[scount].rva+0x299);
     cli_writeint32(&exe[pe+0x50], cli_readint32(&exe[pe+0x50])-sects[scount].vsz);
 
     structs = &exe[(0xffff&cli_readint32(&exe[pe+0x14]))+pe+0x18];

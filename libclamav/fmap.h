@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2009 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2009-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>
  *
@@ -30,9 +30,10 @@
 #include <unistd.h>
 #endif
 
+#include <limits.h>
 #include <time.h>
 #include <string.h>
-#include "cltypes.h"
+
 #include "clamav.h"
 
 struct cl_fmap;
@@ -80,6 +81,7 @@ struct cl_fmap {
     HANDLE fh;
     HANDLE mh;
 #endif
+    unsigned char maphash[16];
     uint32_t placeholder_for_bitmap;
 };
 
@@ -142,7 +144,7 @@ static inline int fmap_readn(fmap_t *m, void *dst, size_t at, size_t len)
     if(!src)
 	return -1;
     memcpy(dst, src, len);
-    return len;
+    return (len <= INT_MAX) ? (int)len : -1;
 }
 
 static inline const void *fmap_need_str(fmap_t *m, const void *ptr, size_t len_hint)
@@ -162,12 +164,13 @@ static inline const void *fmap_gets(fmap_t *m, char *dst, size_t *at, size_t max
 static inline const void *fmap_need_off_once_len(fmap_t *m, size_t at, size_t len, size_t *lenout)
 {
     const void *p;
-    if(at >= m->len) {
-	*lenout = 0;
-	return (void*)0xE0F00000;/* EOF, not read error */
+    if (at >= m->len)
+    {
+        *lenout = 0;
+        return NULL; /* EOF, not read error */
     }
-    if(len > m->len - at)
-	len = m->len - at;
+    if (len > m->len - at)
+        len = m->len - at;
     p = fmap_need_off_once(m, at, len);
     *lenout = p ? len : 0;
     return p;
@@ -178,9 +181,30 @@ static inline const void *fmap_need_ptr_once_len(fmap_t *m, const void *ptr, siz
     return fmap_need_off_once_len(m, fmap_ptr2off(m, ptr), len, lenout);
 }
 
-int fmap_dump_to_file(fmap_t *map, const char *tmpdir, char **outname, int *outfd);
+/**
+ * @brief 	Dump a specified range of data from an fmap to a new temp file.
+ * 
+ * @param map           The file map in question
+ * @param filepath      (Optional) The full filepath of the file being dumped.
+ * @param tmpdir        The directory to drop the file to.
+ * @param outname       The filename chosen for the temp file.
+ * @param outfd         The file descriptor of the new file, open and seeked to the start of the file.
+ * @param start_offset  The start offset of the data that you wish to write to the temp file. Must be less than the length of the fmap and must be less than end_offset.
+ * @param end_offset    The end offset of the data you wish to write to the temp file.  May be larger than the size of the fmap.  Use SIZE_MAX to write the entire fmap.
+ * @return cl_error_t   CL_SUCCESS on success, else CL_EARG, CL_EWRITE, CL_ECREAT, or CL_EMEM for self-explanatory reasons. 
+ */
+cl_error_t fmap_dump_to_file(fmap_t *map, const char *filepath, const char *tmpdir, char **outname, int *outfd, size_t start_offset, size_t end_offset);
 
 /* deprecated */
+/**
+ * @brief   Return the open file desciptor for the fmap (if available).
+ * 
+ * This function will only provide the file descriptor if the fmap handle is set, 
+ * and if the handle is in fact a file descriptor (handle_is_fd != 0).
+ * 
+ * @param m     The fmap.
+ * @return int  The file descriptor, or -1 if not available.
+ */
 int fmap_fd(fmap_t *m);
 
 #endif

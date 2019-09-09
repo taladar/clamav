@@ -1,8 +1,8 @@
 /*
  *  Extract embedded objects from RTF files.
  *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
  *
@@ -174,7 +174,7 @@ static int push_state(struct stack* stack,struct rtf_state* state)
 	*state = base_state;
 
 	state->encounteredTopLevel = toplevel;
-	state->default_elements = defelements;
+	state->default_elements = 0;
 	return 0; 
 }
 
@@ -244,7 +244,7 @@ static int decode_and_scan(struct rtf_object_data* data, cli_ctx* ctx)
 		ret = cli_scan_ole10(data->fd, ctx);
 	}
 	else if(data->fd > 0)
-		ret = cli_magic_scandesc(data->fd,ctx);
+		ret = cli_magic_scandesc(data->fd, data->name, ctx);
 	if(data->fd > 0)
 	close(data->fd);
 	data->fd = -1;

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2008-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
  *
@@ -31,6 +31,7 @@
 
 #define CLI_DEFAULT_BM_OFFMODE_FSIZE	262144
 
+#define CLI_DEFAULT_MAXSCANTIME     120000
 #define CLI_DEFAULT_MAXSCANSIZE	    104857600
 #define CLI_DEFAULT_MAXFILESIZE	    26214400
 #define CLI_DEFAULT_MAXRECLEVEL	    16
@@ -49,8 +50,8 @@
 #define CLI_DEFAULT_MAXPARTITIONS       50
 
 /* TODO - set better defaults */
-#define CLI_DEFAULT_PCRE_MATCH_LIMIT     10000
-#define CLI_DEFAULT_PCRE_RECMATCH_LIMIT  5000
+#define CLI_DEFAULT_PCRE_MATCH_LIMIT     100000
+#define CLI_DEFAULT_PCRE_RECMATCH_LIMIT  2000
 #define CLI_DEFAULT_PCRE_MAX_FILESIZE    26214400
 
 #endif

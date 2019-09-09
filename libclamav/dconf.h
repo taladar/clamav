@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
@@ -26,7 +26,6 @@
 #include <zlib.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "cvd.h"
 
 #include "mpool.h"
@@ -65,6 +64,7 @@ struct cli_dconf {
 #define PE_CONF_CATALOG	    0x10000
 #define PE_CONF_CERTS       0x20000
 #define PE_CONF_MATCHICON   0x40000
+#define PE_CONF_IMPTBL      0x80000
 
 /* Archive flags */
 #define ARCH_CONF_RAR	    0x1
@@ -121,6 +121,7 @@ struct cli_dconf {
 #define OTHER_CONF_PREFILTERING 0x80
 #define OTHER_CONF_PDFNAMEOBJ	0x100
 #define OTHER_CONF_PRTNINTXN	0x200
+#define OTHER_CONF_LZW		0x400
 
 /* Phishing flags */
 #define PHISHING_CONF_ENGINE   0x1

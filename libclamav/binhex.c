@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2010 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2010-2013 Sourcefire, Inc.
  *
  *  Authors: aCaB <acab@clamav.net>
  *
@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include "scanners.h"
-#include "cltypes.h"
 #include "others.h"
 #include "clamav.h"
 #include "fmap.h"
@@ -50,11 +49,11 @@ static const uint8_t hqxtbl[] = {
 
 int cli_binhex(cli_ctx *ctx) {
     fmap_t *map = *ctx->fmap;
-    const uint8_t *encoded;
-    uint8_t decoded[BUFSIZ], spare_bits, last_byte=0, this_byte, offset=0;
+    const uint8_t *encoded = NULL;
+    uint8_t decoded[BUFSIZ], spare_bits = 0, last_byte = 0, this_byte = 0, offset = 0;
     size_t enc_done=0, enc_todo=map->len;
     unsigned int dec_done=0, chunksz = 0, chunkoff=0;
-    uint32_t datalen, reslen;
+    uint32_t datalen = 0, reslen = 0;
     int in_data = 0, in_run = 0, datafd, resfd, ret = CL_CLEAN;
     enum binhex_phase { IN_BANNER, IN_HEADER, IN_DATA, IN_LIMBO1, IN_LIMBO2, IN_RES } write_phase = IN_BANNER;
     char *dname, *rname;
@@ -116,7 +115,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(datafd, ctx);
+		    ret = cli_magic_scandesc(datafd, dname, ctx);
 		    if(ret == CL_VIRUS) break;
 		}
 		if(dec_done)
@@ -162,7 +161,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(resfd, ctx);
+		    ret = cli_magic_scandesc(resfd, rname, ctx);
 		    break;
 		}
 	    }
@@ -174,7 +173,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(datafd, ctx);
+		    ret = cli_magic_scandesc(datafd, dname, ctx);
 		} else if(write_phase == IN_RES) {
 		    cli_dbgmsg("cli_binhex: scanning partially extracted resource fork\n");
 		    if (lseek(resfd, 0, SEEK_SET) == -1) {
@@ -182,13 +181,16 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(resfd, ctx);
+		    ret = cli_magic_scandesc(resfd, rname, ctx);
 		}
 		break;
 	    }
 	}
 
-	if(!chunksz) {
+	// 'chunksz' must be 0 the first iteration, 
+	// so that 'encoded' will be initialized before first dereference.
+	if(!chunksz)
+	{
 	    chunksz = MIN(enc_todo, map->pgsz);
 	    encoded = fmap_need_off_once(map, enc_done, chunksz);
 	    if(!encoded) {

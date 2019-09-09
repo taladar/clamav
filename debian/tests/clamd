@@ -10,7 +10,7 @@ cp `dirname $0`/../../unit_tests/input/bytecode.cvd /var/lib/clamav/main.cvd > /
 cp `dirname $0`/../../unit_tests/input/bytecode.cvd /var/lib/clamav/daily.cvd > /dev/null 2>&1
 
 # restart clamav
-/etc/init.d/clamav-daemon start > /dev/null 2>&1
+invoke-rc.d clamav-daemon start > /dev/null 2>&1
 
 if pidof -x $DAEMON > /dev/null; then
     echo "OK"

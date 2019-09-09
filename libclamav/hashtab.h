@@ -1,10 +1,14 @@
 /*
- *  HTML Entity & Encoding normalization.
- *
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Török Edvin
+ * 
+ *  Summary: Hash-table and -set data structures.
+ * 
+ *  Acknowledgements: hash32shift() is an implementation of Thomas Wang's 
+ * 	                  32-bit integer hash function: 
+ * 	                  http://www.cris.com/~Ttwang/tech/inthash.htm
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2 as
@@ -26,7 +30,9 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <sys/types.h>
-#include "cltypes.h"
+
+#include "clamav-types.h"
+#include "clamav-config.h"
 #include "mpool.h"
 typedef long cli_element_data;
 

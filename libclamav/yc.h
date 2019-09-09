@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Alberto Wu
  *
@@ -24,7 +24,7 @@
 
 #include "pe.h"
 #include "execs.h"
-#include "cltypes.h"
+#include "clamav-types.h"
 
 int yc_decrypt(cli_ctx *, char *, unsigned int, struct cli_exe_section *, unsigned int, uint32_t, int,uint32_t,int16_t);
 

@@ -1,23 +1,26 @@
 /*
- * Extract component parts of OLE2 files (e.g. MS Office Documents)
- * 
- * Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- * Copyright (C) 2007-2013 Sourcefire, Inc.
- * 
- * Authors: Trog
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the
- * Free Software Foundation.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
+ *
+ *  Authors: Trog
+ *
+ *  Summary: Extract component parts of OLE2 files (e.g. MS Office Documents).
+ *
+ *  Acknowledgements: Some ideas and algorithms were based upon OpenOffice and libgsf.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ *  MA 02110-1301, USA.
  */
 
 #if HAVE_CONFIG_H
@@ -39,7 +42,6 @@
 #endif
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "hwp.h"
 #include "ole2_extract.h"
@@ -357,8 +359,6 @@ print_ole2_property(property_t * property)
 static void
 print_ole2_header(ole2_header_t * hdr)
 {
-    int             i;
-
     if (!hdr || !cli_debug_flag) {
         return;
     }
@@ -399,9 +399,14 @@ ole2_read_block(ole2_header_t * hdr, void *buff, unsigned int size, int32_t bloc
         return FALSE;
     }
     /* other methods: (blockno+1) * 512 or (blockno * block_size) + 512; */
+    if ((uint64_t) blockno << hdr->log2_big_block_size < INT32_MAX) {
     offset = (blockno << hdr->log2_big_block_size) + MAX(512, 1 << hdr->log2_big_block_size);   /* 512 is header size */
-
     offend = offset + size;
+    } else {
+        offset = INT32_MAX - size;
+        offend = INT32_MAX;
+    }
+
     if ((offend <= 0) || (offset < 0) || (offset >= hdr->m_length)) {
         return FALSE;
     } else if (offend > hdr->m_length) {
@@ -650,7 +655,7 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
             if ((int)(prop_block[idx].child) != -1) {
                 ret = ole2_walk_property_tree(hdr, dir, prop_block[idx].child, handler, rec_level + 1, file_count, ctx, scansize);
                 if (ret != CL_SUCCESS) {
-                    if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS)) {
+                    if (SCAN_ALLMATCHES && (ret == CL_VIRUS)) {
                         func_ret = ret;
                     }
                     else {
@@ -685,7 +690,7 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
                 ole2_listmsg("running file handler\n");
                 ret = handler(hdr, &prop_block[idx], dir, ctx);
                 if (ret != CL_SUCCESS) {
-                    if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS)) {
+                    if (SCAN_ALLMATCHES && (ret == CL_VIRUS)) {
                         func_ret = ret;
                     }
                     else {
@@ -700,7 +705,7 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
             if ((int)(prop_block[idx].child) != -1) {
                 ret = ole2_walk_property_tree(hdr, dir, prop_block[idx].child, handler, rec_level, file_count, ctx, scansize);
                 if (ret != CL_SUCCESS) {
-                    if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS)) {
+                    if (SCAN_ALLMATCHES && (ret == CL_VIRUS)) {
                         func_ret = ret;
                     }
                     else {
@@ -726,7 +731,7 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
             ole2_listmsg("directory node\n");
             if (dir) {
 #if HAVE_JSON
-                if ((ctx->options & CL_SCAN_FILE_PROPERTIES) && (ctx->wrkproperty != NULL)) {
+                if (SCAN_COLLECT_METADATA && (ctx->wrkproperty != NULL)) {
                     if (!json_object_object_get_ex(ctx->wrkproperty, "DigitalSignatures", NULL)) {
                         name = get_property_name2(prop_block[idx].name, prop_block[idx].name_size);
                         if (name) {
@@ -757,15 +762,21 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
             if ((int)(prop_block[idx].child) != -1) {
                 ret = ole2_walk_property_tree(hdr, dirname, prop_block[idx].child, handler, rec_level + 1, file_count, ctx, scansize);
                 if (ret != CL_SUCCESS) {
-                    if ((ctx->options & CL_SCAN_ALLMATCHES) && (ret == CL_VIRUS)) {
+                    if (SCAN_ALLMATCHES && (ret == CL_VIRUS)) {
                         func_ret = ret;
                     }
                     else {
                         ole2_list_delete(&node_list);
+                            if (dirname)
+                                free(dirname);
                         return ret;
                     }
                 }
             }
+                if (dirname) {
+                    free(dirname);
+                    dirname = NULL;
+                }
             if ((int)(prop_block[idx].prev) != -1) {
 	        if ((ret=ole2_list_push(&node_list, prop_block[idx].prev)) != CL_SUCCESS) {
 		    ole2_list_delete(&node_list);
@@ -778,8 +789,6 @@ ole2_walk_property_tree(ole2_header_t * hdr, const char *dir, int32_t prop_index
 		    return ret;
 		}
             }
-            if (dirname)
-                free(dirname);
             break;
         default:
             cli_dbgmsg("ERROR: unknown OLE2 entry type: %d\n", prop_block[idx].type);
@@ -813,10 +822,18 @@ handler_writefile(ole2_header_t * hdr, property_t * prop, const char *dir, cli_c
         return CL_SUCCESS;
     }
     name = get_property_name2(prop->name, prop->name_size);
-    if (name)
-        cnt = uniq_add(hdr->U, name, strlen(name), &hash);
-    else
-        cnt = uniq_add(hdr->U, NULL, 0, &hash);
+    if (name) {
+        if (CL_SUCCESS != uniq_add(hdr->U, name, strlen(name), &hash, &cnt)) {
+            free(name);
+            cli_dbgmsg("OLE2 [handler_writefile]: too many property names added to uniq store.\n");
+            return CL_BREAK;
+        }
+    } else {
+        if (CL_SUCCESS != uniq_add(hdr->U, NULL, 0, &hash, &cnt)) {
+            cli_dbgmsg("OLE2 [handler_writefile]: too many property names added to uniq store.\n");
+            return CL_BREAK;
+        }
+    }
     snprintf(newname, sizeof(newname), "%s" PATHSEP "%s_%u", dir, hash, cnt);
     newname[sizeof(newname) - 1] = '\0';
     cli_dbgmsg("OLE2 [handler_writefile]: Dumping '%s' to '%s'\n", name ? name : "<empty>", newname);
@@ -925,7 +942,7 @@ handler_enum(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * 
 
     name = get_property_name2(prop->name, prop->name_size);
     if (name) {
-        if (ctx->options & CL_SCAN_FILE_PROPERTIES && ctx->wrkproperty != NULL) {
+        if (SCAN_COLLECT_METADATA && ctx->wrkproperty != NULL) {
             arrobj = cli_jsonarray(ctx->wrkproperty, "Streams");
             if (NULL == arrobj) {
                 cli_warnmsg("ole2: no memory for streams list or streams is not an array\n");
@@ -978,10 +995,10 @@ handler_enum(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * 
 
                 /* reading safety checks; do-while used for breaks */
                 do {
-                    if ((prop->start_block < 0) && (prop->size <= 0))
+                    if (prop->size == 0)
                         break;
 
-                    if (prop->start_block > (int32_t) hdr->max_block_no)
+                    if (prop->start_block > hdr->max_block_no)
                         break;
 
                     /* read the header block (~256 bytes) */
@@ -1154,7 +1171,7 @@ scan_mso_stream(int fd, cli_ctx *ctx)
         if (count) {
             if (cli_checklimits("MSO", ctx, outsize + count, 0, 0) != CL_SUCCESS)
                 break;
-            if (cli_writen(ofd, outbuf, count) != count) {
+            if (cli_writen(ofd, outbuf, count) != (int)count) {
                 cli_errmsg("scan_mso_stream: Can't write to file %s\n", tmpname);
                 ret = CL_EWRITE;
                 goto mso_end;
@@ -1186,7 +1203,7 @@ scan_mso_stream(int fd, cli_ctx *ctx)
     }
 
     /* scanning inflated stream */
-    ret = cli_magic_scandesc(ofd, ctx);
+    ret = cli_magic_scandesc(ofd, tmpname, ctx);
 
     /* clean-up */
  mso_end:
@@ -1228,11 +1245,19 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
         return CL_ECREAT;
     }
     current_block = prop->start_block;
-    len = prop->size;
+    len = (int32_t)prop->size;
+
+    if (cli_debug_flag) {
+        if (!name)
+            name = get_property_name2(prop->name, prop->name_size);
+        cli_dbgmsg("OLE2 [handler_otf]: Dumping '%s' to '%s'\n", name, tempfile);
+    }
 
     buff = (unsigned char *)cli_malloc(1 << hdr->log2_big_block_size);
     if (!buff) {
         close(ofd);
+        if (name)
+            free(name);
         cli_unlink(tempfile);
         free(tempfile);
         return CL_EMEM;
@@ -1243,6 +1268,8 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
         cli_errmsg("OLE2: OTF handler init bitset failed\n");
         free(buff);
         close(ofd);
+        if (name)
+            free(name);
         if (cli_unlink(tempfile)) {
             free(tempfile);
             return CL_EUNLINK;
@@ -1274,6 +1301,8 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
             offset = (1 << hdr->log2_small_block_size) * (current_block % (1 << (hdr->log2_big_block_size - hdr->log2_small_block_size)));
             if (cli_writen(ofd, &buff[offset], MIN(len, 1 << hdr->log2_small_block_size)) != MIN(len, 1 << hdr->log2_small_block_size)) {
                 close(ofd);
+                if (name)
+                    free(name);
                 free(buff);
                 cli_bitset_free(blk_bitset);
                 if (cli_unlink(tempfile)) {
@@ -1293,6 +1322,8 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
             if (cli_writen(ofd, buff, MIN(len, (1 << hdr->log2_big_block_size))) !=
                     MIN(len, (1 << hdr->log2_big_block_size))) {
                 close(ofd);
+                if (name)
+                    free(name);
                 free(buff);
                 cli_bitset_free(blk_bitset);
                 if (cli_unlink(tempfile)) {
@@ -1312,6 +1343,8 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
     is_mso = likely_mso_stream(ofd);
     if (lseek(ofd, 0, SEEK_SET) == -1) {
         close(ofd);
+        if (name)
+            free(name);
         if (ctx && !(ctx->engine->keeptmp))
             cli_unlink(tempfile);
 
@@ -1323,8 +1356,9 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
 
 #if HAVE_JSON
     /* JSON Output Summary Information */
-    if (ctx->options & CL_SCAN_FILE_PROPERTIES && ctx->properties != NULL) {
-        name = get_property_name2(prop->name, prop->name_size);
+    if (SCAN_COLLECT_METADATA && (ctx->properties != NULL)) {
+        if (!name)
+            name = get_property_name2(prop->name, prop->name_size);
         if (name) {
             if (!strncmp(name, "_5_summaryinformation", 21)) {
                 cli_dbgmsg("OLE2: detected a '_5_summaryinformation' stream\n");
@@ -1363,7 +1397,7 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
     if (hdr->is_hwp) {
         if (!name)
             name = get_property_name2(prop->name, prop->name_size);
-        ret = cli_scanhwp5_stream(ctx, hdr->is_hwp, name, ofd);
+        ret = cli_scanhwp5_stream(ctx, hdr->is_hwp, name, ofd, tempfile);
     } else if (is_mso < 0) {
         ret = CL_ESEEK;
     } else if (is_mso) {
@@ -1371,7 +1405,7 @@ handler_otf(ole2_header_t * hdr, property_t * prop, const char *dir, cli_ctx * c
         ret = scan_mso_stream(ofd, ctx);
     } else {
         /* Normal File Scan */
-        ret = cli_magic_scandesc(ofd, ctx);
+        ret = cli_magic_scandesc(ofd, tempfile, ctx);
     }
     if (name)
         free(name);

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
- *  Copyright (C) 2007-2008 Sourcefire, Inc.
+ *  Copyright (C) 2013-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ *  Copyright (C) 2007-2013 Sourcefire, Inc.
  *
  *  Authors: Tomasz Kojm
  *
@@ -22,7 +22,7 @@
 #ifndef __EXECS_H
 #define __EXECS_H
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "hashtab.h"
 #include "bcfeatures.h"
 
@@ -56,7 +56,7 @@ struct cli_exe_info {
     /** Number of sections*/
     uint16_t nsections;
     void *dummy;/* for compat - preserve offset */
-    /** Resrources RVA - PE ONLY */
+    /** Resources RVA - PE ONLY */
     uint32_t res_addr;
     /** Address size - PE ONLY */
     uint32_t hdr_size;
