@@ -1,3 +1,11 @@
+clamav (0.101.4+dfsg-0+deb10u1.1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix systemd socket activation so it allows more than one TCP socket
+
+ -- Maximilian Philipps <maximilian.philipps@saltation.com>  Mon, 09 Sep 2019 14:51:21 +0100
+
+
 clamav (0.101.4+dfsg-0+deb10u1) buster; urgency=medium
 
   * Import 0.101.4
