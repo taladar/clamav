@@ -4,3 +4,4 @@ clamd_dont_depend_on_clamav_demon_socket.patch
 Add-support-for-LLVM-3.7.patch
 Add-support-for-LLVM-3.8.patch
 Add-support-for-LLVM-3.9.patch
+ff14-allow-multiple-tcp-sockets-in-socket-activation.patch
