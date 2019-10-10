@@ -34,6 +34,7 @@ cd clamav-$VERS+dfsg
 # remove win32 stuff, doesn't make sense to ship it
 rm -rf win32
 sed -i 's/ win32//' Makefile.am Makefile.in
+sed -i 's@libclammspack/config.h:libclammspack/config.h.in@@' configure.ac
 find shared -name '*.la' -o -name '*.lo' -o -name Makefile  -exec rm {} \;
 # cleanup llvm
 set -- libclamav/c++/llvm/utils/lit/lit/*.pyc
@@ -48,6 +49,7 @@ rm -rf libclamav/c++/llvm/tools libclamav/c++/llvm/unittests \
 # remove llvm, we build with the system version
 #rm -rf libclamav/c++/llvm
 cp -R libclamunrar_iface $UNRARDIR
+cp libclamav/Makefile.am $UNRARDIR/libclamunrar_iface
 mv libclamunrar $UNRARDIR
 cp -R m4/ $UNRARDIR
 cp -R config/ $UNRARDIR
@@ -80,13 +82,22 @@ d
 /.*m4\/reorganization\/llvm.m4/d
 /.*m4\/reorganization\/libmspack.m4/d
 /AC_OUTPUT(\[.*Makefile/d
-s/clamscan\/clamscan.c/libclamunrar_iface\/unrar_iface.c/
+s/clamscan\/clamscan.c/libclamunrar_iface\/unrar_iface.cpp/
 ' configure.ac
 cat <<EOF >Makefile.am &&
 ACLOCAL_AMFLAGS=-I m4
 DISTCLEANFILES = target.h
 SUBDIRS = libclamunrar_iface
 EOF
+
+# The complete Makefile.am from libclamav/Makefile.am is huge and we
+# only need the libclamunrar pieces. If we keep everything it will
+# break for instance due to missing c++ folder or something else.
+# The UNRAR block is the first one followed by LLVM so try to remove
+# everything after the LLVM block so we should have enough to get the
+# complete libclamunrar compiled.
+sed -i '/if ENABLE_LLVM/,$d' libclamunrar_iface/Makefile.am
+
 autoreconf
 rm -r autom4te.cache
 cd ..

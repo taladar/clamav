@@ -11,6 +11,7 @@ Comment:
 Files-Excluded:
  win32/*
  libclamav/c++/llvm/*
+ libclammspack/*
 
 
 Files: *
@@ -19,7 +20,7 @@ Copyright:
  2002-2007, Tomasz Kojm <tkojm@clamav.net>
  2006, Sensory Networks, Inc
  2007-2015, Cisco Systems, Inc
- 2014, Cisco and/or its affiliates
+ 2014-2018, Cisco and/or its affiliates
 License: GPL-2
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License version 2 as
@@ -44,7 +45,7 @@ Files:
  libclamav/xdp.c
  libclamav/xdp.h
 Copyright:
- 2014, Cisco and/or its affiliates
+ 2014, 2017-2018 Cisco and/or its affiliates
 License: GPL-2 with OpenSSL exception
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License version 2 as
@@ -88,7 +89,6 @@ Files:
  clamdscan/Makefile.am
  clamscan/Makefile.am
  database/Makefile.am
- docs/clamdoc.tex
  docs/Makefile.am
  etc/Makefile.am
  examples/ex1.c
@@ -105,7 +105,6 @@ Files:
  libclamav/Makefile.am
  libclamav/c++/configure.ac
  libclamav/c++/Makefile.am
- libclamunrar_iface/Makefile.am
  Makefile.am
  sigtool/Makefile.am
  sigtool/vba.c
@@ -269,7 +268,7 @@ Comment:
 Files:
  libclamav/mspack.c
  libclamav/mspack.h
- libclamunrar_iface/unrar_iface.c
+ libclamunrar_iface/unrar_iface.cpp
  libclamunrar_iface/unrar_iface.h
 Copyright:
  2003-2004 Stuart Caie
@@ -435,7 +434,6 @@ Files:
  libclamav/c++/aclocal.m4
  libclamav/c++/Makefile.in
  libclamav/Makefile.in
- libclamunrar_iface/Makefile.in
  libltdl/Makefile.in
  Makefile.in
  shared/Makefile.in
@@ -535,13 +533,6 @@ License: public-domain~3
  LZMA SDK is written and placed in the public domain by Igor Pavlov.
 Comment:
  See COPYING.lzma.
-
-Files: libclamav/libmspack-0.5alpha/*
-Copyright:
- 2003-2013, Stuart Caie
- 2003-2013, Matthew Russotto
- 2013, Intel Corporation
-License: LGPL-2.1
 
 Files: libclamav/lzw/*
 Copyright:
@@ -643,59 +634,6 @@ Comment:
  .
  On Debian systems, the full text of the GNU General Public License
  version 3 can be found in the file `/usr/share/common-licenses/GPL-3.
-
-Files:
- fuzz/clamav_dbload_fuzzer.cpp
- fuzz/clamav_scanmap_fuzzer.cpp
-Copyright:
- Copyright (C) 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-License:
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met:
- .
- 1. Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
- .
- 2. Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and/or other materials provided with the distribution.
- .
- 3. Neither the name of the copyright holder nor the names of its contributors
- may be used to endorse or promote products derived from this software without
- specific prior written permission.
- .
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- POSSIBILITY OF SUCH DAMAGE.
-
-Files:
-  fuzz/standalone_fuzz_target_runner.cpp
-Copyright:
-  Copyright 2017 Google Inc. All Rights Reserved.
-License: Apache-2.0
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- .
-    http://www.apache.org/licenses/LICENSE-2.0
- .
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-Comment:
- On Debian systems, the full text of the Apache License, Version 2.0 can be
- found in the file `/usr/share/common-licenses/Apache-2.0'.
-
 
 License: GPL-2+
  This program is free software; you can redistribute it and/or modify

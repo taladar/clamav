@@ -1,4 +1,4 @@
-From a262615ebcbfc7cbb93795bbe886c8d898cc5b64 Mon Sep 17 00:00:00 2001
+From 13e43ff48e81a325f94285fc62826f148e0923ff Mon Sep 17 00:00:00 2001
 From: Andreas Cadhalpun <Andreas.Cadhalpun@googlemail.com>
 Date: Wed, 11 Mar 2015 20:03:15 +0100
 Subject: add support for system tomsfastmath
@@ -14,18 +14,18 @@ Patch-Name: add-support-for-system-tomsfastmath.patch
  create mode 100644 m4/reorganization/libs/tomsfastmath.m4
 
 diff --git a/configure.ac b/configure.ac
-index 9ef4105..a286b44 100644
+index c0638fc..9a1cf02 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -82,6 +82,7 @@ m4_include([m4/reorganization/libs/xml.m4])
- m4_include([m4/reorganization/libs/openssl.m4])
- m4_include([m4/reorganization/libs/json.m4])
- m4_include([m4/reorganization/libs/pcre.m4])
+@@ -96,6 +96,7 @@ m4_include([m4/reorganization/libs/libmspack.m4])
+ if test "x$use_internal_mspack" = "xno"; then
+     mspack_msg="External, $LIBMSPACK_CFLAGS $LIBMSPACK_LIBS"
+ fi
 +m4_include([m4/reorganization/libs/tomsfastmath.m4])
  
  AM_MAINTAINER_MODE
  m4_include([m4/reorganization/libs/libz.m4])
-@@ -286,6 +287,7 @@ fi
+@@ -302,6 +303,7 @@ fi
  CL_MSG_STATUS([yara        ],[$enable_yara],[$enable_yara])
  CL_MSG_STATUS([fts         ],[yes],[$lfs_fts_msg])
  
@@ -34,10 +34,10 @@ index 9ef4105..a286b44 100644
  # Yep, downgrading the compiler avoids the bug too:
  # 4.0.x, and 4.1.0 are the known buggy versions
 diff --git a/libclamav/Makefile.am b/libclamav/Makefile.am
-index 43b5154..02596b8 100644
+index 690d70b..fb58761 100644
 --- a/libclamav/Makefile.am
 +++ b/libclamav/Makefile.am
-@@ -496,8 +496,10 @@ libclamav_la_SOURCES += yara_arena.c \
+@@ -598,8 +598,10 @@ libclamav_la_SOURCES += yara_arena.c \
  	yara_clam.h
  endif
  
@@ -50,7 +50,7 @@ index 43b5154..02596b8 100644
          tomsfastmath/addsub/fp_add.c\
          tomsfastmath/addsub/fp_add_d.c\
          tomsfastmath/addsub/fp_addmod.c\
-@@ -579,6 +581,10 @@ libclamav_la_SOURCES += bignum.h\
+@@ -681,6 +683,10 @@ libclamav_la_SOURCES += bignum.h\
          tomsfastmath/sqr/fp_sqr_comba_generic.c\
          tomsfastmath/sqr/fp_sqr_comba_small_set.c\
  	tomsfastmath/sqr/fp_sqrmod.c
@@ -81,10 +81,10 @@ index 9acb17b..56967b1 100644
  #define mp_cmp fp_cmp
  #define mp_toradix_n(a,b,c,d) fp_toradix_n(a,b,c,d)
 diff --git a/libclamav/xdp.c b/libclamav/xdp.c
-index 00edfa8..674dc7c 100644
+index 8748b44..6e09ce4 100644
 --- a/libclamav/xdp.c
 +++ b/libclamav/xdp.c
-@@ -57,7 +57,7 @@
+@@ -52,7 +52,7 @@
  #include "scanners.h"
  #include "conv.h"
  #include "xdp.h"

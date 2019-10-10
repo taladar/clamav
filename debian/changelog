@@ -1,3 +1,18 @@
+clamav (0.101.4+dfsg-0+deb8u1) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Security Team.
+  * Upload based on the stretch package, thanks to:
+
+  [ Sebastian Andrzej Siewior ]
+  * Import 0.101.4 (Closes: #921190)
+   - CVE-2019-12625 (Add scan time limit to limit the processing zip-bombs)
+     (Closes: #934359)
+   - CVE-2019-12900 (An out of bounds write was possible within ClamAV's
+     NSIS bzip)
+   - update symbols file (bump to 101.4 and drop unused cli_strnstr).
+
+ -- Hugo Lefeuvre <hle@debian.org>  Tue, 01 Oct 2019 11:04:25 +0200
+
 clamav (0.100.3+dfsg-0+deb8u1) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Team.

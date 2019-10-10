@@ -1,0 +1,35 @@
+From 02a6bb9068e845ea0af8a8e486f7daee284b3720 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Date: Thu, 11 Aug 2016 21:54:10 +0200
+Subject: clamd: don't depend on clamav-demon.socket
+
+Let's try to live without it.
+This should avoid the endless loop in #824042. Newer systemd have
+rate-limiting on (re)starts. This rate-limiting would stop the socket
+service. The only purpose for the socket activation is to get clamd
+started after the initial freshclam run on installs so I think we can
+live without and manually start the daemon after installation.
+
+Patch-Name: clamd_dont_depend_on_clamav_demon_socket.patch
+Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+---
+ clamd/clamav-daemon.service.in | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/clamd/clamav-daemon.service.in b/clamd/clamav-daemon.service.in
+index 0d12d8b..3943ce8 100644
+--- a/clamd/clamav-daemon.service.in
++++ b/clamd/clamav-daemon.service.in
+@@ -1,7 +1,6 @@
+ [Unit]
+ Description=Clam AntiVirus userspace daemon
+ Documentation=man:clamd(8) man:clamd.conf(5) https://www.clamav.net/documents/
+-Requires=clamav-daemon.socket
+ # Check for database existence
+ ConditionPathExistsGlob=@DBDIR@/main.{c[vl]d,inc}
+ ConditionPathExistsGlob=@DBDIR@/daily.{c[vl]d,inc}
+@@ -14,4 +13,3 @@ StandardOutput=syslog
+ 
+ [Install]
+ WantedBy=multi-user.target
+-Also=clamav-daemon.socket

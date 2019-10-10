@@ -105,7 +105,7 @@ CLAMAV-DAEMON
    EXIM4
 
    Exim4 users will want to either run clamd as User Debian-exim, so clamd
-   has read and write permissions on the scan/ diretory, or (better)
+   has read and write permissions on the scan/ directory, or (better)
    add clamav to group Debian-exim. You may also need to ensure the scan/
    directory is group writable (on Debian systems, this is
    /var/spool/exim4/scan)
@@ -138,10 +138,16 @@ CLAMAV-DAEMON
    See the end of the CLAMAV-MILTER section below for some details.
 
    Other MTAs I am not as familiar with, but the same principles apply -
-   clamav needs read and write access to the diretory where messages are
+   clamav needs read and write access to the directory where messages are
    unpacked (as is the case with amavis and exim4), and the MTA needs
    read/write permissions to clamav's socket file, if it is run listening
    to a unix socket rather than a network socket.
+
+   By default, Postfix in Debian runs in a chroot, so the default Unix socket
+   location for clamav-milter will not work together.  To resolve this issue,
+   either unchroot Postfix, change the clamav-milter socket to an inet socket,
+   or change the Unix socket path to the location in the chroot (/var/spool/
+   postfix).
 
   ERRATA
 

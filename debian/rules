@@ -25,7 +25,9 @@ LDFLAGS  := $(shell dpkg-buildflags --get LDFLAGS) -Wl,--as-needed
 # LLVM is only used on these archs, so no point in enabling it elsewhere
 # To add new llvm/jit archs add it here and to the arch list for llvm-dev in
 # debian/control.
-ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 powerpc kfreebsd-amd64 kfreebsd-i386))
+# PowerPC is disabled until atleast llvm-3.8. As thing stand now MCJIT is
+# broken in llvm-3.6. llvm v3.8 looks promissing but needs to be verified.
+ifeq (,$(filter $(DEB_HOST_ARCH), i386 amd64 kfreebsd-amd64 kfreebsd-i386))
   export enable_llvm=no
 else
     SYSTEM_LLVM = -with-system-llvm=/usr/bin/llvm-config --with-llvm-linking=dynamic
@@ -93,20 +95,20 @@ override_dh_auto_configure:
 	    touch debian/exit; \
 	  fi;\
 	done; \
-	# Check if for library features whih may get upgrade.
-	if ! grep -q "CL_FLEVEL 93" libclamav/others.h ; then \
+	# Check for library features which may have been upgraded.
+	if ! grep -q "CL_FLEVEL 105" libclamav/others.h ; then \
 		echo "cl_retflevel needs boosting in symbol file"; \
 		touch debian/exit; \
 	fi;
 	sed "s/ \(.*\)@CLAMAV_PRIVATE .*/ \1@CLAMAV_PRIVATE $(shell dpkg-parsechangelog -S Version | sed 's/+dfsg.*//')/" \
-		< debian/libclamav7.symbols > debian/libclamav7.symbols.latest
-	if ! cmp debian/libclamav7.symbols debian/libclamav7.symbols.latest; then \
+		< debian/libclamav9.symbols > debian/libclamav9.symbols.latest
+	if ! cmp debian/libclamav9.symbols debian/libclamav9.symbols.latest; then \
 		echo "Need to update CLAMAV_PRIVATE symbols"; \
 		touch debian/exit; \
 	fi;
 
 	[ ! -f debian/exit ] || (rm debian/exit && exit 1)
-	rm debian/libclamav7.symbols.latest
+	rm debian/libclamav9.symbols.latest
 
 	# Configure using the specified flags.
 	dh_auto_configure -- $(CONFIG) $(DEBUG_OPTS)
@@ -149,8 +151,12 @@ else
 endif
 
 override_dh_strip:
-	# Move the debug symbols to the debug package:
 	dh_strip --dbg-package=clamav-dbg
+
+override_dh_install:
+	dh_install
+	dh_apparmor -pclamav-freshclam --profile-name=usr.bin.freshclam
+	dh_apparmor -pclamav-daemon --profile-name=usr.sbin.clamd
 
 override_dh_installinit:
 	dh_installinit -pclamav-daemon
@@ -164,7 +170,10 @@ override_dh_installdocs-indep:
 	cat test/.split/split.clam-v2.raraa test/.split/split.clam-v2.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v2.rar
 	cat test/.split/split.clam-v3.raraa test/.split/split.clam-v3.rarab >debian/clamav-testfiles/usr/share/clamav-testfiles/clam-v3.rar
 
+# dh_strip_nondeterminism breaks .zip files. See #817943
+override_dh_strip_nondeterminism:
+	dh_strip_nondeterminism -Xclam.bz2.zip -Xclam.d64.zip -Xclam.impl.zip -Xclam.zip
 
 # Don't compress the example configuration files and the documentation PDFs.
 override_dh_compress:
-	dh_compress -Xexamples -X.pdf
+	dh_compress -Xexamples

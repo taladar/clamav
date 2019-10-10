@@ -4,10 +4,11 @@
 
 #include <tunables/global>
 
-/usr/bin/freshclam {
+/usr/bin/freshclam flags=(attach_disconnected) {
   #include <abstractions/base>
   #include <abstractions/nameservice>
   #include <abstractions/user-tmp>
+  #include <abstractions/openssl>
 
   capability setgid,
   capability setuid,
