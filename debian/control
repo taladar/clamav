@@ -29,10 +29,10 @@ Build-Depends: automake,
                libtommath-dev,
                libxml2-dev,
                llvm-dev [i386 amd64 kfreebsd-amd64 kfreebsd-i386],
-               perl:native,
+               perl,
                pkg-config,
                po-debconf,
-               python:native,
+               python,
                zlib1g-dev
 Standards-Version: 3.9.8
 Vcs-Git: https://salsa.debian.org/clamav-team/clamav.git
