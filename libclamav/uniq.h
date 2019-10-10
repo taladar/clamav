@@ -73,7 +73,7 @@
 #define _UNIQ_H
 
 #include "clamav.h"
-#include "cltypes.h"
+#include "clamav-types.h"
 
 /**
  * @brief Store the count of each unique item.

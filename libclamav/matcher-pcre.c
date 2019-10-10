@@ -26,7 +26,6 @@
 #endif
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "dconf.h"
 #include "events.h"
 #include "others.h"
@@ -36,6 +35,7 @@
 #include "mpool.h"
 #include "readdb.h"
 #include "regex_pcre.h"
+#include "str.h"
 
 #if HAVE_PCRE
 #if USING_PCRE2
@@ -319,7 +319,7 @@ int cli_pcre_addpatt(struct cli_matcher *root, const char *virname, const char *
 
         /* cli_pcre_addoptions handles pcre specific options */
         while (cli_pcre_addoptions(&(pm->pdata), &opt, 0) != CL_SUCCESS) {
-            /* handle matcher specific options here */
+            /* it will return here to handle any matcher specific options */
             switch (*opt) {
             case 'g':  pm->flags |= CLI_PCRE_GLOBAL;            break;
             case 'r':  pm->flags |= CLI_PCRE_ROLLING;           break;
@@ -601,6 +601,7 @@ int cli_pcre_scanbuf(const unsigned char *buffer, uint32_t length, const char **
     memset(&p_res, 0, sizeof(p_res));
 
     for (i = 0; i < root->pcre_metas; ++i) {
+
         pm = root->pcre_metatable[i];
         pd = &(pm->pdata);
 
@@ -686,6 +687,12 @@ int cli_pcre_scanbuf(const unsigned char *buffer, uint32_t length, const char **
 
         /* if the global flag is set, loop through the scanning */
         do {
+            if (cli_checktimelimit(ctx) != CL_SUCCESS) {
+                cli_dbgmsg("cli_unzip: Time limit reached (max: %u)\n", ctx->engine->maxscantime);
+                ret = CL_ETIMEOUT;
+                break;
+            }
+
             /* reset the match results */
             if ((ret = cli_pcre_results_reset(&p_res, pd)) != CL_SUCCESS)
                 break;
@@ -715,13 +722,15 @@ int cli_pcre_scanbuf(const unsigned char *buffer, uint32_t length, const char **
                 cli_event_count(p_sigevents, pm->sigmatch_id);
 
                 /* for logical signature evaluation */
+
                 if (pm->lsigid[0]) {
                     pm_dbgmsg("cli_pcre_scanbuf: assigning lsigcnt[%d][%d], located @ %d\n",
                               pm->lsigid[1], pm->lsigid[2], adjbuffer+p_res.match[0]);
 
                     ret = lsig_sub_matched(root, mdata, pm->lsigid[1], pm->lsigid[2], adjbuffer+p_res.match[0], 0);
-                    if (ret != CL_SUCCESS)
-                        break;
+                    if (ret != CL_SUCCESS) {
+                            break;
+                    }
                 } else {
                     /* for raw match data - sigtool only */
                     if(res) {
@@ -743,7 +752,7 @@ int cli_pcre_scanbuf(const unsigned char *buffer, uint32_t length, const char **
                             ret = cli_append_virus(ctx, (const char *)pm->virname);
                         if (virname)
                             *virname = pm->virname;
-                        if (!ctx || !SCAN_ALL)
+                        if (!ctx || !SCAN_ALLMATCHES)
                             if (ret != CL_CLEAN)
                                 break;
                     }
@@ -753,15 +762,18 @@ int cli_pcre_scanbuf(const unsigned char *buffer, uint32_t length, const char **
             /* move off to the end of the match for next match; offset is relative to adjbuffer
              * NOTE: misses matches starting within the last match; TODO: start from start of last match? */
             offset = p_res.match[1];
+
         } while (global && rc > 0 && offset < adjlength);
 
         /* handle error code */
-        if (rc < 0 && p_res.err != CL_SUCCESS)
+        if (rc < 0 && p_res.err != CL_SUCCESS) {
             ret = p_res.err;
+        }
 
         /* jumps out of main loop from 'global' loop */
-        if (ret != CL_SUCCESS)
+        if (ret != CL_SUCCESS) {
             break;
+        }
     }
 
     /* free match results */

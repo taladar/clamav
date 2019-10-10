@@ -54,6 +54,8 @@
 #define UNZIP_PRIVATE
 #include "unzip.h"
 
+#define ZIP_MAX_NUM_OVERLAPPING_FILES 5
+
 #define ZIP_CRC32(r,c,b,l)			\
     do {					\
 	r = crc32(~c,b,l);			\
@@ -173,7 +175,7 @@ static int unz(const uint8_t *src, uint32_t csize, uint32_t usize, uint16_t meth
       break;
     }
     unz_end(&strm);
-    if (res == Z_STREAM_END) res=0;
+    if ((res == Z_STREAM_END) | (res == Z_BUF_ERROR)) res=0;
     break;
   }
 
@@ -296,7 +298,7 @@ static int unz(const uint8_t *src, uint32_t csize, uint32_t usize, uint16_t meth
         close(of);
         return CL_ESEEK;
     }
-    ret = zcb(of, ctx);
+    ret = zcb(of, tempfile, ctx);
     close(of);
     if(!ctx->engine->keeptmp)
       if(cli_unlink(tempfile)) ret = CL_EUNLINK;
@@ -493,14 +495,14 @@ static inline int zdecrypt(const uint8_t *src, uint32_t csize, uint32_t usize, c
 	if (pass_zip)
 	    pass_zip = pass_zip->next;
 	else
-	    pass_any = pass_any->next;	    
+	    pass_any = pass_any->next;
     }
 
     cli_dbgmsg("cli_unzip: decrypt - skipping encrypted file, no valid passwords\n");
     return CL_SUCCESS;
 }
 
-static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int *fu, unsigned int fc, const uint8_t *ch, int *ret, cli_ctx *ctx, char *tmpd, int detect_encrypted, zip_cb zcb) {
+static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int *fu, unsigned int fc, const uint8_t *ch, int *ret, cli_ctx *ctx, char *tmpd, int detect_encrypted, zip_cb zcb, uint32_t *file_local_header_size, uint32_t* file_local_data_size) {
   const uint8_t *lh, *zip;
   char name[256];
   uint32_t csize, usize;
@@ -542,7 +544,7 @@ static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int
 
   if(cli_matchmeta(ctx, name, LH_csize, LH_usize, (LH_flags & F_ENCR)!=0, fc, LH_crc32, NULL) == CL_VIRUS) {
       *ret = CL_VIRUS;
-      if (!SCAN_ALL)
+      if (!SCAN_ALLMATCHES)
           return 0;
       virus_found = 1;
   }
@@ -554,16 +556,16 @@ static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int
     return 0;
   }
 
-  if(detect_encrypted && (LH_flags & F_ENCR) && DETECT_ENCRYPTED) {
+  if(detect_encrypted && (LH_flags & F_ENCR) && SCAN_HEURISTIC_ENCRYPTED_ARCHIVE) {
     cli_dbgmsg("cli_unzip: Encrypted files found in archive.\n");
     *ret = cli_append_virus(ctx, "Heuristics.Encrypted.Zip");
-    if ((*ret == CL_VIRUS && !SCAN_ALL) || *ret != CL_CLEAN) {
+    if ((*ret == CL_VIRUS && !SCAN_ALLMATCHES) || *ret != CL_CLEAN) {
         fmap_unneed_off(map, loff, SIZEOF_LH);
         return 0;
     }
     virus_found = 1;
   }
- 
+
   if(LH_flags & F_USEDD) {
     cli_dbgmsg("cli_unzip: lh - has data desc\n");
     if(!ch) {
@@ -581,6 +583,11 @@ static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int
   zip+=LH_elen;
   zsize-=LH_elen;
 
+  if (NULL != file_local_header_size)
+      *file_local_header_size = zip - lh;
+  if (NULL != file_local_data_size)
+      *file_local_data_size = csize;
+
   if (!csize) { /* FIXME: what's used for method0 files? csize or usize? Nothing in the specs, needs testing */
       cli_dbgmsg("cli_unzip: lh - skipping empty file\n");
   } else {
@@ -589,6 +596,7 @@ static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int
 	  fmap_unneed_off(map, loff, SIZEOF_LH);
 	  return 0;
       }
+
       if(LH_flags & F_ENCR) {
 	  if(fmap_need_ptr_once(map, zip, csize))
 	      *ret = zdecrypt(zip, csize, usize, lh, fu, ctx, tmpd, zcb);
@@ -624,11 +632,18 @@ static unsigned int lhdr(fmap_t *map, uint32_t loff,uint32_t zsize, unsigned int
   return zip-lh;
 }
 
-static unsigned int chdr(fmap_t *map, uint32_t coff, uint32_t zsize, unsigned int *fu, unsigned int fc, int *ret, cli_ctx *ctx, char *tmpd, struct zip_requests *requests) {
+static unsigned int chdr(fmap_t *map, uint32_t coff, uint32_t zsize, unsigned int *fu, unsigned int fc, int *ret, cli_ctx *ctx, char *tmpd, struct zip_requests *requests, uint32_t *file_local_offset, uint32_t *file_local_header_size, uint32_t *file_local_data_size) {
   char name[256];
   int last = 0;
   const uint8_t *ch;
   int virus_found = 0;
+
+  if (NULL != file_local_offset)
+      *file_local_offset = 0;
+  if (NULL != file_local_header_size)
+      *file_local_header_size = 0;
+  if (NULL != file_local_data_size)
+      *file_local_data_size = 0;
 
   if(!(ch = fmap_need_off(map, coff, SIZEOF_CH)) || CH_magic != 0x02014b50) {
       if(ch) fmap_unneed_ptr(map, ch, SIZEOF_CH);
@@ -674,7 +689,9 @@ static unsigned int chdr(fmap_t *map, uint32_t coff, uint32_t zsize, unsigned in
 
   if (!requests) {
       if(CH_off<zsize-SIZEOF_LH) {
-          lhdr(map, CH_off, zsize-CH_off, fu, fc, ch, ret, ctx, tmpd, 1, zip_scan_cb);
+          if (NULL != file_local_offset)
+              *file_local_offset = CH_off;
+          lhdr(map, CH_off, zsize-CH_off, fu, fc, ch, ret, ctx, tmpd, 1, zip_scan_cb, file_local_header_size, file_local_data_size);
       } else cli_dbgmsg("cli_unzip: ch - local hdr out of file\n");
   }
   else {
@@ -685,7 +702,7 @@ static unsigned int chdr(fmap_t *map, uint32_t coff, uint32_t zsize, unsigned in
           for (i = 0; i < requests->namecnt; ++i) {
               cli_dbgmsg("checking for %i: %s\n", i, requests->names[i]);
 
-              len = MIN(sizeof(name)-1, requests->namelens[i]);      
+              len = MIN(sizeof(name)-1, requests->namelens[i]);
               if (!strncmp(requests->names[i], name, len)) {
                   requests->match = 1;
                   requests->found = i;
@@ -712,6 +729,13 @@ int cli_unzip(cli_ctx *ctx) {
 #if HAVE_JSON
   int toval = 0;
 #endif
+  int bZipBombDetected                 = 0;
+  uint32_t cur_file_local_offset       = 0;
+  uint32_t cur_file_local_header_size  = 0;
+  uint32_t cur_file_local_data_size    = 0;
+  uint32_t prev_file_local_offset      = 0;
+  uint32_t prev_file_local_header_size = 0;
+  uint32_t prev_file_local_data_size   = 0;
 
   cli_dbgmsg("in cli_unzip\n");
   fsize = (uint32_t)map->len;
@@ -744,20 +768,53 @@ int cli_unzip(cli_ctx *ctx) {
   }
 
   if(coff) {
+      uint32_t nOverlappingFiles = 0;
+
       cli_dbgmsg("cli_unzip: central @%x\n", coff);
-      while((coff=chdr(map, coff, fsize, &fu, fc+1, &ret, ctx, tmpd, NULL))) {
+      while((coff=chdr(map, coff, fsize, &fu, fc+1, &ret, ctx, tmpd, NULL, &cur_file_local_offset, &cur_file_local_header_size, &cur_file_local_data_size))) {
 	  fc++;
 	  if (ctx->engine->maxfiles && fu>=ctx->engine->maxfiles) {
 	      cli_dbgmsg("cli_unzip: Files limit reached (max: %u)\n", ctx->engine->maxfiles);
 	      ret=CL_EMAXFILES;
 	  }
+
+    if (cli_checktimelimit(ctx) != CL_SUCCESS) {
+        cli_dbgmsg("cli_unzip: Time limit reached (max: %u)\n", ctx->engine->maxscantime);
+        ret = CL_ETIMEOUT;
+    }
+    /*
+     * Detect overlapping files and zip bombs.
+     */
+    if ((((cur_file_local_offset > prev_file_local_offset) && (cur_file_local_offset < prev_file_local_offset + prev_file_local_header_size + prev_file_local_data_size)) ||
+         ((prev_file_local_offset > cur_file_local_offset) && (prev_file_local_offset < cur_file_local_offset + cur_file_local_header_size + cur_file_local_data_size))) &&
+        (cur_file_local_header_size + cur_file_local_data_size > 0)) {
+        /* Overlapping file detected */
+        nOverlappingFiles++;
+
+        cli_dbgmsg("cli_unzip: Overlapping files detected.\n");
+        cli_dbgmsg("    previous file end:  %u\n", prev_file_local_offset + prev_file_local_header_size + prev_file_local_data_size);
+        cli_dbgmsg("    current file start: %u\n", cur_file_local_offset);
+        if (ZIP_MAX_NUM_OVERLAPPING_FILES < nOverlappingFiles) {
+          if (SCAN_HEURISTICS) {
+              ret         = cli_append_virus(ctx, "Heuristics.Zip.OverlappingFiles");
+              virus_found = 1;
+          } else {
+              ret = CL_EFORMAT;
+          }
+          bZipBombDetected = 1;
+        }
+    }
+    prev_file_local_offset      = cur_file_local_offset;
+    prev_file_local_header_size = cur_file_local_header_size;
+    prev_file_local_data_size   = cur_file_local_data_size;
+
 #if HAVE_JSON
           if (cli_json_timeout_cycle_check(ctx, &toval) != CL_SUCCESS) {
               ret=CL_ETIMEOUT;
           }
 #endif
           if (ret != CL_CLEAN) {
-              if (ret == CL_VIRUS && SCAN_ALL) {
+              if (ret == CL_VIRUS && SCAN_ALLMATCHES && !bZipBombDetected) {
                   ret = CL_CLEAN;
                   virus_found = 1;
               } else
@@ -769,10 +826,10 @@ int cli_unzip(cli_ctx *ctx) {
       ret = CL_VIRUS;
   if(fu<=(fc/4)) { /* FIXME: make up a sane ratio or remove the whole logic */
     fc = 0;
-    while (ret==CL_CLEAN && lhoff<fsize && (coff=lhdr(map, lhoff, fsize-lhoff, &fu, fc+1, NULL, &ret, ctx, tmpd, 1, zip_scan_cb))) {
+    while (ret==CL_CLEAN && lhoff<fsize && (coff=lhdr(map, lhoff, fsize-lhoff, &fu, fc+1, NULL, &ret, ctx, tmpd, 1, zip_scan_cb, NULL, NULL))) {
       fc++;
       lhoff+=coff;
-      if (SCAN_ALL && ret == CL_VIRUS) {
+      if (SCAN_ALLMATCHES && ret == CL_VIRUS) {
           ret = CL_CLEAN;
           virus_found = 1;
       }
@@ -816,7 +873,7 @@ int unzip_single_internal(cli_ctx *ctx, off_t lhoffl, zip_cb zcb)
     return CL_CLEAN;
   }
 
-  lhdr(map, lhoffl, fsize, &fu, 0, NULL, &ret, ctx, NULL, 0, zcb);
+  lhdr(map, lhoffl, fsize, &fu, 0, NULL, &ret, ctx, NULL, 0, zcb, NULL, NULL);
 
   return ret;
 }
@@ -886,7 +943,7 @@ int unzip_search(cli_ctx *ctx, fmap_t *map, struct zip_requests *requests)
 
     if(coff) {
         cli_dbgmsg("unzip_search: central @%x\n", coff);
-        while(ret==CL_CLEAN && (coff=chdr(zmap, coff, fsize, NULL, fc+1, &ret, ctx, NULL, requests))) {
+        while(ret==CL_CLEAN && (coff=chdr(zmap, coff, fsize, NULL, fc+1, &ret, ctx, NULL, requests, NULL, NULL, NULL))) {
             if (requests->match) {
                 ret=CL_VIRUS;
             }

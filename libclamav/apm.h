@@ -25,7 +25,7 @@
 #include "clamav-config.h"
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "others.h"
 
 #define APM_FALLBACK_SECTOR_SIZE 512

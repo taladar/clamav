@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include "scanners.h"
-#include "cltypes.h"
 #include "others.h"
 #include "clamav.h"
 #include "fmap.h"
@@ -116,7 +115,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(datafd, ctx);
+		    ret = cli_magic_scandesc(datafd, dname, ctx);
 		    if(ret == CL_VIRUS) break;
 		}
 		if(dec_done)
@@ -162,7 +161,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(resfd, ctx);
+		    ret = cli_magic_scandesc(resfd, rname, ctx);
 		    break;
 		}
 	    }
@@ -174,7 +173,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(datafd, ctx);
+		    ret = cli_magic_scandesc(datafd, dname, ctx);
 		} else if(write_phase == IN_RES) {
 		    cli_dbgmsg("cli_binhex: scanning partially extracted resource fork\n");
 		    if (lseek(resfd, 0, SEEK_SET) == -1) {
@@ -182,7 +181,7 @@ int cli_binhex(cli_ctx *ctx) {
                 ret = CL_ESEEK;
                 break;
             }
-		    ret = cli_magic_scandesc(resfd, ctx);
+		    ret = cli_magic_scandesc(resfd, rname, ctx);
 		}
 		break;
 	    }

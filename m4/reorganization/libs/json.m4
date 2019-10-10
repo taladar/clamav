@@ -12,25 +12,22 @@ if test "X$withval" = "Xyes"; then
     find_json="yes"
 else
     if test "X$withval" != "Xno"; then
-        LIBJSON_HOME="$withval"
+        if test -f "${withval}/include/json/json.h" -o -f "${withval}/include/json-c/json.h"; then
+            LIBJSON_HOME="$withval"
+            have_json_header="yes"
+        fi
     fi
 fi
 ],
 [find_json="yes"])
 
 if test "X$find_json" = "Xyes"; then
-    LIBJSON_HOME=/usr/local
-fi
-
-if test -f "$LIBJSON_HOME/include/json/json.h" -o -f "$LIBJSON_HOME/include/json-c/json.h"; then
-    have_json_header="yes"
-else
-    if test "X$find_json" = "Xyes"; then
-        LIBJSON_HOME=/usr
-        if test -f "$LIBJSON_HOME/include/json/json.h" -o -f "$LIBJSON_HOME/include/json-c/json.h"; then
+    for p in /usr/local /usr ; do
+        if test -f "${p}/include/json/json.h" -o -f "${p}/include/json-c/json.h"; then
+            LIBJSON_HOME=$p
             have_json_header="yes"
         fi
-    fi
+    done
 fi
 
 if test "X$have_json_header" = "Xyes"; then

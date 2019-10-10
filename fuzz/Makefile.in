@@ -158,6 +158,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/libs/openssl.m4 \
 	$(top_srcdir)/m4/reorganization/libs/json.m4 \
 	$(top_srcdir)/m4/reorganization/libs/pcre.m4 \
+	$(top_srcdir)/m4/reorganization/libs/libmspack.m4 \
 	$(top_srcdir)/m4/reorganization/libs/libz.m4 \
 	$(top_srcdir)/m4/reorganization/libs/bzip.m4 \
 	$(top_srcdir)/m4/reorganization/libs/unrar.m4 \
@@ -206,14 +207,14 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acinclude.m4 \
 	$(top_srcdir)/m4/reorganization/bsd.m4 \
 	$(top_srcdir)/m4/reorganization/libs/curl.m4 \
 	$(top_srcdir)/m4/reorganization/substitutions.m4 \
-	$(top_srcdir)/m4/reorganization/libmspack.m4 \
-	$(top_srcdir)/libclamav/libmspack-0.5alpha/m4/libmspack-opts.m4 \
 	$(top_srcdir)/m4/reorganization/strni.m4 \
+	$(top_srcdir)/m4/reorganization/types.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/clamav-config.h
+CONFIG_HEADER = $(top_builddir)/clamav-config.h \
+	$(top_builddir)/libclammspack/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LIBRARIES = $(noinst_LIBRARIES)
@@ -239,7 +240,7 @@ clamav_dbload_CDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_CDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_CDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -251,7 +252,7 @@ clamav_dbload_CFG_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_CFG_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_CFG_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_CRB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_CRB_fuzzer_OBJECTS = clamav_dbload_CRB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -259,7 +260,7 @@ clamav_dbload_CRB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_CRB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_CRB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_FP_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_FP_fuzzer_OBJECTS = clamav_dbload_FP_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -267,7 +268,7 @@ clamav_dbload_FP_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_FP_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_FP_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_FTM_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_FTM_fuzzer_OBJECTS = clamav_dbload_FTM_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -275,7 +276,7 @@ clamav_dbload_FTM_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_FTM_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_FTM_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_HDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_HDB_fuzzer_OBJECTS = clamav_dbload_HDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -283,7 +284,7 @@ clamav_dbload_HDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_HDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_HDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_HSB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_HSB_fuzzer_OBJECTS = clamav_dbload_HSB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -291,7 +292,7 @@ clamav_dbload_HSB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_HSB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_HSB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_IDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IDB_fuzzer_OBJECTS = clamav_dbload_IDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -299,7 +300,7 @@ clamav_dbload_IDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_IDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_IDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_IGN2_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IGN2_fuzzer_OBJECTS = clamav_dbload_IGN2_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -307,7 +308,7 @@ clamav_dbload_IGN2_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_IGN2_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_IGN2_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_IGN_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IGN_fuzzer_OBJECTS = clamav_dbload_IGN_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -315,7 +316,7 @@ clamav_dbload_IGN_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_IGN_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_IGN_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_LDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_LDB_fuzzer_OBJECTS = clamav_dbload_LDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -323,7 +324,7 @@ clamav_dbload_LDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_LDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_LDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_MDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_MDB_fuzzer_OBJECTS = clamav_dbload_MDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -331,7 +332,7 @@ clamav_dbload_MDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_MDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_MDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_MSB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_MSB_fuzzer_OBJECTS = clamav_dbload_MSB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -339,7 +340,7 @@ clamav_dbload_MSB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_MSB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_MSB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_NDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_NDB_fuzzer_OBJECTS = clamav_dbload_NDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -347,7 +348,7 @@ clamav_dbload_NDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_NDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_NDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_PDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_PDB_fuzzer_OBJECTS = clamav_dbload_PDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -355,7 +356,7 @@ clamav_dbload_PDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_PDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_PDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_WDB_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_WDB_fuzzer_OBJECTS = clamav_dbload_WDB_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -363,7 +364,7 @@ clamav_dbload_WDB_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_WDB_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_WDB_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_dbload_YARA_fuzzer_SOURCES_DIST =  \
 	clamav_dbload_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_YARA_fuzzer_OBJECTS = clamav_dbload_YARA_fuzzer-clamav_dbload_fuzzer.$(OBJEXT)
@@ -371,7 +372,7 @@ clamav_dbload_YARA_fuzzer_OBJECTS =  \
 	$(dist_clamav_dbload_YARA_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_dbload_YARA_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_ARCHIVE_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_ARCHIVE_fuzzer_OBJECTS = clamav_scanfile_ARCHIVE_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -379,7 +380,7 @@ clamav_scanfile_ARCHIVE_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_ARCHIVE_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_ARCHIVE_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_ELF_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_ELF_fuzzer_OBJECTS = clamav_scanfile_ELF_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -387,7 +388,7 @@ clamav_scanfile_ELF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_ELF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_ELF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_HTML_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_HTML_fuzzer_OBJECTS = clamav_scanfile_HTML_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -395,7 +396,7 @@ clamav_scanfile_HTML_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_HTML_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_HTML_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_HWP3_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_HWP3_fuzzer_OBJECTS = clamav_scanfile_HWP3_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -403,7 +404,7 @@ clamav_scanfile_HWP3_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_HWP3_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_HWP3_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_MAIL_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_MAIL_fuzzer_OBJECTS = clamav_scanfile_MAIL_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -411,7 +412,7 @@ clamav_scanfile_MAIL_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_MAIL_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_MAIL_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_OLE2_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_OLE2_fuzzer_OBJECTS = clamav_scanfile_OLE2_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -419,7 +420,7 @@ clamav_scanfile_OLE2_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_OLE2_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_OLE2_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_PDF_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_PDF_fuzzer_OBJECTS = clamav_scanfile_PDF_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -427,7 +428,7 @@ clamav_scanfile_PDF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_PDF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_PDF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_PE_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_PE_fuzzer_OBJECTS = clamav_scanfile_PE_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -435,7 +436,7 @@ clamav_scanfile_PE_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_PE_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_PE_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_SWF_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_SWF_fuzzer_OBJECTS = clamav_scanfile_SWF_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -443,7 +444,7 @@ clamav_scanfile_SWF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_SWF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_SWF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_XMLDOCS_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_XMLDOCS_fuzzer_OBJECTS = clamav_scanfile_XMLDOCS_fuzzer-clamav_scanfile_fuzzer.$(OBJEXT)
@@ -451,7 +452,7 @@ clamav_scanfile_XMLDOCS_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_XMLDOCS_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_XMLDOCS_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanfile_fuzzer_SOURCES_DIST =  \
 	clamav_scanfile_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_fuzzer_OBJECTS =  \
@@ -460,7 +461,7 @@ clamav_scanfile_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanfile_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanfile_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_ARCHIVE_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_ARCHIVE_fuzzer_OBJECTS = clamav_scanmap_ARCHIVE_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -468,7 +469,7 @@ clamav_scanmap_ARCHIVE_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_ARCHIVE_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_ARCHIVE_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_ELF_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_ELF_fuzzer_OBJECTS = clamav_scanmap_ELF_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -476,7 +477,7 @@ clamav_scanmap_ELF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_ELF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_ELF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_HTML_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_HTML_fuzzer_OBJECTS = clamav_scanmap_HTML_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -484,7 +485,7 @@ clamav_scanmap_HTML_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_HTML_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_HTML_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_HWP3_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_HWP3_fuzzer_OBJECTS = clamav_scanmap_HWP3_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -492,7 +493,7 @@ clamav_scanmap_HWP3_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_HWP3_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_HWP3_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_MAIL_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_MAIL_fuzzer_OBJECTS = clamav_scanmap_MAIL_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -500,7 +501,7 @@ clamav_scanmap_MAIL_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_MAIL_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_MAIL_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_OLE2_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_OLE2_fuzzer_OBJECTS = clamav_scanmap_OLE2_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -508,7 +509,7 @@ clamav_scanmap_OLE2_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_OLE2_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_OLE2_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_PDF_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_PDF_fuzzer_OBJECTS = clamav_scanmap_PDF_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -516,7 +517,7 @@ clamav_scanmap_PDF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_PDF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_PDF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_PE_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_PE_fuzzer_OBJECTS = clamav_scanmap_PE_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -524,7 +525,7 @@ clamav_scanmap_PE_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_PE_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_PE_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_SWF_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_SWF_fuzzer_OBJECTS = clamav_scanmap_SWF_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -532,7 +533,7 @@ clamav_scanmap_SWF_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_SWF_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_SWF_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_XMLDOCS_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_XMLDOCS_fuzzer_OBJECTS = clamav_scanmap_XMLDOCS_fuzzer-clamav_scanmap_fuzzer.$(OBJEXT)
@@ -540,7 +541,7 @@ clamav_scanmap_XMLDOCS_fuzzer_OBJECTS =  \
 	$(dist_clamav_scanmap_XMLDOCS_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_XMLDOCS_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 am__dist_clamav_scanmap_fuzzer_SOURCES_DIST =  \
 	clamav_scanmap_fuzzer.cpp
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_fuzzer_OBJECTS =  \
@@ -548,7 +549,7 @@ am__dist_clamav_scanmap_fuzzer_SOURCES_DIST =  \
 clamav_scanmap_fuzzer_OBJECTS = $(dist_clamav_scanmap_fuzzer_OBJECTS)
 @ENABLE_FUZZ_TRUE@clamav_scanmap_fuzzer_DEPENDENCIES =  \
 @ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclamav.la \
-@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@	$(top_builddir)/libclamav/libclammspack.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -561,7 +562,7 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir) -I$(top_builddir)/libclammspack
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
@@ -735,6 +736,8 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBDIR = @DBDIR@
+DEFINE_SF32_PREFIX = @DEFINE_SF32_PREFIX@
+DEFINE_SF64_PREFIX = @DEFINE_SF64_PREFIX@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -749,6 +752,7 @@ FGREP = @FGREP@
 FRESHCLAM_CPPFLAGS = @FRESHCLAM_CPPFLAGS@
 FRESHCLAM_LIBS = @FRESHCLAM_LIBS@
 GCOV = @GCOV@
+GENERATE_WARNING = @GENERATE_WARNING@
 GENHTML = @GENHTML@
 GETENT = @GETENT@
 GPERF = @GPERF@
@@ -763,6 +767,11 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+INT16_DEF = @INT16_DEF@
+INT32_DEF = @INT32_DEF@
+INT64_DEF = @INT64_DEF@
+INT8_DEF = @INT8_DEF@
+INT_TYPES_HEADER = @INT_TYPES_HEADER@
 JSON_CPPFLAGS = @JSON_CPPFLAGS@
 JSON_LDFLAGS = @JSON_LDFLAGS@
 JSON_LIBS = @JSON_LIBS@
@@ -844,6 +853,10 @@ SYSTEMD_CFLAGS = @SYSTEMD_CFLAGS@
 SYSTEMD_LIBS = @SYSTEMD_LIBS@
 THREAD_LIBS = @THREAD_LIBS@
 TH_SAFE = @TH_SAFE@
+UINT16_DEF = @UINT16_DEF@
+UINT32_DEF = @UINT32_DEF@
+UINT64_DEF = @UINT64_DEF@
+UINT8_DEF = @UINT8_DEF@
 VERSION = @VERSION@
 VERSIONSCRIPTFLAG = @VERSIONSCRIPTFLAG@
 WERR_CFLAGS = @WERR_CFLAGS@
@@ -928,119 +941,119 @@ top_srcdir = @top_srcdir@
 @ENABLE_FUZZ_TRUE@dist_standalone_fuzz_target_runner_a_SOURCES = standalone_fuzz_target_runner.cpp
 @ENABLE_FUZZ_TRUE@noinst_LIBRARIES = standalone_fuzz_target_runner.a
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_ARCHIVE_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_ARCHIVE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_ARCHIVE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_ARCHIVE_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_ARCHIVE $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_MAIL_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_MAIL_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_MAIL_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_MAIL_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_MAIL $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_OLE2_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_OLE2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_OLE2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_OLE2_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_OLE2 $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_PDF_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_PDF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_PDF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_PDF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_PDF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_HTML_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_HTML_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_HTML_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_HTML_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HTML $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_PE_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_PE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_PE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_PE_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_PE $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_ELF_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_ELF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_ELF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_ELF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_ELF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_SWF_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_SWF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_SWF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_SWF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_SWF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_XMLDOCS_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_XMLDOCS_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_XMLDOCS_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_XMLDOCS_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_XMLDOCS $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanmap_HWP3_fuzzer_SOURCES = clamav_scanmap_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanmap_HWP3_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanmap_HWP3_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanmap_HWP3_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HWP3 $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_ARCHIVE_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_ARCHIVE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_ARCHIVE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_ARCHIVE_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_ARCHIVE $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_MAIL_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_MAIL_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_MAIL_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_MAIL_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_MAIL $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_OLE2_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_OLE2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_OLE2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_OLE2_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_OLE2 $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_PDF_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_PDF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_PDF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_PDF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_PDF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_HTML_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_HTML_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_HTML_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_HTML_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HTML $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_PE_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_PE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_PE_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_PE_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_PE $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_ELF_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_ELF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_ELF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_ELF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_ELF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_SWF_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_SWF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_SWF_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_SWF_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_SWF $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_XMLDOCS_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_XMLDOCS_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_XMLDOCS_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_XMLDOCS_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_XMLDOCS $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_scanfile_HWP3_fuzzer_SOURCES = clamav_scanfile_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_scanfile_HWP3_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_scanfile_HWP3_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_scanfile_HWP3_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HWP3 $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_CDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_CDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_CDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_CDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_CDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_CFG_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_CFG_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_CFG_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_CFG_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_CFG $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_CRB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_CRB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_CRB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_CRB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_CRB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_FP_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_FP_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_FP_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_FP_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_FP $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_FTM_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_FTM_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_FTM_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_FTM_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_FTM $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_HDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_HDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_HDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_HDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_HSB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_HSB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_HSB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_HSB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_HSB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_IDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_IDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_IDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_IDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IGN_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_IGN_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_IGN_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_IGN_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_IGN $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_IGN2_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_IGN2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_IGN2_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_IGN2_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_IGN2 $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_LDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_LDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_LDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_LDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_LDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_MDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_MDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_MDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_MDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_MDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_MSB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_MSB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_MSB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_MSB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_MSB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_NDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_NDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_NDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_NDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_NDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_PDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_PDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_PDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_PDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_PDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_WDB_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_WDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_WDB_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_WDB_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_WDB $(AM_CPPFLAGS)
 @ENABLE_FUZZ_TRUE@dist_clamav_dbload_YARA_fuzzer_SOURCES = clamav_dbload_fuzzer.cpp
-@ENABLE_FUZZ_TRUE@clamav_dbload_YARA_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libmspack-0.5alpha/libclammspack.la
+@ENABLE_FUZZ_TRUE@clamav_dbload_YARA_fuzzer_LDADD = $(LIB_FUZZING_ENGINE) @SSL_LIBS@ $(top_builddir)/libclamav/libclamav.la $(top_builddir)/libclamav/libclammspack.la
 @ENABLE_FUZZ_TRUE@clamav_dbload_YARA_fuzzer_CPPFLAGS = -DCLAMAV_FUZZ_YARA $(AM_CPPFLAGS)
 CLEANFILES = *.gcda *.gcno
 EXTRA_DIST = README.md run_fuzzer_tests.py

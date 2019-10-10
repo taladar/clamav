@@ -34,7 +34,6 @@
 #include <fcntl.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "cpio.h"
 #include "scanners.h"
@@ -147,13 +146,13 @@ int cli_scancpio_old(cli_ctx *ctx)
 	    } else if(hdr_namesize % 2)
 		pos++;
 	}
-	filesize = (uint32_t) (EC16(hdr_old.filesize[0], conv) << 16 | EC16(hdr_old.filesize[1], conv));
+        filesize = (uint32_t)((uint32_t)EC16(hdr_old.filesize[0], conv) << 16 | EC16(hdr_old.filesize[1], conv));
 	cli_dbgmsg("CPIO: Filesize: %u\n", filesize);
 	if(!filesize)
 	    continue;
 
 	if(cli_matchmeta(ctx, name, filesize, filesize, 0, file, 0, NULL) == CL_VIRUS) {
-            if (!SCAN_ALL)
+            if (!SCAN_ALLMATCHES)
                 return CL_VIRUS;
             virus_found = 1;
         }
@@ -168,7 +167,7 @@ int cli_scancpio_old(cli_ctx *ctx)
 	    } else if(ret == CL_SUCCESS) {
 		ret = cli_map_scan(*ctx->fmap, pos, filesize, ctx, CL_TYPE_ANY);
 		if(ret == CL_VIRUS) {
-                    if (!SCAN_ALL)
+                    if (!SCAN_ALLMATCHES)
                         return ret;
                     virus_found = 1;
                 }
@@ -247,7 +246,7 @@ int cli_scancpio_odc(cli_ctx *ctx)
 	    continue;
 
 	if(cli_matchmeta(ctx, name, filesize, filesize, 0, file, 0, NULL) == CL_VIRUS) {
-            if (!SCAN_ALL)
+            if (!SCAN_ALLMATCHES)
                 return CL_VIRUS;
             virus_found = 1;
         }
@@ -259,7 +258,7 @@ int cli_scancpio_odc(cli_ctx *ctx)
 	} else if(ret == CL_SUCCESS) {
 	    ret = cli_map_scan(*ctx->fmap, pos, filesize, ctx, CL_TYPE_ANY);
 	    if(ret == CL_VIRUS) {
-                if (!SCAN_ALL)
+                if (!SCAN_ALLMATCHES)
                     return ret;
                 virus_found = 1;
             }
@@ -341,7 +340,7 @@ int cli_scancpio_newc(cli_ctx *ctx, int crc)
 	    continue;
 
 	if(cli_matchmeta(ctx, name, filesize, filesize, 0, file, 0, NULL) == CL_VIRUS) {
-            if (!SCAN_ALL)
+            if (!SCAN_ALLMATCHES)
                 return CL_VIRUS;
             virus_found = 1;
         }
@@ -352,7 +351,7 @@ int cli_scancpio_newc(cli_ctx *ctx, int crc)
 	} else if(ret == CL_SUCCESS) {
 	    ret = cli_map_scan(*ctx->fmap, pos, filesize, ctx, CL_TYPE_ANY);
 	    if(ret == CL_VIRUS) {
-                if (!SCAN_ALL)
+                if (!SCAN_ALLMATCHES)
                     return ret;
                 virus_found = 1;
             }

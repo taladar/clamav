@@ -30,7 +30,6 @@
 #include <fcntl.h>
 
 #include "clamav.h"
-#include "cltypes.h"
 #include "others.h"
 #include "macho.h"
 #include "execs.h"
@@ -175,7 +174,7 @@ struct macho_fat_arch
 #define RETURN_BROKEN					    \
     if(matcher)						    \
 	return -1;					    \
-    if(DETECT_BROKEN) {					    \
+    if(SCAN_HEURISTIC_BROKEN) {					    \
         if (CL_VIRUS == cli_append_virus(ctx, "Heuristics.Broken.Executable")) \
             return CL_VIRUS;				    \
     }							    \

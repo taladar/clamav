@@ -41,8 +41,8 @@
 #include "clamav.h"
 #include "others.h"
 #include "matcher.h"
-#include "cltypes.h"
 #include "jsparse/textbuf.h"
+#include "platform.h"
 
 static const int hex_chars[256] = {
     -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
@@ -268,7 +268,7 @@ char *cli_utf16toascii(const char *str, unsigned int length)
 	return NULL;
 
     for(i = 0, j = 0; i < length; i += 2, j++) {
-       decoded[j] = str[i + 1] << 4;
+        decoded[j] = ((unsigned char) str[i + 1]) << 4;
        decoded[j] += str[i];
     }
 
@@ -400,9 +400,9 @@ char *cli_strtokbuf(const char *input, int fieldno, const char *delim, char *out
     return output;
 }
 
-const char *cli_memstr(const char *haystack, unsigned int hs, const char *needle, unsigned int ns)
+const char *cli_memstr(const char *haystack, size_t hs, const char *needle, size_t ns)
 {
-	unsigned int i, s1, s2;
+	size_t i, s1, s2;
 
     if(!hs || !ns || hs < ns)
 	return NULL;
@@ -496,6 +496,48 @@ char *cli_strndup(const char *s, size_t n)
 }
 #endif
 
+#if !defined(HAVE_STRNSTR) || defined(HAVE_STRNI)
+/*
+ * @brief Find the first occurrence of find in s.
+ *
+ * The search is limited to the first slen characters of s.
+ *
+ * Copyright (c) 2001 Mike Barcroft <mike@FreeBSD.org>
+ * Copyright (c) 1990, 1993
+ * The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * Chris Torek.
+ *
+ * Copyright (c) 1990 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * @param s      haystack
+ * @param find   needle
+ * @param slen   haystack length
+ * @return char* Address of the needle, if found, else NULL.
+ */
+char *cli_strnstr(const char *s, const char *find, size_t slen)
+{
+    char c, sc;
+    size_t len;
+
+    if ((c = *find++) != '\0') {
+        len = strlen(find);
+        do {
+            do {
+                if (slen-- < 1 || (sc = *s++) == '\0')
+                    return (NULL);
+            } while (sc != c);
+            if (len > slen)
+                return (NULL);
+        } while (strncmp(s, find, len) != 0);
+        s--;
+    }
+    return ((char *)s);
+}
+#endif
+
 size_t cli_strtokenize(char *buffer, const char delim, const size_t token_count, const char **tokens)
 {
 	size_t tokens_found, i;
@@ -538,7 +580,7 @@ size_t cli_strtokenize(char *buffer, const char delim, const size_t token_count,
  *                      between 2 and 36 inclusive, or be the special value 0.
  * @return long         The signed long value.
  */
-static long cli_strntol(const char* nptr, size_t n, char** endptr, register int base)
+long cli_strntol(const char* nptr, size_t n, char** endptr, register int base)
 {
     register const char* s = nptr;
     register unsigned long acc = 0;
@@ -576,7 +618,7 @@ static long cli_strntol(const char* nptr, size_t n, char** endptr, register int 
     }
 
     if (base == 0 || base == 16) {
-        if (c == '0' && (*s == 'x' || *s == 'X')) {
+        if (c == '0' && (s + 1 < nptr + n) && (*(s+1) == 'x' || *(s+1) == 'X')) {
             if (s + 2 >= nptr + n) {
                 goto done;
             }
@@ -661,7 +703,7 @@ done:
  *                      between 2 and 36 inclusive, or be the special value 0.
  * @return unsigned long The unsigned long value.
  */
-static unsigned long
+unsigned long
 cli_strntoul(const char* nptr, size_t n, char** endptr, register int base)
 {
     register const char* s = nptr;
@@ -695,7 +737,7 @@ cli_strntoul(const char* nptr, size_t n, char** endptr, register int base)
     }
 
     if (base == 0 || base == 16) {
-        if (c == '0' && (*s == 'x' || *s == 'X')) {
+        if (c == '0' && (s + 1 < nptr + n) && (*(s+1) == 'x' || *(s+1) == 'X')) {
             if (s + 2 >= nptr + n) {
                 goto done;
             }
@@ -755,7 +797,7 @@ done:
  * @return CL_SUCCESS       Success
  * @return CL_EPARSE        Failure
  */
-int cli_strntol_wrap(const char *buf, size_t buf_size, int fail_at_nondigit, int base, long *result)
+cl_error_t cli_strntol_wrap(const char *buf, size_t buf_size, int fail_at_nondigit, int base, long *result)
 {
     char *endptr = NULL;
     long num;
@@ -798,7 +840,7 @@ int cli_strntol_wrap(const char *buf, size_t buf_size, int fail_at_nondigit, int
  * @return CL_SUCCESS       Success
  * @return CL_EPARSE        Failure
  */
-int cli_strntoul_wrap(const char *buf, size_t buf_size, int fail_at_nondigit, int base, unsigned long *result)
+cl_error_t cli_strntoul_wrap(const char *buf, size_t buf_size, int fail_at_nondigit, int base, unsigned long *result)
 {
     char *endptr = NULL;
     long num;
@@ -907,12 +949,14 @@ char *cli_unescape(const char *str)
 			if(k+5 >= len || str[k+1] != 'u' || !isxdigit(str[k+2]) || !isxdigit(str[k+3])
 						|| !isxdigit(str[k+4]) || !isxdigit(str[k+5])) {
 				if(k+2 < len && isxdigit(str[k+1]) && isxdigit(str[k+2])) {
-					c = (cli_hex2int(str[k+1])<<4) | cli_hex2int(str[k+2]);
+                    c = ((cli_hex2int(str[k + 1]) < 0 ? 0 : cli_hex2int(str[k + 1])) << 4) | cli_hex2int(str[k + 2]);
 					k += 2;
 				}
 			} else {
-				uint16_t u = (cli_hex2int(str[k+2])<<12) | (cli_hex2int(str[k+3])<<8) |
-					(cli_hex2int(str[k+4])<<4) | cli_hex2int(str[k+5]);
+                uint16_t u = ((cli_hex2int(str[k + 2]) < 0 ? 0 : cli_hex2int(str[k + 2])) << 12) |
+                             ((cli_hex2int(str[k + 3]) < 0 ? 0 : cli_hex2int(str[k + 3])) << 8)  |
+                             ((cli_hex2int(str[k + 4]) < 0 ? 0 : cli_hex2int(str[k + 4])) << 4)  |
+                               cli_hex2int(str[k + 5]);
 				i += output_utf8(u, (unsigned char*)&R[i]);
 				k += 5;
 				continue;
@@ -958,13 +1002,15 @@ int cli_textbuffer_append_normalize(struct text_buffer *buf, const char *str, si
 					break;
 				case 'x':
 					if(i+2 < len)
-						c = (cli_hex2int(str[i+1])<<4)|cli_hex2int(str[i+2]);
+                        c = ((cli_hex2int(str[i + 1]) < 0 ? 0 : cli_hex2int(str[i + 1])) << 4) | cli_hex2int(str[i + 2]);
 					i += 2;
 					break;
 				case 'u':
 					if(i+4 < len) {
-						uint16_t u = (cli_hex2int(str[i+1])<<12) | (cli_hex2int(str[i+2])<<8) |
-							(cli_hex2int(str[i+3])<<4) | cli_hex2int(str[i+4]);
+                        uint16_t u = ((cli_hex2int(str[i + 1]) < 0 ? 0 : cli_hex2int(str[i + 1])) << 12) |
+                                     ((cli_hex2int(str[i + 2]) < 0 ? 0 : cli_hex2int(str[i + 2])) << 8)  |
+                                     ((cli_hex2int(str[i + 3]) < 0 ? 0 : cli_hex2int(str[i + 3])) << 4)  | 
+                                       cli_hex2int(str[i + 4]);
 						if(textbuffer_ensure_capacity(buf, 4) == -1)
 							return -1;
 						buf->pos += output_utf8(u, (unsigned char*)&buf->data[buf->pos]);
@@ -1109,4 +1155,42 @@ int cli_isutf8(const char *buf, unsigned int len)
     }
 
     return 1;
+}
+
+cl_error_t cli_basename(const char *filepath, size_t filepath_len, char **filebase)
+{
+    cl_error_t status = CL_EARG;
+    const char *index = NULL;
+    
+    if (NULL == filepath || NULL == filebase || filepath_len == 0) {
+        cli_dbgmsg("cli_basename: Invalid arguments.\n");
+        goto done;
+    }
+
+    index = filepath + filepath_len - 1;
+
+    while (index > filepath) {
+        if (index[0] == PATHSEP[0]) break;
+        index--;
+    }
+    if ((index != filepath) || (index[0] == PATHSEP[0]))
+        index++;
+
+    if (0 == cli_strnlen(index, filepath_len - (index - filepath))) {
+        cli_dbgmsg("cli_basename: Provided path does not include a file name.\n");
+        status = CL_EFORMAT;
+        goto done;
+    }
+
+    *filebase = cli_strndup(index, filepath_len - (index - filepath));
+    if (NULL == *filebase) {
+        cli_errmsg("cli_basename: Failed to allocate memory for file basename.\n");
+        status = CL_EMEM;
+        goto done;
+    }
+
+    status = CL_SUCCESS;
+
+done:
+    return status;
 }

@@ -12,24 +12,22 @@ if test "X$withval" = "Xyes"; then
     find_curl="yes"
 else
     if test "X$withval" != "Xno"; then
-        LIBCURL_HOME="$withval"
+        if test -f "${withval}/bin/curl-config"; then
+            LIBCURL_HOME="$withval"
+            have_curl="yes"
+        fi
     fi
 fi
 ],
 [find_curl="yes"])
 
 if test "X$find_curl" = "Xyes"; then
-    LIBCURL_HOME=/usr/local
-fi
-if test -f "$LIBCURL_HOME/bin/curl-config"; then
-    have_curl="yes"
-else
-    if test "X$find_curl" = "Xyes"; then
-        LIBCURL_HOME=/usr
-        if test -f "$LIBCURL_HOME/bin/curl-config"; then
-            have_curl="yes"
+    for p in /usr/local /usr ; do
+        if test -f "${p}/bin/curl-config"; then
+           LIBCURL_HOME=$p
+           have_curl="yes"
         fi
-    fi
+    done
 fi
 
 if test "X$have_curl" = "Xyes"; then

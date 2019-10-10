@@ -38,7 +38,6 @@
 #endif
 #include <time.h>
 
-#include "cltypes.h"
 #include "elf.h"
 #include "clamav.h"
 #include "execs.h"
@@ -213,7 +212,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     cli_dbgmsg("ELF: Number of program headers: %d\n", phnum);
     if(phnum > 128) {
         cli_dbgmsg("ELF: Suspicious number of program headers\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
             cli_append_virus(ctx, "Heuristics.Broken.Executable");
             return CL_VIRUS;
         }
@@ -226,7 +225,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         /* Sanity check */
         if(phentsize != sizeof(struct elf_program_hdr32)) {
             cli_dbgmsg("ELF: phentsize != sizeof(struct elf_program_hdr32)\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -261,7 +260,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                     cli_dbgmsg("ELF: Possibly broken ELF file\n");
                 }
                 free(program_hdr);
-                if(ctx && DETECT_BROKEN) {
+                if(ctx && SCAN_HEURISTIC_BROKEN) {
                     cli_append_virus(ctx, "Heuristics.Broken.Executable");
                     return CL_VIRUS;
                 }
@@ -283,7 +282,7 @@ static int cli_elf_ph32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         free(program_hdr);
         if(err) {
             cli_dbgmsg("ELF: Can't calculate file offset of entry point\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -317,7 +316,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     cli_dbgmsg("ELF: Number of program headers: %d\n", phnum);
     if(phnum > 128) {
         cli_dbgmsg("ELF: Suspicious number of program headers\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
             cli_append_virus(ctx, "Heuristics.Broken.Executable");
             return CL_VIRUS;
         }
@@ -330,7 +329,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         /* Sanity check */
         if (phentsize != sizeof(struct elf_program_hdr64)) {
             cli_dbgmsg("ELF: phentsize != sizeof(struct elf_program_hdr64)\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -365,7 +364,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                     cli_dbgmsg("ELF: Possibly broken ELF file\n");
                 }
                 free(program_hdr);
-                if(ctx && DETECT_BROKEN) {
+                if(ctx && SCAN_HEURISTIC_BROKEN) {
                     cli_append_virus(ctx, "Heuristics.Broken.Executable");
                     return CL_VIRUS;
                 }
@@ -387,7 +386,7 @@ static int cli_elf_ph64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
         free(program_hdr);
         if(err) {
             cli_dbgmsg("ELF: Can't calculate file offset of entry point\n");
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
                 return CL_VIRUS;
             }
@@ -432,7 +431,7 @@ static int cli_elf_sh32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     /* Sanity check */
     if(shentsize != sizeof(struct elf_section_hdr32)) {
 	cli_dbgmsg("ELF: shentsize != sizeof(struct elf_section_hdr32)\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
 	    cli_append_virus(ctx, "Heuristics.Broken.Executable");
 	    return CL_VIRUS;
         }
@@ -484,7 +483,7 @@ static int cli_elf_sh32(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                 free(elfinfo->section);
                 elfinfo->section = NULL;
 	    }
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
 		return CL_VIRUS;
             }
@@ -542,7 +541,7 @@ static int cli_elf_sh64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
     /* Sanity check */
     if(shentsize != sizeof(struct elf_section_hdr64)) {
 	cli_dbgmsg("ELF: shentsize != sizeof(struct elf_section_hdr64)\n");
-        if(ctx && DETECT_BROKEN) {
+        if(ctx && SCAN_HEURISTIC_BROKEN) {
 	    cli_append_virus(ctx, "Heuristics.Broken.Executable");
 	    return CL_VIRUS;
         }
@@ -594,7 +593,7 @@ static int cli_elf_sh64(cli_ctx *ctx, fmap_t *map, struct cli_exe_info *elfinfo,
                 free(elfinfo->section);
                 elfinfo->section = NULL;
 	    }
-            if(ctx && DETECT_BROKEN) {
+            if(ctx && SCAN_HEURISTIC_BROKEN) {
                 cli_append_virus(ctx, "Heuristics.Broken.Executable");
 		return CL_VIRUS;
             }

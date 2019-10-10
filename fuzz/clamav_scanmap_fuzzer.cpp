@@ -1,7 +1,7 @@
 /*
  * Fuzz target for cl_scanmap_callback()
  *
- * Copyright (C) 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (C) 2018-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  * Authors: Micah Snyder, Alex Gaynor
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,44 +65,49 @@ public:
 ClamAVState kClamAVState;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-
+    
+    struct cl_scan_options scanopts = {0};
+    
     cl_fmap_t *clamav_data = cl_fmap_open_memory(data, size);
 
-    unsigned int scanopt =
+    memset(&scanopts, 0, sizeof(struct cl_scan_options));
+
+    scanopts.parse |= 
 #if defined(CLAMAV_FUZZ_ARCHIVE)
-        CL_SCAN_ARCHIVE;
+        CL_SCAN_PARSE_ARCHIVE;
 #elif defined(CLAMAV_FUZZ_MAIL)
-        CL_SCAN_MAIL;
+        CL_SCAN_PARSE_MAIL;
 #elif defined(CLAMAV_FUZZ_OLE2)
-        CL_SCAN_OLE2;
+        CL_SCAN_PARSE_OLE2;
 #elif defined(CLAMAV_FUZZ_PDF)
-        CL_SCAN_PDF;
+        CL_SCAN_PARSE_PDF;
 #elif defined(CLAMAV_FUZZ_HTML)
-        CL_SCAN_HTML;
+        CL_SCAN_PARSE_HTML;
 #elif defined(CLAMAV_FUZZ_PE)
-        CL_SCAN_PE;
-#elif defined(CLAMAV_FUZZ_ALGORITHMIC)
-        CL_SCAN_ALGORITHMIC;
+        CL_SCAN_PARSE_PE;
 #elif defined(CLAMAV_FUZZ_ELF)
-        CL_SCAN_ELF;
+        CL_SCAN_PARSE_ELF;
 #elif defined(CLAMAV_FUZZ_SWF)
-        CL_SCAN_SWF;
+        CL_SCAN_PARSE_SWF;
 #elif defined(CLAMAV_FUZZ_XMLDOCS)
-        CL_SCAN_XMLDOCS;
+        CL_SCAN_PARSE_XMLDOCS;
 #elif defined(CLAMAV_FUZZ_HWP3)
-        CL_SCAN_HWP3;
+        CL_SCAN_PARSE_HWP3;
 #else
-        CL_SCAN_STDOPT;
+        ~(0);
 #endif
+
+    scanopts.general |= CL_SCAN_GENERAL_HEURISTICS;
 
     const char *virus_name = nullptr;
     unsigned long scanned = 0;
     cl_scanmap_callback(
         clamav_data,
+        NULL,
         &virus_name,
         &scanned,
         kClamAVState.engine,
-        scanopt,
+        &scanopts,
         nullptr
     );
 

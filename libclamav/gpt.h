@@ -25,7 +25,7 @@
 #include "clamav-config.h"
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "others.h"
 
 /* GPT sector size is normally 512 bytes be can be set to much larger 

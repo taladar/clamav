@@ -36,7 +36,7 @@
 #include <pcre.h>
 #endif
 
-#include "cltypes.h"
+#include "clamav-types.h"
 #include "mpool.h"
 
 /* used for setting overrides */

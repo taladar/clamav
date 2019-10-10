@@ -186,7 +186,7 @@ const struct clam_option __clam_options[] = {
     { NULL, "deb", 0, CLOPT_TYPE_STRING, NULL, -1, "foo", 0, OPT_CLAMSCAN | OPT_DEPRECATED, "", "" },
 
     /* config file/cmdline options */
-    { "BlockMax", "block-max", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "", "" },
+    { "AlertExceedsMax", "alert-exceeds-max", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "", "" },
 
     { "PreludeEnable", "prelude-enable", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD, "Enable prelude"},
 
@@ -247,7 +247,7 @@ const struct clam_option __clam_options[] = {
 
     { "ReadTimeout", NULL, 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 120, NULL, 0, OPT_CLAMD, "This option specifies the time (in seconds) after which clamd should\ntimeout if a client doesn't provide any data.", "120" },
 
-    { "CommandReadTimeout", NULL, 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 5, NULL, 0, OPT_CLAMD, "This option specifies the time (in seconds) after which clamd should\ntimeout if a client doesn't provide any initial command after connecting.", "5" },
+    { "CommandReadTimeout", NULL, 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 30, NULL, 0, OPT_CLAMD, "This option specifies the time (in seconds) after which clamd should\ntimeout if a client doesn't provide any initial command after connecting.", "30" },
 
     { "SendBufTimeout", NULL, 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 500, NULL, 0, OPT_CLAMD, "This option specifies how long to wait (in milliseconds) if the send buffer\nis full. Keep this value low to prevent clamd hanging.", "200"},
 
@@ -288,13 +288,13 @@ const struct clam_option __clam_options[] = {
     /* Scan options */
     { "Bytecode", "bytecode", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled ClamAV will load bytecode from the database. It is highly recommended you keep this option on, otherwise you'll miss detections for many new viruses.", "yes" },
 
-    { "BytecodeSecurity", NULL, 0, CLOPT_TYPE_STRING, "^(TrustSigned|Paranoid)$", -1, "TrustSigned", 0, OPT_CLAMD, 
+    { "BytecodeSecurity", NULL, 0, CLOPT_TYPE_STRING, "^(TrustSigned|Paranoid)$", -1, "TrustSigned", 0, OPT_CLAMD,
 	"Set bytecode security level.\nPossible values:\n\tTrustSigned - trust bytecode loaded from signed .c[lv]d files,\n\t\t insert runtime safety checks for bytecode loaded from other sources\n\tParanoid - don't trust any bytecode, insert runtime checks for all\nRecommended: TrustSigned, because bytecode in .cvd files already has these checks.","TrustSigned"},
 
-    { "BytecodeTimeout", "bytecode-timeout", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 5000, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, 
+    { "BytecodeTimeout", "bytecode-timeout", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 5000, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN,
 	"Set bytecode timeout in milliseconds.","5000"},
 
-    { "BytecodeUnsigned", "bytecode-unsigned", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, 
+    { "BytecodeUnsigned", "bytecode-unsigned", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN,
 	"Allow loading bytecode from outside digitally signed .c[lv]d files.","no"},
 
     { "BytecodeMode", "bytecode-mode", 0, CLOPT_TYPE_STRING, "^(Auto|ForceJIT|ForceInterpreter|Test)$", -1, "Auto", FLAG_REQUIRED, OPT_CLAMD | OPT_CLAMSCAN,
@@ -308,13 +308,9 @@ const struct clam_option __clam_options[] = {
 
     { "IncludePUA", "include-pua", 0, CLOPT_TYPE_STRING, NULL, -1, NULL, FLAG_MULTIPLE, OPT_CLAMD | OPT_CLAMSCAN, "Only include a specific PUA category. This directive can be used multiple\ntimes.", "Spy\nScanner\nRAT" },
 
-    { "AlgorithmicDetection", "algorithmic-detection", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "In some cases (eg. complex malware, exploits in graphic files, and others),\nClamAV uses special algorithms to provide accurate detection. This option\ncontrols the algorithmic detection.", "yes" },
-
     { "ScanPE", "scan-pe", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "PE stands for Portable Executable - it's an executable file format used\nin all 32- and 64-bit versions of Windows operating systems. This option\nallows ClamAV to perform a deeper analysis of executable files and it's also\nrequired for decompression of popular executable packers such as UPX or FSG.\nIf you turn off this option, the original files will still be scanned, but\nwithout additional processing.", "yes" },
 
     { "ScanELF", "scan-elf", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Executable and Linking Format is a standard format for UN*X executables.\nThis option allows you to control the scanning of ELF files.\nIf you turn off this option, the original files will still be scanned, but\nwithout additional processing.", "yes" },
-
-    { "DetectBrokenExecutables", "detect-broken", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled clamav will try to detect broken executables\n(both PE and ELF) and mark them as Broken.Executable.", "yes" },
 
     { "ScanMail", "scan-mail", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Enable the built in email scanner.\nIf you turn off this option, the original files will still be scanned, but\nwithout parsing individual messages/attachments.", "yes" },
 
@@ -324,11 +320,7 @@ const struct clam_option __clam_options[] = {
 
     { "PhishingScanURLs", "phishing-scan-urls", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Scan URLs found in mails for phishing attempts using heuristics.", "yes" },
 
-    { "PhishingAlwaysBlockCloak", "phishing-cloak", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Always block cloaked URLs, even if they're not in the database.\nThis feature can lead to false positives.", "no" },
-
-    { "PhishingAlwaysBlockSSLMismatch", "phishing-ssl", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Always block SSL mismatches in URLs, even if they're not in the database.\nThis feature can lead to false positives.", "" },
-
-    { "PartitionIntersection", "partition-intersection", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Detect partition intersections in raw disk images using heuristics.", "yes" },
+    { "HeuristicAlerts", "heuristic-alerts", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "In some cases (eg. complex malware, exploits in graphic files, and others),\nClamAV uses special algorithms to provide accurate detection. This option\ncontrols the algorithmic detection.", "yes" },
 
     { "HeuristicScanPrecedence", "heuristic-scan-precedence", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Allow heuristic match to take precedence.\nWhen enabled, if a heuristic scan (such as phishingScan) detects\na possible virus/phish it will stop scan immediately. Recommended, saves CPU\nscan-time.\nWhen disabled, virus/phish detected by heuristic scans will be reported only\nat the end of a scan. If an archive contains both a heuristically detected\nvirus/phish, and a real malware, the real malware will be reported.\nKeep this disabled if you intend to handle \"*.Heuristics.*\" viruses\ndifferently from \"real\" malware.\nIf a non-heuristically-detected virus (signature-based) is found first,\nthe scan is interrupted immediately, regardless of this config option.", "yes" },
 
@@ -346,7 +338,21 @@ const struct clam_option __clam_options[] = {
 
     { "ScanOLE2", "scan-ole2", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option enables scanning of OLE2 files, such as Microsoft Office\ndocuments and .msi files.\nIf you turn off this option, the original files will still be scanned, but\nwithout additional processing.", "yes" },
 
-    { "OLE2BlockMacros", "block-macros", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled OLE2 files with VBA macros, which were not\ndetected by signatures will be marked as \"Heuristics.OLE2.ContainsMacros\".", "no" },
+    { "AlertBrokenExecutables", "alert-broken", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled clamav will try to detect broken executables\n(both PE and ELF) and alert on them with the Broken.Executable heuristic signature.", "yes" },
+
+    { "AlertEncrypted", "alert-encrypted", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on encrypted archives and documents (encrypted .zip, .7zip, .rar, .pdf).", "no" },
+
+    { "AlertEncryptedArchive", "alert-encrypted-archive", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on encrypted archives (encrypted .zip, .7zip, .rar).", "no" },
+
+    { "AlertEncryptedDoc", "alert-encrypted-doc", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on encrypted documents (encrypted .pdf).", "no" },
+
+    { "AlertOLE2Macros", "alert-macros", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled OLE2 files with VBA macros, which were not\ndetected by signatures will be marked as \"Heuristics.OLE2.ContainsMacros\".", "no" },
+
+    { "AlertPhishingSSLMismatch", "alert-phishing-ssl", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on SSL mismatches in URLs, even if they're not in the database.\nThis feature can lead to false positives.", "" },
+
+    { "AlertPhishingCloak", "alert-phishing-cloak", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on cloaked URLs, even if they're not in the database.\nThis feature can lead to false positives.", "no" },
+
+    { "AlertPartitionIntersection", "alert-partition-intersection", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Alert on raw DMG image files containing partition intersections.", "yes" },
 
     { "ScanPDF", "scan-pdf", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option enables scanning within PDF files.\nIf you turn off this option, the original files will still be scanned, but\nwithout decoding and additional processing.", "yes" },
 
@@ -358,9 +364,9 @@ const struct clam_option __clam_options[] = {
 
     { "ScanArchive", "scan-archive", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Scan within archives and compressed files.\nIf you turn off this option, the original files will still be scanned, but\nwithout unpacking and additional processing.", "yes" },
 
-    { "ArchiveBlockEncrypted", "block-encrypted", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Mark encrypted archives as viruses (Encrypted.Zip, Encrypted.RAR).", "no" },
-
     { "ForceToDisk", "force-to-disk", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option causes memory or nested map scans to dump the content to disk.\nIf you turn on this option, more data is written to disk and is available\nwhen the leave-temps option is enabled at the cost of more disk writes.", "no" },
+
+    { "MaxScanTime", "max-scantime", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option sets the maximum amount of time a scan may take to complete.\nIn this version, this field only affects the scan time of ZIP archives.\nThe value of 0 disables the limit.\nWARNING: disabling this limit or setting it too high may result allow scanning\nof certain files to lock up the scanning process/threads resulting in a Denial of Service.\nThe value is in milliseconds.", "120000"},
 
     { "MaxScanSize", "max-scansize", 0, CLOPT_TYPE_SIZE, MATCH_SIZE, CLI_DEFAULT_MAXSCANSIZE, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option sets the maximum amount of data to be scanned for each input file.\nArchives and other containers are recursively extracted and scanned up to this\nvalue.\nThe value of 0 disables the limit.\nWARNING: disabling this limit or setting it too high may result in severe\ndamage.", "100M" },
 
@@ -386,8 +392,6 @@ const struct clam_option __clam_options[] = {
     { "MaxIconsPE", "max-iconspe", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, CLI_DEFAULT_MAXICONSPE, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option sets the maximum number of icons within a PE to be scanned.\nPE files with more icons than this value will have up to the value number icons scanned.\nNegative values are not allowed.\nWARNING: setting this limit too high may result in severe damage or impact performance.", "100" },
 
     { "MaxRecHWP3", "max-rechwp3", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, CLI_DEFAULT_MAXRECHWP3, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option sets the maximum recursive calls to HWP3 parsing function.\nHWP3 files using more than this limit will be terminated and alert the user.\nScans will be unable to scan any HWP3 attachments if the recursive limit is reached.\nNegative values are not allowed.\nWARNING: setting this limit too high may result in severe damage or impact performance.", "16" },
-
-    { "TimeLimit", "timelimit", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 0, NULL, 0, OPT_CLAMSCAN, "This clamscan option is currently for testing only. It sets the engine parameter CL_ENGINE_TIME_LIMIT. The value is in milliseconds.", "0" },
 
     { "PCREMatchLimit", "pcre-match-limit", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, CLI_DEFAULT_PCRE_MATCH_LIMIT, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "This option sets the maximum calls to the PCRE match function during an instance of regex matching.\nInstances using more than this limit will be terminated and alert the user but the scan will continue.\nFor more information on match_limit, see the PCRE documentation.\nNegative values are not allowed.\nWARNING: setting this limit too high may severely impact performance.", "100000" },
 
@@ -487,6 +491,15 @@ const struct clam_option __clam_options[] = {
 
     /* Deprecated options */
 
+    { "TimeLimit", "timelimit", 0, CLOPT_TYPE_NUMBER, MATCH_NUMBER, 0, NULL, 0, OPT_CLAMSCAN | OPT_DEPRECATED, "Deprecated option to set the max-scantime.\nThe value is in milliseconds.", "120000"},
+    { "DetectBrokenExecutables", "detect-broken", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN | OPT_DEPRECATED, "Deprecated option to alert on broken PE and ELF executable files.", "no" },
+    { "AlgorithmicDetection", "algorithmic-detection", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 1, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Deprecated option to enable heuristic alerts (e.g. \"Heuristics.<sig name>\")", "no" },
+    { "BlockMax", "block-max", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "", "" },
+    { "PhishingAlwaysBlockSSLMismatch", "phishing-ssl", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Deprecated option to alert on SSL mismatches in URLs, even if they're not in the database.\nThis feature can lead to false positives.", "no" },
+    { "PhishingAlwaysBlockCloak", "phishing-cloak", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Deprecated option to alert on cloaked URLs, even if they're not in the database.\nThis feature can lead to false positives.", "no" },
+    { "PartitionIntersection", "partition-intersection", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Deprecated option to alert on raw DMG image files containing partition intersections.", "no" },
+    { "OLE2BlockMacros", "block-macros", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "With this option enabled OLE2 files with VBA macros, which were not\ndetected by signatures will be marked as \"Heuristics.OLE2.ContainsMacros\".", "no" },
+    { "ArchiveBlockEncrypted", "block-encrypted", 0, CLOPT_TYPE_BOOL, MATCH_BOOL, 0, NULL, 0, OPT_CLAMD | OPT_CLAMSCAN, "Deprecated option to alert on encrypted archives and documents (encrypted .zip, .7zip, .rar, .pdf).", "no" },
     { "MailMaxRecursion", NULL, 0, CLOPT_TYPE_NUMBER, NULL, -1, NULL, 0, OPT_CLAMD | OPT_DEPRECATED, "", "" },
     { "ArchiveMaxScanSize", NULL, 0, CLOPT_TYPE_SIZE, NULL, -1, NULL, 0, OPT_CLAMD | OPT_DEPRECATED, "", "" },
     { "ArchiveMaxRecursion", NULL, 0, CLOPT_TYPE_NUMBER, NULL, -1, NULL, 0, OPT_CLAMD | OPT_DEPRECATED, "", "" },
@@ -883,7 +896,7 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 
 	    if(!(pt = strpbrk(buff, " \t"))) {
 		if(verbose)
-		    fprintf(stderr, "ERROR: Missing argument for option at line %d\n", line);
+		    fprintf(stderr, "ERROR: Missing argument for option at %s:%d\n", cfgfile, line);
 		err = 1;
 		break;
 	    }
@@ -894,7 +907,7 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 	    for(i = strlen(pt); i >= 1 && (pt[i - 1] == ' ' || pt[i - 1] == '\t' || pt[i - 1] == '\n'); i--);
 	    if(!i) {
 		if(verbose)
-		    fprintf(stderr, "ERROR: Missing argument for option at line %d\n", line);
+		    fprintf(stderr, "ERROR: Missing argument for option at %s:%d\n", cfgfile, line);
 		err = 1;
 		break;
 	    }
@@ -905,14 +918,14 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 		pt = strrchr(pt, '"');
 		if(!pt) {
 		    if(verbose)
-			fprintf(stderr, "ERROR: Missing closing parenthesis in option %s at line %d\n", name, line);
+			fprintf(stderr, "ERROR: Missing closing parenthesis in option %s at %s:%d\n", name, cfgfile, line);
 		    err = 1;
 		    break;
 		}
 		*pt = 0;
 		if(!strlen(arg)) {
 		    if(verbose)
-			fprintf(stderr, "ERROR: Empty argument for option %s at line %d\n", name, line);
+			fprintf(stderr, "ERROR: Empty argument for option %s at %s:%d\n", name, cfgfile, line);
 		    err = 1;
 		    break;
 		}
@@ -963,7 +976,7 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 	if(!opt) {
 	    if(cfgfile) {
 		if(verbose)
-		    fprintf(stderr, "ERROR: Parse error at line %d: Unknown option %s\n", line, name);
+		    fprintf(stderr, "ERROR: Parse error at %s:%d: Unknown option %s\n", cfgfile, line, name);
 	    }
 	    err = 1;
 	    break;
@@ -973,7 +986,7 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 	if(ignore && (optentry->owner & ignore) && !(optentry->owner & toolmask)) {
 	    if(cfgfile) {
 		if(verbose)
-		    fprintf(stderr, "WARNING: Ignoring unsupported option %s at line %u\n", opt->name, line);
+		    fprintf(stderr, "WARNING: Ignoring unsupported option %s at %s:%d\n", opt->name, cfgfile, line);
 	    } else {
 		if(verbose) {
 		    if(optentry->shortopt)
@@ -998,7 +1011,7 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 	    } else {
 		if(cfgfile) {
 		    if(verbose)
-			fprintf(stderr, "WARNING: Ignoring deprecated option %s at line %u\n", opt->name, line);
+			fprintf(stderr, "WARNING: Ignoring deprecated option %s at %s:%d\n", opt->name, cfgfile, line);
 		} else {
 		    if(verbose) {
 			if(optentry->shortopt)
@@ -1169,61 +1182,61 @@ struct optstruct *optparse(const char *cfgfile, int argc, char **argv, int verbo
 struct optstruct *optadditem(const char *name, const char *arg, int verbose, int toolmask, int ignore,
                             struct optstruct *oldopts)
 {
-	int i, err = 0, sc = 0, lc=0, line = 0, ret;
+	int i, err = 0, sc = 0, lc=0, ret;
 	struct optstruct *opts = NULL, *opts_last = NULL, *opt;
 	char *buff;
 	regex_t regex;
 	long long numarg, lnumarg;
 	int regflags = REG_EXTENDED | REG_NOSUB;
     const struct clam_option *optentry = NULL;
-    
+
     if(oldopts)
         opts = oldopts;
-    
-    
+
+
     for(i = 0; ; i++) {
         optentry = &clam_options[i];
         if(!optentry->name && !optentry->longopt)
             break;
-        
+
         if(((optentry->owner & toolmask) && ((optentry->owner & toolmask) != OPT_DEPRECATED)) || (ignore && (optentry->owner & ignore))) {
             if(!oldopts && optadd(&opts, &opts_last, optentry->name, optentry->longopt, optentry->strarg, optentry->numarg, optentry->flags, i) < 0) {
                 fprintf(stderr, "ERROR: optparse: Can't register new option (not enough memory)\n");
                 optfree(opts);
                 return NULL;
             }
-            
+
         }
     }
-    
+
     if(MAX(sc, lc) > MAXCMDOPTS) {
 	    fprintf(stderr, "ERROR: optparse: (short|long)opts[] is too small\n");
 	    optfree(opts);
 	    return NULL;
 	}
-    
+
     while(1) {
         if(!name) {
             fprintf(stderr, "ERROR: Problem parsing options (name == NULL)\n");
             err = 1;
             break;
         }
-        
+
         opt = optget_i(opts, name);
         if(!opt) {
             if(verbose)
-                fprintf(stderr, "ERROR: Parse error at line %d: Unknown option %s\n", line, name);
+                fprintf(stderr, "ERROR: Parse error: Unknown option %s\n", name);
             err = 1;
             break;
         }
         optentry = &clam_options[opt->idx];
-        
+
         if(ignore && (optentry->owner & ignore) && !(optentry->owner & toolmask)) {
             if(verbose)
-                fprintf(stderr, "WARNING: Ignoring unsupported option %s at line %u\n", opt->name, line);
+                fprintf(stderr, "WARNING: Ignoring unsupported option %s\n", opt->name);
             continue;
         }
-        
+
         if(optentry->owner & OPT_DEPRECATED) {
             if(toolmask & OPT_DEPRECATED) {
                 if(optaddarg(opts, name, "foo", 1) < 0) {
@@ -1233,15 +1246,15 @@ struct optstruct *optadditem(const char *name, const char *arg, int verbose, int
                 }
             } else {
                 if(verbose)
-                    fprintf(stderr, "WARNING: Ignoring deprecated option %s at line %u\n", opt->name, line);
+                    fprintf(stderr, "WARNING: Ignoring deprecated option %s\n", opt->name);
             }
             continue;
         }
-        
+
         if(optentry->regex) {
             if(!(optentry->flags & FLAG_REG_CASE))
                 regflags |= REG_ICASE;
-            
+
             if(cli_regcomp(&regex, optentry->regex, regflags)) {
                 fprintf(stderr, "ERROR: optparse: Can't compile regular expression %s for option %s\n", optentry->regex, name);
                 err = 1;
@@ -1255,15 +1268,15 @@ struct optstruct *optadditem(const char *name, const char *arg, int verbose, int
                 break;
             }
         }
-        
+
         numarg = -1;
         switch(optentry->argtype) {
             case CLOPT_TYPE_STRING:
                 if(!arg)
                     arg = optentry->strarg;
-                
+
                 break;
-                
+
             case CLOPT_TYPE_NUMBER:
                 if (arg)
                     numarg = atoi(arg);
@@ -1271,7 +1284,7 @@ struct optstruct *optadditem(const char *name, const char *arg, int verbose, int
                     numarg = 0;
                 arg = NULL;
                 break;
-                
+
             case CLOPT_TYPE_SIZE:
                 errno = 0;
                 if(arg)
@@ -1299,41 +1312,41 @@ struct optstruct *optadditem(const char *name, const char *arg, int verbose, int
                             err = 1;
                     }
                 }
-                
+
                 arg = NULL;
                 if(err) break;
                 if(errno == ERANGE) {
                     fprintf(stderr, "WARNING: Numerical value for option %s too high, resetting to 4G\n", name);
                     lnumarg = UINT_MAX;
                 }
-                
+
                 numarg = lnumarg ? lnumarg : UINT_MAX;
                 break;
-                
+
             case CLOPT_TYPE_BOOL:
                 if(!strcasecmp(arg, "yes") || !strcmp(arg, "1") || !strcasecmp(arg, "true"))
                     numarg = 1;
                 else
                     numarg = 0;
-                
+
                 arg = NULL;
                 break;
         }
-        
+
         if(err)
             break;
-        
+
         if(optaddarg(opts, name, arg, numarg) < 0) {
             fprintf(stderr, "ERROR: Can't register argument for option --%s\n", optentry->longopt);
             err = 1;
         }
         break;
     }
-    
+
     if(err) {
         optfree(opts);
         return NULL;
     }
-      
+
     return opts;
 }

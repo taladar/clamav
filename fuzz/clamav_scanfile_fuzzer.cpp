@@ -1,7 +1,7 @@
 /*
  * Fuzz target for cl_scanfile()
  *
- * Copyright (C) 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (C) 2018-2019 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
  * Authors: Micah Snyder, Alex Gaynor
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,43 +78,45 @@ ClamAVState kClamAVState;
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     FILE* fuzzfile                  = NULL;
+    struct cl_scan_options scanopts = {0};
+
+    memset(&scanopts, 0, sizeof(struct cl_scan_options));
 
 #if defined(CLAMAV_FUZZ_ARCHIVE)
     kClamAVState.tmp_file_name = "tmp.scanfile.archive";
-    unsigned int scanopt = CL_SCAN_ARCHIVE;
+    scanopts.parse |= CL_SCAN_PARSE_ARCHIVE;
 #elif defined(CLAMAV_FUZZ_MAIL)
     kClamAVState.tmp_file_name = "tmp.scanfile.eml";
-    unsigned int scanopt = CL_SCAN_MAIL;
+    scanopts.parse |= CL_SCAN_PARSE_MAIL;
 #elif defined(CLAMAV_FUZZ_OLE2)
     kClamAVState.tmp_file_name = "tmp.scanfile.ole2";
-    unsigned int scanopt = CL_SCAN_OLE2;
+    scanopts.parse |= CL_SCAN_PARSE_OLE2;
 #elif defined(CLAMAV_FUZZ_PDF)
     kClamAVState.tmp_file_name = "tmp.scanfile.pdf";
-    unsigned int scanopt = CL_SCAN_PDF;
+    scanopts.parse |= CL_SCAN_PARSE_PDF;
 #elif defined(CLAMAV_FUZZ_HTML)
     kClamAVState.tmp_file_name = "tmp.scanfile.html";
-    unsigned int scanopt = CL_SCAN_HTML;
+    scanopts.parse |= CL_SCAN_PARSE_HTML;
 #elif defined(CLAMAV_FUZZ_PE)
     kClamAVState.tmp_file_name = "tmp.scanfile.pe";
-    unsigned int scanopt = CL_SCAN_PE;
+    scanopts.parse |= CL_SCAN_PARSE_PE;
 #elif defined(CLAMAV_FUZZ_ELF)
     kClamAVState.tmp_file_name = "tmp.scanfile.elf";
-    unsigned int scanopt = CL_SCAN_ELF;
+    scanopts.parse |= CL_SCAN_PARSE_ELF;
 #elif defined(CLAMAV_FUZZ_SWF)
     kClamAVState.tmp_file_name = "tmp.scanfile.swf";
-    unsigned int scanopt = CL_SCAN_SWF;
+    scanopts.parse |= CL_SCAN_PARSE_SWF;
 #elif defined(CLAMAV_FUZZ_XMLDOCS)
     kClamAVState.tmp_file_name = "tmp.scanfile.docx";
-    unsigned int scanopt = CL_SCAN_XMLDOCS;
+    scanopts.parse |= CL_SCAN_PARSE_XMLDOCS;
 #elif defined(CLAMAV_FUZZ_HWP3)
     kClamAVState.tmp_file_name = "tmp.scanfile.hwp";
-    unsigned int scanopt = CL_SCAN_HWP3;
+    scanopts.parse |= CL_SCAN_PARSE_HWP3;
 #else
     kClamAVState.tmp_file_name = "tmp.scanfile";
-    unsigned int scanopt = ~(0);
+    scanopts.parse |= ~(0);
 #endif
-
-    scanopt |= CL_SCAN_ALGORITHMIC;
+    scanopts.general |= CL_SCAN_GENERAL_HEURISTICS;
 
     fuzzfile = fopen(kClamAVState.tmp_file_name, "w");
     fwrite(data, size, 1, fuzzfile);
@@ -127,8 +129,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         &virus_name,
         &scanned,
         kClamAVState.engine,
-        scanopt
-    );
+        &scanopts);
 
     return 0;
 }

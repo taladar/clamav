@@ -61,7 +61,6 @@
 #include "shared.h"
 #include "libclamav/others.h"
 #include "libclamav/readdb.h"
-#include "libclamav/cltypes.h"
 
 #define BUFFSIZE 1024
 
@@ -89,7 +88,7 @@ static void scanner_thread(void *arg)
 #ifndef	_WIN32
     /* ignore all signals */
     sigfillset(&sigset);
-    /* The behavior of a process is undefined after it ignores a 
+    /* The behavior of a process is undefined after it ignores a
      * SIGFPE, SIGILL, SIGSEGV, or SIGBUS signal */
     sigdelset(&sigset, SIGFPE);
     sigdelset(&sigset, SIGILL);
@@ -553,7 +552,7 @@ static const char* parse_dispatch_cmd(client_conn_t *conn, struct fd_buf *buf, s
 		/* no more commands are accepted */
 		conn->mode = MODE_WAITREPLY;
 		/* Stop monitoring this FD, it will be closed either
-		 * by us, or by the scanner thread. 
+		 * by us, or by the scanner thread.
 		 * Never close a file descriptor that is being
 		 * monitored by poll()/select() from another thread,
 		 * because this can lead to subtle bugs such as:
@@ -632,7 +631,7 @@ static int handle_stream(client_conn_t *conn, struct fd_buf *buf, const struct o
     int rc;
     size_t pos = *ppos;
     size_t cmdlen;
-    
+
     logg("$mode == MODE_STREAM\n");
     /* we received some data, set readtimeout */
     time(&buf->timeout_at);
@@ -718,7 +717,7 @@ static int handle_stream(client_conn_t *conn, struct fd_buf *buf, const struct o
 int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsigned int dboptions, const struct optstruct *opts)
 {
 	int max_threads, max_queue, readtimeout, ret = 0;
-	unsigned int options = 0;
+	struct cl_scan_options options;
 	char timestr[32];
 #ifndef	_WIN32
 	struct sigaction sigact;
@@ -742,7 +741,7 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	threadpool_t *thr_pool;
 
 #if defined(FANOTIFY) || defined(CLAMAUTH)
-	pthread_t fan_pid;
+	pthread_t fan_pid = 0;
 	pthread_attr_t fan_attr;
 	struct thrarg *tharg = NULL; /* shut up gcc */
 #endif
@@ -751,13 +750,29 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	memset(&sigact, 0, sizeof(struct sigaction));
 #endif
 
+	/* Initalize scan options struct */
+	memset(&options, 0, sizeof(struct cl_scan_options));
+
     /* set up limits */
-    if((opt = optget(opts, "MaxScanSize"))->active) {
-	if((ret = cl_engine_set_num(engine, CL_ENGINE_MAX_SCANSIZE, opt->numarg))) {
-	    logg("!cl_engine_set_num(CL_ENGINE_MAX_SCANSIZE) failed: %s\n", cl_strerror(ret));
-	    cl_engine_free(engine);
-	    return 1;
-	}
+    if ((opt = optget(opts, "MaxScanTime"))->active) {
+        if ((ret = cl_engine_set_num(engine, CL_ENGINE_MAX_SCANTIME, opt->numarg))) {
+            logg("!cl_engine_set_num(CL_ENGINE_MAX_SCANTIME) failed: %s\n", cl_strerror(ret));
+            cl_engine_free(engine);
+            return 1;
+        }
+    }
+    val = cl_engine_get_num(engine, CL_ENGINE_MAX_SCANTIME, NULL);
+    if (val)
+        logg("Limits: Global time limit set to %llu milliseconds.\n", val);
+    else
+        logg("^Limits: Global time limit protection disabled.\n");
+
+    if ((opt = optget(opts, "MaxScanSize"))->active) {
+        if ((ret = cl_engine_set_num(engine, CL_ENGINE_MAX_SCANSIZE, opt->numarg))) {
+            logg("!cl_engine_set_num(CL_ENGINE_MAX_SCANSIZE) failed: %s\n", cl_strerror(ret));
+            cl_engine_free(engine);
+            return 1;
+        }
     }
     val = cl_engine_get_num(engine, CL_ENGINE_MAX_SCANSIZE, NULL);
     if(val)
@@ -920,138 +935,198 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
     val = cl_engine_get_num(engine, CL_ENGINE_PCRE_MAX_FILESIZE, NULL);
     logg("Limits: PCREMaxFileSize limit set to %llu.\n", val);
 
-    if(optget(opts, "ScanArchive")->enabled) {
-	logg("Archive support enabled.\n");
-	options |= CL_SCAN_ARCHIVE;
-
-	if(optget(opts, "ArchiveBlockEncrypted")->enabled) {
-	    logg("Archive: Blocking encrypted archives.\n");
-	    options |= CL_SCAN_BLOCKENCRYPTED;
-	}
-
+    if (optget(opts, "ScanArchive")->enabled) {
+        logg("Archive support enabled.\n");
+        options.parse |= CL_SCAN_PARSE_ARCHIVE;
     } else {
-	logg("Archive support disabled.\n");
+        logg("Archive support disabled.\n");
     }
 
+    /* TODO: Remove deprecated option in a future feature release. */
+    if (optget(opts, "ArchiveBlockEncrypted")->enabled) {
+        if (options.parse & CL_SCAN_PARSE_ARCHIVE) {
+            logg(
+              "^Using deprecated option \"ArchiveBlockEncrypted\" to alert on "
+              "encrypted archives _and_ documents. Please update your "
+              "configuration to use replacement options \"AlertEncrypted\", or "
+              "\"AlertEncryptedArchive\" and/or \"AlertEncryptedDoc\".\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_ARCHIVE;
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_DOC;
+        } else {
+            logg(
+              "^Using deprecated option \"ArchiveBlockEncrypted\" to alert on "
+              "encrypted documents. Please update your configuration to use "
+              "replacement options \"AlertEncrypted\", or "
+              "\"AlertEncryptedArchive\" and/or \"AlertEncryptedDoc\".\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_DOC;
+        }
+    }
+
+    if (optget(opts, "AlertEncrypted")->enabled) {
+        if (options.parse & CL_SCAN_PARSE_ARCHIVE) {
+            logg("Alerting of encrypted archives _and_ documents enabled.\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_ARCHIVE;
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_DOC;
+        } else {
+            logg("Alerting of encrypted documents enabled.\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_DOC;
+        }
+    }
+
+    if (optget(opts, "AlertEncryptedArchive")->enabled) {
+        if (options.parse & CL_SCAN_PARSE_ARCHIVE) {
+            logg("Alerting of encrypted archives _and_ documents enabled.\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_ARCHIVE;
+        } else {
+            logg("^Encrypted archive alerting requested, but archive support "
+                 "is disabled!\n");
+        }
+    }
+
+    if (optget(opts, "AlertEncryptedDoc")->enabled) {
+        logg("Alerting of encrypted documents enabled.\n");
+        options.heuristic |= CL_SCAN_HEURISTIC_ENCRYPTED_DOC;
+    }
+
+    /* TODO: Remove deprecated option in a future feature release. */
     if (optget(opts, "BlockMax")->enabled) {
-        logg("BlockMax heuristic detection enabled.\n");
-        options |= CL_SCAN_BLOCKMAX;
+        logg("^Using deprecated option \"BlockMax\" to enable heuristic alerts "
+             "when scans exceed set maximums. Please update your configuration "
+             "to use replacement option \"AlertExceedsMax\".\n");
+        options.heuristic |= CL_SCAN_HEURISTIC_EXCEEDS_MAX;
+    } else if (optget(opts, "AlertExceedsMax")->enabled) {
+        logg("Heuristic alerting enabled for scans that exceed set maximums.\n");
+        options.heuristic |= CL_SCAN_HEURISTIC_EXCEEDS_MAX;
     } else {
-        logg("BlockMax heuristic detection disabled.\n");
+        logg("AlertExceedsMax heuristic detection disabled.\n");
     }
 
-    if(optget(opts, "AlgorithmicDetection")->enabled) {
-	logg("Algorithmic detection enabled.\n");
-	options |= CL_SCAN_ALGORITHMIC;
-    } else {
-	logg("Algorithmic detection disabled.\n");
+    /* TODO: Remove deprecated option in a future feature release. */
+    if (!optget(opts, "AlgorithmicDetection")->enabled) {
+        logg("^Using deprecated option \"AlgorithmicDetection\" to disable "
+             "heuristic alerts. Please update your configuration to use "
+             "replacement option \"HeuristicAlerts\".\n");
+    } else if (!optget(opts, "HeuristicAlerts")->enabled) {
+        logg("Heuristic alerts disabled.\n");
+	} else {
+		logg("Heuristic alerts enabled.\n");
+		options.general |= CL_SCAN_GENERAL_HEURISTICS;
     }
 
     if(optget(opts, "ScanPE")->enabled) {
 	logg("Portable Executable support enabled.\n");
-	options |= CL_SCAN_PE;
+	options.parse |= CL_SCAN_PARSE_PE;
     } else {
 	logg("Portable Executable support disabled.\n");
     }
 
     if(optget(opts, "ScanELF")->enabled) {
 	logg("ELF support enabled.\n");
-	options |= CL_SCAN_ELF;
+	options.parse |= CL_SCAN_PARSE_ELF;
     } else {
 	logg("ELF support disabled.\n");
     }
 
-    if(optget(opts, "ScanPE")->enabled || optget(opts, "ScanELF")->enabled) {
-	if(optget(opts, "DetectBrokenExecutables")->enabled) {
-	    logg("Detection of broken executables enabled.\n");
-	    options |= CL_SCAN_BLOCKBROKEN;
-	}
+	/* TODO: Remove deprecated option in a future feature release */
+    if (optget(opts, "ScanPE")->enabled || optget(opts, "ScanELF")->enabled) {
+        if ((optget(opts, "DetectBrokenExecutables")->enabled) ||
+			(optget(opts, "AlertBrokenExecutables")->enabled)) {
+            logg("Alerting on broken executables enabled.\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_BROKEN;
+        }
     }
 
     if(optget(opts, "ScanMail")->enabled) {
 	logg("Mail files support enabled.\n");
-	options |= CL_SCAN_MAIL;
+	options.parse |= CL_SCAN_PARSE_MAIL;
 
 	if(optget(opts, "ScanPartialMessages")->enabled) {
 	    logg("Mail: RFC1341 handling enabled.\n");
-	    options |= CL_SCAN_PARTIAL_MESSAGE;
+	    options.mail |= CL_SCAN_MAIL_PARTIAL_MESSAGE;
 	}
 
     } else {
 	logg("Mail files support disabled.\n");
     }
 
-    if(optget(opts, "ScanOLE2")->enabled) {
-	logg("OLE2 support enabled.\n");
-	options |= CL_SCAN_OLE2;
-	if(optget(opts, "OLE2BlockMacros")->enabled) {
-	    logg("OLE2: Blocking all VBA macros.\n");
-	    options |= CL_SCAN_BLOCKMACROS;
-	}
+    if (optget(opts, "ScanOLE2")->enabled) {
+        logg("OLE2 support enabled.\n");
+        options.parse |= CL_SCAN_PARSE_OLE2;
+
+		/* TODO: Remove deprecated option in a future feature release */
+        if ((optget(opts, "OLE2BlockMacros")->enabled) ||
+        	(optget(opts, "AlertOLE2Macros")->enabled)) {
+            logg("OLE2: Alerting on all VBA macros.\n");
+            options.heuristic |= CL_SCAN_HEURISTIC_MACROS;
+        }
     } else {
-	logg("OLE2 support disabled.\n");
+        logg("OLE2 support disabled.\n");
     }
 
     if(optget(opts, "ScanPDF")->enabled) {
 	logg("PDF support enabled.\n");
-	options |= CL_SCAN_PDF;
+	options.parse |= CL_SCAN_PARSE_PDF;
     } else {
 	logg("PDF support disabled.\n");
     }
 
     if(optget(opts, "ScanSWF")->enabled) {
 	logg("SWF support enabled.\n");
-	options |= CL_SCAN_SWF;
+	options.parse |= CL_SCAN_PARSE_SWF;
     } else {
 	logg("SWF support disabled.\n");
     }
 
     if(optget(opts, "ScanHTML")->enabled) {
 	logg("HTML support enabled.\n");
-	options |= CL_SCAN_HTML;
+	options.parse |= CL_SCAN_PARSE_HTML;
     } else {
 	logg("HTML support disabled.\n");
     }
 
     if(optget(opts, "ScanXMLDOCS")->enabled) {
 	logg("XMLDOCS support enabled.\n");
-	options |= CL_SCAN_XMLDOCS;
+	options.parse |= CL_SCAN_PARSE_XMLDOCS;
     } else {
 	logg("XMLDOCS support disabled.\n");
     }
 
     if(optget(opts, "ScanHWP3")->enabled) {
 	logg("HWP3 support enabled.\n");
-	options |= CL_SCAN_HWP3;
+	options.parse |= CL_SCAN_PARSE_HWP3;
     } else {
 	logg("HWP3 support disabled.\n");
     }
 
-    if(optget(opts,"PhishingScanURLs")->enabled) {
-
-	if(optget(opts,"PhishingAlwaysBlockCloak")->enabled) {
-	    options |= CL_SCAN_PHISHING_BLOCKCLOAK; 
-	    logg("Phishing: Always checking for cloaked urls\n");
-	}
-
-	if(optget(opts,"PhishingAlwaysBlockSSLMismatch")->enabled) {
-	    options |= CL_SCAN_PHISHING_BLOCKSSL;
-	    logg("Phishing: Always checking for ssl mismatches\n");
-	}
+    if (optget(opts, "PhishingScanURLs")->enabled) {
+		/* TODO: Remove deprecated option in a future feature release */
+        if ((optget(opts, "PhishingAlwaysBlockCloak")->enabled) ||
+            (optget(opts, "AlertPhishingCloak")->enabled)) {
+            options.heuristic |= CL_SCAN_HEURISTIC_PHISHING_CLOAK;
+            logg("Phishing: Always checking for cloaked urls\n");
+        }
+		/* TODO: Remove deprecated option in a future feature release */
+        if ((optget(opts, "PhishingAlwaysBlockSSLMismatch")->enabled) ||
+            (optget(opts, "AlertPhishingSSLMismatch")->enabled)) {
+            options.heuristic |= CL_SCAN_HEURISTIC_PHISHING_SSL_MISMATCH;
+            logg("Phishing: Always checking for ssl mismatches\n");
+        }
     }
 
-    if(optget(opts,"PartitionIntersection")->enabled) {
-        options |= CL_SCAN_PARTITION_INTXN;
-        logg("Raw DMG: Always checking for partitions intersections\n");
+	/* TODO: Remove deprecated option in a future feature release */
+    if ((optget(opts,"PartitionIntersection")->enabled) ||
+		(optget(opts,"AlertPartitionIntersection")->enabled)) {
+        options.heuristic |= CL_SCAN_HEURISTIC_PARTITION_INTXN;
+        logg("Raw DMG: Alert on partitions intersections\n");
     }
 
     if(optget(opts,"HeuristicScanPrecedence")->enabled) {
-	    options |= CL_SCAN_HEURISTIC_PRECEDENCE;
+	    options.general |= CL_SCAN_GENERAL_HEURISTIC_PRECEDENCE;
 	    logg("Heuristic: precedence enabled\n");
     }
 
     if(optget(opts, "StructuredDataDetection")->enabled) {
-        options |= CL_SCAN_STRUCTURED;
+        options.heuristic |= CL_SCAN_HEURISTIC_STRUCTURED;
 
 	if((opt = optget(opts, "StructuredMinCreditCardCount"))->enabled) {
 	    if((ret = cl_engine_set_num(engine, CL_ENGINE_MIN_CC_COUNT, opt->numarg))) {
@@ -1074,15 +1149,15 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
         logg("Structured: Minimum Social Security Number Count set to %u\n", (unsigned int) val);
 
         if(optget(opts, "StructuredSSNFormatNormal")->enabled)
-            options |= CL_SCAN_STRUCTURED_SSN_NORMAL;
+            options.heuristic |= CL_SCAN_HEURISTIC_STRUCTURED_SSN_NORMAL;
 
         if(optget(opts, "StructuredSSNFormatStripped")->enabled)
-	    options |= CL_SCAN_STRUCTURED_SSN_STRIPPED;
+	    options.heuristic |= CL_SCAN_HEURISTIC_STRUCTURED_SSN_STRIPPED;
     }
 
 #ifdef HAVE__INTERNAL__SHA_COLLECT
     if(optget(opts, "DevCollectHashes")->enabled)
-	options |= CL_SCAN_INTERNAL_COLLECT_SHA;
+	options.dev |= CL_SCAN_DEV_COLLECT_SHA;
 #endif
 
     selfchk = optget(opts, "SelfCheck")->numarg;
@@ -1125,7 +1200,7 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 	int solaris_has_extended_stdio = 0;
 #endif
 	/* Condition to not run out of file descriptors:
-	 * MaxThreads * MaxRecursion + (MaxQueue - MaxThreads) + CLAMDFILES < RLIMIT_NOFILE 
+	 * MaxThreads * MaxRecursion + (MaxQueue - MaxThreads) + CLAMDFILES < RLIMIT_NOFILE
 	 * CLAMDFILES is 6: 3 standard FD + logfile + 2 FD for reloading the DB
 	 * */
 #ifdef C_SOLARIS
@@ -1209,18 +1284,34 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 
 #if defined(FANOTIFY) || defined(CLAMAUTH)
     {
+		int thread_started = 1;
         do {
-	    if(pthread_attr_init(&fan_attr)) break;
-	    pthread_attr_setdetachstate(&fan_attr, PTHREAD_CREATE_JOINABLE);
-	    if(!(tharg = (struct thrarg *) malloc(sizeof(struct thrarg)))) break;
-	    tharg->opts = opts;
-	    tharg->engine = engine;
-	    tharg->options = options;
-	    if(!pthread_create(&fan_pid, &fan_attr, onas_fan_th, tharg)) break;
-	    free(tharg);
-	    tharg=NULL;
-	} while(0);
-	if (!tharg) logg("!Unable to start on-access scan\n");
+			if(pthread_attr_init(&fan_attr)) break;
+			pthread_attr_setdetachstate(&fan_attr, PTHREAD_CREATE_JOINABLE);
+
+			/* Allocate memory for arguments. Thread is responsible for freeing it. */
+			if (!(tharg = (struct thrarg *) calloc(sizeof(struct thrarg), 1))) break;
+			if (!(tharg->options = (struct cl_scan_options *) calloc(sizeof(struct cl_scan_options), 1))) break;
+
+			(void) memcpy(tharg->options, &options, sizeof(struct cl_scan_options));
+			tharg->opts = opts;
+			tharg->engine = engine;
+
+			thread_started = pthread_create(&fan_pid, &fan_attr, onas_fan_th, tharg);
+		} while(0);
+
+		if (0 != thread_started) {
+			/* Failed to create thread. Free anything we may have allocated. */
+			logg("!Unable to start on-access scan.\n");
+			if (NULL != tharg) {
+				if (NULL != tharg->options) {
+					free(tharg->options);
+					tharg->options = NULL;
+				}
+				free(tharg);
+				tharg = NULL;
+			}
+		}
     }
 #else
 	logg("!On-access scan is not available\n");
@@ -1236,12 +1327,12 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
     sigdelset(&sigset, SIGHUP);
     sigdelset(&sigset, SIGPIPE);
     sigdelset(&sigset, SIGUSR2);
-    /* The behavior of a process is undefined after it ignores a 
+    /* The behavior of a process is undefined after it ignores a
      * SIGFPE, SIGILL, SIGSEGV, or SIGBUS signal */
     sigdelset(&sigset, SIGFPE);
     sigdelset(&sigset, SIGILL);
     sigdelset(&sigset, SIGSEGV);
-#ifdef SIGBUS    
+#ifdef SIGBUS
     sigdelset(&sigset, SIGBUS);
 #endif
     sigdelset(&sigset, SIGTSTP);
@@ -1384,7 +1475,7 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
 		conn.scanfd = buf->recvfd;
 		buf->recvfd = -1;
 		conn.sd = buf->fd;
-		conn.options = options;
+		conn.options = &options;
 		conn.opts = opts;
 		conn.thrpool = thr_pool;
 		conn.engine = engine;
@@ -1585,4 +1676,4 @@ int recvloop_th(int *socketds, unsigned nsockets, struct cl_engine *engine, unsi
     logg("--- Stopped at %s", cli_ctime(&current_time, timestr, sizeof(timestr)));
 
     return ret;
-} 
+}
