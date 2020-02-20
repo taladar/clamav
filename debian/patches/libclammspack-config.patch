@@ -1,0 +1,11 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -30,7 +30,7 @@ AC_PROG_CXX()
+ AH_BOTTOM([#include "platform.h"])
+ dnl put configure auxiliary into config
+ AC_CONFIG_AUX_DIR([config])
+-AC_CONFIG_HEADERS([clamav-config.h libclammspack/config.h:libclammspack/config.h.in])
++AC_CONFIG_HEADERS([clamav-config.h])
+ 
+ dnl safety check, this used to be a parameter to AC_INIT
+ AC_CONFIG_SRCDIR([clamscan/clamscan.c])

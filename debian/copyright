@@ -12,6 +12,7 @@ Files-Excluded:
  win32/*
  libclamav/c++/llvm/*
  libclammspack/*
+ libclamunrar
 
 
 Files: *

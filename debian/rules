@@ -96,7 +96,7 @@ override_dh_auto_configure:
 	  fi;\
 	done; \
 	# Check for library features which may have been upgraded.
-	if ! grep -q "CL_FLEVEL 105" libclamav/others.h ; then \
+	if ! grep -q "CL_FLEVEL 106" libclamav/others.h ; then \
 		echo "cl_retflevel needs boosting in symbol file"; \
 		touch debian/exit; \
 	fi;

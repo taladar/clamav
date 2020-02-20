@@ -1,3 +1,14 @@
+clamav (0.101.5+dfsg-0+deb8u1) jessie-security; urgency=medium
+
+  * Non-maintainer upload by the LTS Team.
+  * New upstream release.
+    - CVE-2019-15961 (A Denial-of-Service as a result of excessively long scan
+      times).
+  * Stay on 0.101.x for as long as possible, as 0.102.x requires a newer
+    curl version than what is in jessie for the on-access scanner rewrite.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 18 Feb 2020 10:59:40 +0100
+
 clamav (0.101.4+dfsg-0+deb8u2) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Security Team.

@@ -6,3 +6,4 @@ Add-support-for-LLVM-3.9.patch
 tfm-drop-__DATE__.patch
 tfm-fix-compile-errors.patch
 Deprecate-unused-options-instead-of-removing-it.patch
+libclammspack-config.patch
