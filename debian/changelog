@@ -1,3 +1,13 @@
+clamav (0.101.5+dfsg-0+deb8u2) jessie-security; urgency=high
+
+  * Non-maintainer upload by the LTS team.
+  * Add patch to fix for out-of-bounds read in ARJ parser.
+    (Fixes: CVE-2020-3327)
+  * Add patch to fix out-of-bounds read in PDF parser.
+    (Fixes: CVE-2020-3341)
+
+ -- Utkarsh Gupta <utkarsh@debian.org>  Wed, 20 May 2020 03:26:54 +0530
+
 clamav (0.101.5+dfsg-0+deb8u1) jessie-security; urgency=medium
 
   * Non-maintainer upload by the LTS Team.
